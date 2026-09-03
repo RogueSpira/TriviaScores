@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Wheel &amp; Scoreboard</title>
+<style>
+  :root {
+    --bg: #07141a;
+    --panel: #0f2830;
+    --panel-2: #143540;
+    --line: #1f4a52;
+    --ink: #f5f5f5;
+    --muted: #7fa8b0;
+    --accent: #45DBE0;
+    --focus: #45DBE0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+    overflow: hidden;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    height: 100vh;
+  }
+
+  /* ---- Wheel stage ---- */
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px;
+    min-width: 0;
+  }
+  .wheel-holder {
+    position: relative;
+    width: min(78vh, 90%);
+    aspect-ratio: 1;
+  }
+  .pointer {
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 22px solid transparent;
+    border-right: 22px solid transparent;
+    border-top: 40px solid var(--accent);
+    z-index: 5;
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,.7));
+  }
+  svg#wheel {
+    width: 100%; height: 100%;
+    display: block;
+    border-radius: 50%;
+    box-shadow: 0 0 0 8px #000, 0 0 0 12px var(--accent), 0 24px 60px rgba(0,0,0,.6);
+    transition: transform 5s cubic-bezier(.17,.67,.28,1);
+    cursor: pointer;
+  }
+  .hub {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 5px solid #000;
+    z-index: 4;
+    box-shadow: 0 4px 12px rgba(0,0,0,.6);
+  }
+  #spinBtn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-size: 18px; font-weight: 800;
+    letter-spacing: 2px;
+    padding: 15px 52px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(0,0,0,.5);
+    transition: transform .1s ease, filter .15s ease;
+    text-transform: uppercase;
+  }
+  #spinBtn:hover { filter: brightness(.9); }
+  #spinBtn:active { transform: translateY(2px); }
+  #spinBtn:disabled { opacity: .4; cursor: not-allowed; }
+  .result {
+    min-height: 34px;
+    font-size: 24px; font-weight: 700;
+    text-align: center;
+  }
+  .result .lbl { color: var(--muted); font-weight: 400; font-size: 13px; display:block; text-transform: uppercase; letter-spacing: 1px; }
+  .result .val { color: var(--accent); }
+  .result-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .remove-btn {
+    background: transparent;
+    border: 1px solid #b5484e;
+    color: #d9736f;
+    padding: 9px 22px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .12s ease;
+  }
+  .remove-btn:hover { background: #b5484e; color: #fff; }
+  .toolbar button:disabled { opacity: .4; cursor: not-allowed; }
+  .toolbar button:disabled:hover { border-color: var(--line); }
+
+  /* ---- Sidebar ---- */
+  .sidebar {
+    background: var(--panel);
+    border-left: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-width: 0;
+  }
+  .side-head {
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .side-head h2 {
+    margin: 0;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .side-head .sub { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+  .toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .toolbar button {
+    flex: 1 1 calc(50% - 4px);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 9px 6px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 12.5px;
+    transition: all .12s ease;
+    white-space: nowrap;
+  }
+  .toolbar button:hover { border-color: var(--accent); }
+  .toolbar button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .toolbar button.primary:hover { filter: brightness(.9); }
+
+  .team-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .team-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    transition: background .3s ease;
+  }
+  .row-top { display: flex; align-items: flex-start; gap: 8px; }
+  .row-top .rank, .row-top .swatch, .row-top .del-btn { margin-top: 3px; }
+  .row-bottom { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .bet-box {
+    display: flex; align-items: center; gap: 4px;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+  }
+  .bet-label {
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.2px;
+    margin-right: auto;
+  }
+  .bet-input {
+    width: 66px;
+    background: #000; border: 1px solid var(--line);
+    color: var(--ink); font-size: 14px; font-weight: 700;
+    padding: 6px; border-radius: 7px; text-align: right;
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+  }
+  .bet-input::-webkit-outer-spin-button,
+  .bet-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .bet-input:focus { outline: none; border-color: var(--accent); }
+  .bet-btn {
+    background: var(--panel); border: 1px solid var(--line);
+    color: var(--ink); cursor: pointer;
+    padding: 6px 9px; height: 30px;
+    border-radius: 7px; font-size: 11.5px; font-weight: 700;
+    white-space: nowrap; flex: 0 0 auto;
+    transition: all .1s ease;
+  }
+  .bet-btn.allin { letter-spacing: .3px; }
+  .bet-btn.allin:hover { border-color: #f5c518; color: #f5c518; background: rgba(245,197,24,.12); }
+  .bet-btn.won:hover { border-color: #3cb44b; color: #6ee08a; background: rgba(60,180,75,.14); }
+  .bet-btn.lost:hover { border-color: #b5484e; color: #d9736f; background: rgba(181,72,78,.14); }
+  .team-row.leader { border-color: var(--accent); }
+  .rank {
+    font-size: 12px; color: var(--muted);
+    width: 20px; text-align: center; flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .swatch {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 1px solid var(--line); cursor: pointer; flex: 0 0 auto;
+    padding: 0; overflow: hidden; background: none;
+  }
+  .team-row input[type=text] {
+    flex: 1 1 auto;
+    background: transparent; border: none;
+    color: var(--ink); font-size: 15px;
+    padding: 4px 2px; min-width: 0;
+  }
+  .team-row input[type=text]:focus { outline: none; }
+  .name-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    line-height: 1.3;
+    padding: 4px 2px;
+    resize: none;
+    overflow: hidden;
+    word-break: break-word;
+  }
+  .name-input:focus { outline: none; }
+  .name-input::placeholder { color: var(--muted); font-weight: 400; }
+  .score-box {
+    display: flex; align-items: center; gap: 3px;
+    flex: 0 0 auto;
+  }
+  .team-row input[type=number] {
+    background: #000;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 6px 6px;
+    border-radius: 7px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+  }
+  .team-row input[type=number]::-webkit-outer-spin-button,
+  .team-row input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .team-row input[type=number]:focus { outline: none; border-color: var(--accent); }
+  .amt-input { width: 54px; color: var(--muted) !important; font-weight: 500 !important; }
+  .amt-input:focus { color: var(--ink) !important; }
+  .total-input { width: 66px; }
+  .op-btn {
+    background: var(--panel); border: 1px solid var(--line);
+    color: var(--ink); cursor: pointer;
+    width: 26px; height: 30px; line-height: 1;
+    border-radius: 7px; font-size: 17px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; flex: 0 0 auto;
+    transition: all .1s ease;
+  }
+  .op-btn.plus:hover { border-color: #3cb44b; color: #6ee08a; background: rgba(60,180,75,.12); }
+  .op-btn.minus:hover { border-color: #b5484e; color: #d9736f; background: rgba(181,72,78,.12); }
+  .del-btn {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--muted); border-radius: 7px;
+    width: 26px; height: 30px; cursor: pointer;
+    font-size: 13px; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .del-btn:hover { border-color: #b5484e; color: #d9736f; }
+
+  .side-foot {
+    padding: 12px 20px;
+    border-top: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .add-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--line);
+    color: var(--muted);
+    padding: 11px; border-radius: 10px;
+    cursor: pointer; font-size: 14px;
+    transition: all .12s ease;
+  }
+  .add-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .step-config {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--muted);
+  }
+  .step-config input {
+    width: 80px; background: #000; border: 1px solid var(--line);
+    color: var(--ink); padding: 5px 8px; border-radius: 7px;
+    font-size: 13px; text-align: right;
+  }
+  .step-config input:focus { outline: none; border-color: var(--accent); }
+  .toggle-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--muted);
+  }
+  .toggle-row input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* ---- Mode toggle ---- */
+  #modeToggle {
+    position: fixed;
+    top: 18px; left: 18px;
+    z-index: 40;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  #modeToggle:hover { border-color: var(--accent); }
+
+  #tvToggle {
+    position: fixed;
+    top: 18px; left: 180px;
+    z-index: 40;
+    background: var(--accent); color: #000;
+    border: 1px solid var(--accent);
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all .15s ease;
+  }
+  #tvToggle:hover { filter: brightness(.92); }
+
+  /* ---- Leaderboard ---- */
+  .board-stage {
+    justify-content: flex-start;
+    padding: 70px 40px 40px;
+    overflow-y: auto;
+  }
+  .board-title {
+    margin: 0 0 24px;
+    font-size: clamp(28px, 4.5vh, 52px);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    font-weight: 800;
+    text-align: center;
+  }
+  .board {
+    width: 100%;
+    max-width: 1100px;
+    --bscale: 1;
+    display: flex;
+    flex-direction: column;
+    gap: calc(clamp(8px, 1.4vh, 16px) * var(--bscale));
+  }
+  .board-row {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2vw, 28px);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 10px solid var(--line);
+    border-radius: 14px;
+    padding: calc(clamp(10px, 1.8vh, 20px) * var(--bscale)) clamp(16px, 2.5vw, 30px);
+  }
+  .board-row.first {
+    border-color: var(--accent);
+    background: #1c1c1c;
+  }
+  .board-rank {
+    font-size: calc(clamp(24px, 4.5vh, 52px) * var(--bscale));
+    font-weight: 800;
+    color: var(--muted);
+    min-width: calc(clamp(44px, 6vw, 84px) * var(--bscale));
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 auto;
+  }
+  .board-row.first .board-rank { color: var(--accent); }
+  .board-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: calc(clamp(24px, 5vh, 58px) * var(--bscale));
+    font-weight: 700;
+    line-height: 1.15;
+    word-break: break-word;
+  }
+  .board-score {
+    font-size: calc(clamp(28px, 5.5vh, 64px) * var(--bscale));
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 auto;
+    letter-spacing: -1px;
+  }
+  .board-empty {
+    color: var(--muted);
+    font-size: 20px;
+    text-align: center;
+    font-style: italic;
+    padding: 40px;
+  }
+  body.board-mode .sidebar { display: none; }
+  body.board-mode .layout { grid-template-columns: 1fr; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 820px) {
+    .layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; overflow-y: auto; height: auto; }
+    .stage { height: 70vh; }
+    .sidebar { height: auto; border-left: none; border-top: 1px solid var(--line); }
+    .team-list { max-height: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    svg#wheel { transition: transform 1s ease-out; }
+  }
+
+  /* Save indicator */
+  #saveIndicator {
+    position: fixed; top: 18px; right: 18px; z-index: 20;
+    background: var(--panel-2); color: var(--accent); border: 1px solid var(--line);
+    padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    opacity: 0; transition: opacity .2s ease; pointer-events: none;
+  }
+  #saveIndicator.show { opacity: 1; }
+
+  /* New night button — slightly warned styling */
+  #newNightBtn:hover { border-color: #d9736f; color: #d9736f; }
+
+  /* Leaderboard link */
+  .leaderboard-link { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; word-break: break-all; }
+  .leaderboard-link b { color: var(--accent); }
+</style>
+</head>
+<body>
+<button id="tvToggle" title="Control what the TV shows">TV shows: Leaderboard</button>
+<div id="saveIndicator">Saved &#10003;</div>
+
+<div class="layout">
+
+  <div class="stage" id="wheelStage">
+    <div class="wheel-holder">
+      <div class="pointer"></div>
+      <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Team spinner wheel"></svg>
+      <div class="hub"></div>
+    </div>
+    <button id="spinBtn">Spin</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="stage board-stage" id="boardStage" hidden>
+    <h1 class="board-title">Standings</h1>
+    <div class="board" id="board"></div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="side-head">
+      <h2>Teams &amp; Scores</h2>
+      <p class="sub">Team names fill the wheel. Track points and sort the standings.</p>
+    </div>
+    <div class="toolbar">
+      <button id="sortBtn" class="primary">Sort by points &#8595;</button>
+      <button id="restoreBtn">Restore all to wheel</button>
+      <button id="shuffleBtn">Shuffle</button>
+      <button id="resetScoresBtn">Reset scores</button>
+      <button id="newNightBtn">New night (clear teams)</button>
+    </div>
+    <div class="team-list" id="teamList"></div>
+    <div class="side-foot">
+      <button class="add-btn" id="addBtn">+ Add team</button>
+      <div class="step-config">
+        <span>Points: hit + or &#8722; for 100, or type an amount first.<br>
+        Bids: enter a wager (or All in), then Won/Lost to resolve it.</span>
+      </div>
+      <div class="leaderboard-link">Leaderboard screen for the TV: <b id="boardUrl">&mdash;</b></div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+// Distinct default colors, one per team
+const TEAM_COLORS = [
+  "#e6194b","#3cb44b","#4363d8","#f58231","#911eb4",
+  "#42d4f4","#f032e6","#bfef45","#fabed4","#469990",
+  "#dcbeff","#9a6324","#fffac8","#800000","#aaffc3",
+  "#808000","#ffd8b1","#000075","#a9a9a9","#ffe119"
+];
+
+let teams = [
+  { id: "t_1", name: "Team 1", score: 0, color: TEAM_COLORS[0], out: false, bid: 0 },
+  { id: "t_2", name: "Team 2", score: 0, color: TEAM_COLORS[1], out: false, bid: 0 },
+  { id: "t_3", name: "Team 3", score: 0, color: TEAM_COLORS[2], out: false, bid: 0 },
+  { id: "t_4", name: "Team 4", score: 0, color: TEAM_COLORS[3], out: false, bid: 0 },
+];
+let rotation = 0;
+let spinning = false;
+let colorCursor = teams.length;
+
+/* ---------- Persistence (Netlify Blobs backend) ---------- */
+const SCORES_API = "/.netlify/functions/scores";
+let saveTimer = null;
+let lastSavedJSON = "";
+
+function newTeamId(){ return "t_" + Math.random().toString(36).slice(2, 9); }
+
+// Ensure every team has a stable id (older saved data or new rows).
+function ensureIds(){ teams.forEach(t => { if (!t.id) t.id = newTeamId(); }); }
+
+// Debounced save — rapid +/- clicks collapse into one write.
+function saveState(){
+  ensureIds();
+  const payload = JSON.stringify(teams.map(t => ({
+    id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0
+  })));
+  if (payload === lastSavedJSON) return;         // nothing actually changed
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await fetch(SCORES_API + "?action=save", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ teams: JSON.parse(payload) })
+      });
+      lastSavedJSON = payload;
+      flashSaved();
+    } catch(e) { /* offline / hiccup — next change retries */ }
+  }, 500);
+}
+
+async function loadState(){
+  try {
+    const res = await fetch(SCORES_API + "?action=status", { cache: "no-store" });
+    const data = await res.json();
+    if (data.teams && data.teams.length) {
+      teams = data.teams.map(t => ({
+        id: t.id || newTeamId(),
+        name: t.name || "", score: Number(t.score)||0,
+        color: t.color || TEAM_COLORS[0], out: !!t.out, bid: Number(t.bid)||0
+      }));
+      colorCursor = teams.length;
+      lastSavedJSON = JSON.stringify(teams.map(t => ({
+        id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0
+      })));
+    }
+  } catch(e) { /* no saved state yet, or offline — keep the defaults */ }
+}
+
+function flashSaved(){
+  const el = document.getElementById("saveIndicator");
+  if (!el) return;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 900);
+}
+
+const wheel = document.getElementById("wheel");
+const teamList = document.getElementById("teamList");
+const result = document.getElementById("result");
+const spinBtn = document.getElementById("spinBtn");
+
+const R = 200, CX = 200, CY = 200;
+function polar(cx, cy, r, angle) {
+  const a = (angle - 90) * Math.PI / 180;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+// Teams shown on the wheel (respecting "out")
+function wheelTeams() {
+  return teams.filter(t => !t.out);
+}
+
+function drawWheel() {
+  const active = wheelTeams();
+  const n = active.length;
+  wheel.innerHTML = "";
+
+  if (n === 0) {
+    const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx",CX); c.setAttribute("cy",CY); c.setAttribute("r",R);
+    c.setAttribute("fill","#1f1f1f");
+    wheel.appendChild(c);
+    const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("x",CX); t.setAttribute("y",CY); t.setAttribute("fill","#8a8a8a");
+    t.setAttribute("text-anchor","middle"); t.setAttribute("font-size","16");
+    t.textContent = "Add a team";
+    wheel.appendChild(t);
+    return;
+  }
+  if (n === 1) {
+    const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+    c.setAttribute("cx",CX); c.setAttribute("cy",CY); c.setAttribute("r",R);
+    c.setAttribute("fill",active[0].color);
+    c.setAttribute("stroke","#000"); c.setAttribute("stroke-width","1.5");
+    wheel.appendChild(c);
+    const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+    t.setAttribute("x",CX); t.setAttribute("y",CY); t.setAttribute("fill",pickTextColor(active[0].color));
+    t.setAttribute("text-anchor","middle"); t.setAttribute("dominant-baseline","middle");
+    t.setAttribute("font-size","16"); t.setAttribute("font-weight","700");
+    t.textContent = active[0].name;
+    wheel.appendChild(t);
+    return;
+  }
+
+  const arc = 360 / n;
+  active.forEach((team, i) => {
+    const start = i * arc;
+    const end = start + arc;
+    const [x1,y1] = polar(CX,CY,R,start);
+    const [x2,y2] = polar(CX,CY,R,end);
+    const large = arc > 180 ? 1 : 0;
+    const mid = start + arc/2;
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",`M${CX},${CY} L${x1},${y1} A${R},${R} 0 ${large} 1 ${x2},${y2} Z`);
+    path.setAttribute("fill",team.color);
+    path.setAttribute("stroke","#000");
+    path.setAttribute("stroke-width","1.5");
+    wheel.appendChild(path);
+
+    if (team.name) {
+      const [tx,ty] = polar(CX,CY, R*0.64, mid);
+      const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+      text.setAttribute("x",tx); text.setAttribute("y",ty);
+      text.setAttribute("fill", pickTextColor(team.color));
+      text.setAttribute("text-anchor","middle");
+      text.setAttribute("dominant-baseline","middle");
+      text.setAttribute("font-size", n > 12 ? "11" : "14");
+      text.setAttribute("font-weight","700");
+      text.setAttribute("transform",`rotate(${mid} ${tx} ${ty})`);
+      let lbl = team.name;
+      if (lbl.length > 16) lbl = lbl.slice(0,15) + "\u2026";
+      text.textContent = lbl;
+      wheel.appendChild(text);
+    }
+  });
+}
+
+function pickTextColor(hex) {
+  const c = hex.replace("#","");
+  const r = parseInt(c.substr(0,2),16), g = parseInt(c.substr(2,2),16), b = parseInt(c.substr(4,2),16);
+  return (r*0.299 + g*0.587 + b*0.114) > 150 ? "#000" : "#fff";
+}
+
+function renderList() {
+  teamList.innerHTML = "";
+  const maxScore = Math.max(...teams.map(t => t.score), 0);
+  teams.forEach((team, i) => {
+    const row = document.createElement("div");
+    row.className = "team-row" + (team.score === maxScore && maxScore > 0 ? " leader" : "");
+
+    const rank = document.createElement("div");
+    rank.className = "rank";
+    rank.textContent = (i+1);
+
+    const swatch = document.createElement("input");
+    swatch.type = "color";
+    swatch.className = "swatch";
+    swatch.value = team.color;
+    swatch.title = "Team color";
+    swatch.oninput = e => { team.color = e.target.value; drawWheel(); if (boardMode) renderBoard(); saveState(); };
+
+    const name = document.createElement("textarea");
+    name.className = "name-input";
+    name.rows = 1;
+    name.value = team.name;
+    name.placeholder = "Team name\u2026";
+    const autoGrow = () => { name.style.height = "auto"; name.style.height = name.scrollHeight + "px"; };
+    name.oninput = e => { team.name = e.target.value; autoGrow(); drawWheel(); if (boardMode) renderBoard(); saveState(); };
+    name.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); name.blur(); } };
+    // Grow to fit once the row is in the DOM
+    requestAnimationFrame(autoGrow);
+
+    const scoreBox = document.createElement("div");
+    scoreBox.className = "score-box";
+
+    // Amount to add/subtract for this team
+    const amt = document.createElement("input");
+    amt.type = "number";
+    amt.className = "amt-input";
+    amt.placeholder = "100";
+    amt.title = "Points to add or subtract (defaults to 100)";
+
+    const applyDelta = (sign) => {
+      const raw = amt.value.trim();
+      // Empty box defaults to 100; otherwise use the typed amount
+      const v = raw === "" ? 100 : parseInt(raw, 10);
+      if (isNaN(v) || v === 0) { amt.focus(); return; }
+      team.score += sign * v;
+      amt.value = "";
+      syncScores();
+      amt.focus();
+    };
+
+    const minus = document.createElement("button");
+    minus.className = "op-btn minus"; minus.textContent = "\u2212"; minus.title = "Subtract";
+    minus.onclick = () => applyDelta(-1);
+
+    const plus = document.createElement("button");
+    plus.className = "op-btn plus"; plus.textContent = "+"; plus.title = "Add";
+    plus.onclick = () => applyDelta(1);
+
+    // Enter = add, Shift+Enter = subtract
+    amt.onkeydown = e => {
+      if (e.key === "Enter") { e.preventDefault(); applyDelta(e.shiftKey ? -1 : 1); }
+    };
+
+    // Current running total (editable directly if needed)
+    const score = document.createElement("input");
+    score.type = "number";
+    score.className = "total-input";
+    score.value = team.score;
+    score.title = "Current total";
+    score.oninput = e => { team.score = parseInt(e.target.value || "0", 10); markLeaders(); saveState(); };
+
+    scoreBox.append(amt, minus, plus, score);
+
+    /* ---- Gamble / wager row ---- */
+    const betBox = document.createElement("div");
+    betBox.className = "bet-box";
+
+    const betLabel = document.createElement("span");
+    betLabel.className = "bet-label";
+    betLabel.textContent = "Bid";
+
+    const bet = document.createElement("input");
+    bet.type = "number";
+    bet.className = "bet-input";
+    bet.placeholder = "0";
+    bet.title = "Wager amount";
+    if (team.bid) bet.value = team.bid;
+    bet.oninput = e => { team.bid = parseInt(e.target.value || "0", 10) || 0; };
+
+    const allIn = document.createElement("button");
+    allIn.className = "bet-btn allin";
+    allIn.textContent = "All in";
+    allIn.title = "Bid this team's entire score";
+    allIn.onclick = () => {
+      bet.value = team.score;
+      team.bid = team.score;
+      bet.focus();
+    };
+
+    const won = document.createElement("button");
+    won.className = "bet-btn won";
+    won.textContent = "Won";
+    won.title = "Team won the wager \u2014 add the bid";
+    won.onclick = () => resolveBet(1);
+
+    const lost = document.createElement("button");
+    lost.className = "bet-btn lost";
+    lost.textContent = "Lost";
+    lost.title = "Team lost the wager \u2014 subtract the bid";
+    lost.onclick = () => resolveBet(-1);
+
+    const resolveBet = (sign) => {
+      const v = parseInt(bet.value || "0", 10);
+      if (isNaN(v) || v === 0) { bet.focus(); return; }
+      team.score += sign * v;
+      bet.value = "";
+      team.bid = 0;
+      syncScores();
+    };
+
+    bet.onkeydown = e => {
+      if (e.key === "Enter") { e.preventDefault(); resolveBet(e.shiftKey ? -1 : 1); }
+    };
+
+    betBox.append(betLabel, bet, allIn, won, lost);
+
+    const del = document.createElement("button");
+    del.className = "del-btn";
+    del.textContent = "\u2715";
+    del.title = "Delete team";
+    del.onclick = () => { teams.splice(i,1); renderList(); drawWheel(); saveState(); };
+
+    const top = document.createElement("div");
+    top.className = "row-top";
+    top.append(rank, swatch, name, del);
+
+    const bottom = document.createElement("div");
+    bottom.className = "row-bottom";
+    bottom.append(scoreBox);
+
+    row.append(top, bottom, betBox);
+    teamList.appendChild(row);
+  });
+  if (typeof boardMode !== "undefined" && boardMode) renderBoard();
+}
+
+// Re-render scores in the list without rebuilding (keeps focus stable on step clicks)
+function syncScores() {
+  const rows = teamList.querySelectorAll(".team-row");
+  rows.forEach((row, i) => {
+    const inp = row.querySelector(".total-input");
+    if (inp) inp.value = teams[i].score;
+  });
+  markLeaders();
+  saveState();
+}
+
+function markLeaders() {
+  const maxScore = Math.max(...teams.map(t => t.score), 0);
+  const rows = teamList.querySelectorAll(".team-row");
+  rows.forEach((row, i) => {
+    row.classList.toggle("leader", teams[i].score === maxScore && maxScore > 0);
+  });
+  if (typeof boardMode !== "undefined" && boardMode) renderBoard();
+}
+
+function nextColor() {
+  const c = TEAM_COLORS[colorCursor % TEAM_COLORS.length];
+  colorCursor++;
+  return c;
+}
+
+document.getElementById("addBtn").onclick = () => {
+  teams.push({ id: newTeamId(), name: "Team " + (teams.length+1), score: 0, color: nextColor(), out: false, bid: 0 });
+  renderList(); drawWheel(); saveState();
+};
+
+document.getElementById("sortBtn").onclick = () => {
+  teams.sort((a,b) => b.score - a.score);
+  renderList(); drawWheel(); saveState();
+};
+
+document.getElementById("shuffleBtn").onclick = () => {
+  for (let i = teams.length-1; i>0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [teams[i],teams[j]] = [teams[j],teams[i]];
+  }
+  renderList(); drawWheel(); saveState();
+};
+
+document.getElementById("restoreBtn").onclick = () => {
+  teams.forEach(t => t.out = false);
+  drawWheel();
+  result.innerHTML = "";
+  updateRestoreBtn(); saveState();
+};
+
+document.getElementById("resetScoresBtn").onclick = () => {
+  teams.forEach(t => { t.score = 0; t.out = false; t.bid = 0; });
+  renderList(); drawWheel(); result.innerHTML = "";
+  updateRestoreBtn(); saveState();
+};
+
+document.getElementById("newNightBtn").onclick = () => {
+  if (!confirm("Clear all teams and scores for a new night?")) return;
+  teams = [
+    { id: newTeamId(), name: "Team 1", score: 0, color: TEAM_COLORS[0], out: false, bid: 0 },
+    { id: newTeamId(), name: "Team 2", score: 0, color: TEAM_COLORS[1], out: false, bid: 0 },
+  ];
+  colorCursor = teams.length;
+  renderList(); drawWheel(); result.innerHTML = "";
+  updateRestoreBtn(); saveState();
+};
+
+// Enable Restore only when at least one team is off the wheel
+function updateRestoreBtn() {
+  const btn = document.getElementById("restoreBtn");
+  const anyOut = teams.some(t => t.out);
+  btn.disabled = !anyOut;
+  const count = teams.filter(t => t.out).length;
+  btn.textContent = anyOut ? `Restore all (${count})` : "Restore all to wheel";
+}
+
+/* ---------- Leaderboard mode ---------- */
+let boardMode = false;
+const wheelStage = document.getElementById("wheelStage");
+const boardStage = document.getElementById("boardStage");
+const board = document.getElementById("board");
+const modeToggle = document.getElementById("modeToggle");
+
+function renderBoard() {
+  board.innerHTML = "";
+  if (teams.length === 0) {
+    board.innerHTML = '<div class="board-empty">No teams yet.</div>';
+    return;
+  }
+  // Shrink rows as the roster grows so everything stays on one screen
+  const n = teams.length;
+  const scale = n <= 6 ? 1 : n <= 10 ? 0.75 : n <= 16 ? 0.55 : 0.42;
+  board.style.setProperty("--bscale", scale);
+
+  // Sort a copy so the roster order on the right is untouched
+  const ranked = teams.slice().sort((a,b) => b.score - a.score);
+  let lastScore = null, lastRank = 0;
+  ranked.forEach((team, i) => {
+    // Ties share a rank
+    const rank = (team.score === lastScore) ? lastRank : i + 1;
+    lastScore = team.score; lastRank = rank;
+
+    const row = document.createElement("div");
+    row.className = "board-row" + (rank === 1 ? " first" : "");
+    row.style.borderLeftColor = team.color;
+
+    const rk = document.createElement("div");
+    rk.className = "board-rank";
+    rk.textContent = rank;
+
+    const nm = document.createElement("div");
+    nm.className = "board-name";
+    nm.textContent = team.name || "\u2014";
+
+    const sc = document.createElement("div");
+    sc.className = "board-score";
+    sc.textContent = team.score.toLocaleString();
+
+    row.append(rk, nm, sc);
+    board.appendChild(row);
+  });
+}
+
+function setMode(toBoard) {
+  boardMode = toBoard;
+  document.body.classList.toggle("board-mode", boardMode);
+  if (wheelStage) wheelStage.hidden = boardMode;
+  if (boardStage) boardStage.hidden = !boardMode;
+  if (boardMode) renderBoard();
+}
+
+// Local leaderboard toggle removed — the TV display is controlled by #tvToggle.
+if (modeToggle) modeToggle.onclick = () => setMode(!boardMode);
+
+// Control what the TV (scores-board.html) displays: leaderboard or wheel.
+let tvDisplay = "leaderboard";
+async function setTVDisplay(mode){
+  tvDisplay = mode;
+  const btn = document.getElementById("tvToggle");
+  if (btn) btn.textContent = "TV shows: " + (mode === "wheel" ? "Wheel" : "Leaderboard");
+  try {
+    await fetch(SCORES_API + "?action=display", {
+      method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ display: mode })
+    });
+  } catch(e) {}
+}
+
+function spin() {
+  const active = wheelTeams();
+  if (spinning || active.length === 0) return;
+  if (active.length === 1) {
+    showResult(active[0]);
+    return;
+  }
+  spinning = true;
+  spinBtn.disabled = true;
+  result.innerHTML = "";
+
+  const n = active.length;
+  const arc = 360 / n;
+  const winnerIdx = Math.floor(Math.random() * n);
+  const winner = active[winnerIdx];
+  const winnerCenter = winnerIdx * arc + arc/2;
+  const turns = 5 + Math.floor(Math.random()*3);
+  const target = turns*360 + (360 - winnerCenter);
+  rotation = target;
+  wheel.style.transform = `rotate(${rotation}deg)`;
+
+  // Tell the TV to run the same spin (it animates locally to the same winner).
+  ensureIds();
+  try {
+    fetch(SCORES_API + "?action=spin", {
+      method:"POST", headers:{"content-type":"application/json"},
+      body: JSON.stringify({ winnerId: winner.id, order: active.map(t => t.id), turns })
+    });
+  } catch(e) {}
+
+  const done = () => {
+    wheel.removeEventListener("transitionend", done);
+    showResult(winner);
+    spinning = false;
+    spinBtn.disabled = false;
+  };
+  wheel.addEventListener("transitionend", done);
+}
+
+// Show the picked team plus a manual "remove" button
+function showResult(team) {
+  result.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "result-inner";
+
+  const lbl = document.createElement("span");
+  lbl.className = "lbl"; lbl.textContent = "Picked";
+
+  const val = document.createElement("span");
+  val.className = "val"; val.textContent = team.name || "Team";
+
+  const remove = document.createElement("button");
+  remove.className = "remove-btn";
+  remove.textContent = "Remove from wheel";
+  remove.onclick = () => {
+    team.out = true;
+    rotation = rotation % 360;
+    wheel.style.transition = "none";
+    wheel.style.transform = `rotate(${rotation}deg)`;
+    requestAnimationFrame(()=>{ wheel.style.transition = ""; });
+    drawWheel();
+    result.innerHTML = "";
+    updateRestoreBtn();
+    saveState();
+  };
+
+  wrap.append(lbl, val, remove);
+  result.appendChild(wrap);
+}
+
+function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+spinBtn.onclick = spin;
+wheel.onclick = spin;
+
+// Load any saved state from the backend first, then render.
+(async () => {
+  const boardUrlEl = document.getElementById("boardUrl");
+  if (boardUrlEl) boardUrlEl.textContent = new URL("scores-board.html", location.href).href;
+  document.getElementById("tvToggle").onclick = () => setTVDisplay(tvDisplay === "wheel" ? "leaderboard" : "wheel");
+  await loadState();
+  renderList();
+  drawWheel();
+  updateRestoreBtn();
+})();
+</script>
+</body>
+</html>

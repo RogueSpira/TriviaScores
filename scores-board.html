@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kava &amp; Co. Trivia — Screen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#07141a; --panel:#0f2830; --panel-2:#143540; --line:#1f4a52;
+    --ink:#f5f5f5; --muted:#7fa8b0;
+    --aqua:#45DBE0; --aqua-bright:#7fe9ed; --lagoon:#2ba6ab; --cream:#FFF3E0;
+    --gold:#FFCF3A;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden;
+    background: radial-gradient(circle at 50% 0%, #0d3038 0%, var(--bg) 70%);
+    color:var(--ink); font-family:"Helvetica Neue","Segoe UI",system-ui,sans-serif; }
+  body { display:flex; flex-direction:column; height:100vh; padding:4vh 4vw; }
+
+  /* ---------- Leaderboard ---------- */
+  .title { text-align:center; flex:0 0 auto; margin-bottom:3vh; }
+  .title .logo { font-family:"Bungee",sans-serif; font-size:5vh; color:var(--aqua); letter-spacing:.2vh; }
+  .title .sub { font-size:2.2vh; color:var(--muted); text-transform:uppercase; letter-spacing:.5vh; margin-top:.6vh; }
+  .board { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:1.4vh; max-width:1100px; width:100%; margin:0 auto; }
+  .row {
+    display:flex; align-items:center; gap:2vw; height:9vh; padding:0 2.5vw;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:2px solid var(--line); border-radius:1.6vh;
+    transition: border-color .3s;
+  }
+  .row.leader { border-color:var(--aqua); box-shadow:0 0 3.5vh rgba(69,219,224,.35); }
+  .rank { font-family:"Bungee",sans-serif; font-size:4.6vh; color:var(--aqua-bright); width:8vh; text-align:center; flex:0 0 auto; }
+  .row.leader .rank { color:var(--gold); }
+  .swatch { width:3vh; height:3vh; border-radius:50%; flex:0 0 auto; border:.3vh solid rgba(255,255,255,.3); }
+  .name { flex:1 1 auto; font-size:4vh; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .score { font-family:"Bungee",sans-serif; font-size:4.6vh; color:var(--cream); flex:0 0 auto; font-variant-numeric:tabular-nums; }
+  .row.leader .score { color:var(--gold); }
+  .crown { font-size:3.4vh; margin-left:1vh; }
+
+  /* ---------- Wheel ---------- */
+  .wheel-wrap { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3vh; }
+  .wheel-holder { position:relative; width:min(76vh, 90vw); aspect-ratio:1; }
+  .pointer {
+    position:absolute; top:-1vh; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:2.4vh solid transparent; border-right:2.4vh solid transparent;
+    border-top:4.4vh solid var(--aqua); z-index:5; filter:drop-shadow(0 .4vh .6vh rgba(0,0,0,.7));
+  }
+  svg#tvwheel {
+    width:100%; height:100%; display:block; border-radius:50%;
+    box-shadow:0 0 0 .9vh #000, 0 0 0 1.4vh var(--aqua), 0 3vh 7vh rgba(0,0,0,.6);
+    transition: transform 5s cubic-bezier(.17,.67,.28,1);
+  }
+  .hub { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:7vh; height:7vh; border-radius:50%; background:var(--aqua); border:.6vh solid #000; z-index:4; }
+  .winner-banner {
+    font-family:"Bungee",sans-serif; font-size:5vh; color:var(--gold); min-height:6vh;
+    text-align:center; text-shadow:0 0 3vh rgba(255,207,58,.5);
+    opacity:0; transition:opacity .4s;
+  }
+  .winner-banner.show { opacity:1; }
+
+  .empty { margin:auto; text-align:center; color:var(--muted); }
+  .empty .logo { font-family:"Bungee",sans-serif; font-size:7vh; color:var(--aqua); }
+  .empty .msg { font-size:3vh; margin-top:2vh; }
+
+  .live-dot { position:fixed; top:1.5vh; right:2vw; width:1.2vh; height:1.2vh; border-radius:50%; background:var(--aqua); opacity:.5; transition:opacity .3s; }
+  .live-dot.ping { opacity:1; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+  <div class="live-dot" id="dot"></div>
+
+  <!-- LEADERBOARD VIEW -->
+  <div id="leaderboardView">
+    <div id="lbRoot">
+      <div class="empty"><div class="logo">Kava &amp; Co.</div><div class="msg">Standings will appear here</div></div>
+    </div>
+  </div>
+
+  <!-- WHEEL VIEW -->
+  <div id="wheelView" class="wheel-wrap hidden">
+    <div class="wheel-holder">
+      <div class="pointer"></div>
+      <svg id="tvwheel" viewBox="0 0 400 400" role="img" aria-label="Team spinner"></svg>
+      <div class="hub"></div>
+    </div>
+    <div class="winner-banner" id="winnerBanner"></div>
+  </div>
+
+<script>
+const API = "/.netlify/functions/scores";
+const R = 200, CX = 200, CY = 200;
+const dot = document.getElementById("dot");
+const lbRoot = document.getElementById("lbRoot");
+const leaderboardView = document.getElementById("leaderboardView");
+const wheelView = document.getElementById("wheelView");
+const tvwheel = document.getElementById("tvwheel");
+const winnerBanner = document.getElementById("winnerBanner");
+
+let lastLbSig = "";
+let lastWheelSig = "";
+let lastSpinToken = null;
+let tvRotation = 0;
+let currentDisplay = "leaderboard";
+let latestTeams = [];
+
+function pulse(){ dot.classList.add("ping"); setTimeout(()=>dot.classList.remove("ping"),300); }
+function escapeHtml(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
+function polar(cx,cy,r,angle){const a=(angle-90)*Math.PI/180;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];}
+function pickTextColor(hex){const c=(hex||"#45DBE0").replace("#","");const r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);return (r*0.299+g*0.587+b*0.114)>150?"#000":"#fff";}
+
+/* ---------- Draw the wheel from a given team order ---------- */
+function drawTVWheel(activeTeams){
+  const n = activeTeams.length;
+  tvwheel.innerHTML = "";
+  const NS = "http://www.w3.org/2000/svg";
+  if (n === 0) {
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("cx",CX);c.setAttribute("cy",CY);c.setAttribute("r",R);c.setAttribute("fill","#143540");
+    tvwheel.appendChild(c); return;
+  }
+  if (n === 1) {
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("cx",CX);c.setAttribute("cy",CY);c.setAttribute("r",R);
+    c.setAttribute("fill",activeTeams[0].color);c.setAttribute("stroke","#000");c.setAttribute("stroke-width","1.5");
+    tvwheel.appendChild(c);
+    const t=document.createElementNS(NS,"text");
+    t.setAttribute("x",CX);t.setAttribute("y",CY);t.setAttribute("fill",pickTextColor(activeTeams[0].color));
+    t.setAttribute("text-anchor","middle");t.setAttribute("dominant-baseline","middle");
+    t.setAttribute("font-size","18");t.setAttribute("font-weight","700");
+    t.textContent=activeTeams[0].name||"Team"; tvwheel.appendChild(t); return;
+  }
+  const arc = 360/n;
+  activeTeams.forEach((team,i)=>{
+    const start=i*arc, end=start+arc;
+    const [x1,y1]=polar(CX,CY,R,start), [x2,y2]=polar(CX,CY,R,end);
+    const large = arc>180?1:0, mid=start+arc/2;
+    const path=document.createElementNS(NS,"path");
+    path.setAttribute("d",`M${CX},${CY} L${x1},${y1} A${R},${R} 0 ${large} 1 ${x2},${y2} Z`);
+    path.setAttribute("fill",team.color);path.setAttribute("stroke","#000");path.setAttribute("stroke-width","1.5");
+    tvwheel.appendChild(path);
+    if (team.name){
+      const [tx,ty]=polar(CX,CY,R*0.64,mid);
+      const text=document.createElementNS(NS,"text");
+      text.setAttribute("x",tx);text.setAttribute("y",ty);
+      text.setAttribute("fill",pickTextColor(team.color));
+      text.setAttribute("text-anchor","middle");text.setAttribute("dominant-baseline","middle");
+      text.setAttribute("font-size",n>12?"11":"15");text.setAttribute("font-weight","700");
+      text.setAttribute("transform",`rotate(${mid} ${tx} ${ty})`);
+      let lbl=team.name; if(lbl.length>16)lbl=lbl.slice(0,15)+"\u2026";
+      text.textContent=lbl; tvwheel.appendChild(text);
+    }
+  });
+}
+
+/* ---------- Animate a spin to the winner ---------- */
+function runSpin(order, winnerId, turns){
+  // order = array of team ids currently on the wheel (matches host)
+  const activeTeams = order.map(id => latestTeams.find(t => t.id === id)).filter(Boolean);
+  if (!activeTeams.length) return;
+  drawTVWheel(activeTeams);
+
+  const n = activeTeams.length;
+  const arc = 360/n;
+  const winnerIdx = activeTeams.findIndex(t => t.id === winnerId);
+  if (winnerIdx < 0) return;
+  const winnerCenter = winnerIdx*arc + arc/2;
+  const target = turns*360 + (360 - winnerCenter);
+
+  // reset transition then animate
+  winnerBanner.classList.remove("show");
+  tvwheel.style.transition = "none";
+  tvwheel.style.transform = `rotate(${tvRotation % 360}deg)`;
+  // force reflow so the reset takes effect before the animated transform
+  void tvwheel.offsetWidth;
+  tvwheel.style.transition = "transform 5s cubic-bezier(.17,.67,.28,1)";
+  tvRotation = target;
+  tvwheel.style.transform = `rotate(${tvRotation}deg)`;
+
+  const winner = activeTeams[winnerIdx];
+  setTimeout(() => {
+    winnerBanner.textContent = (winner.name || "Team") + "!";
+    winnerBanner.classList.add("show");
+  }, 5100);
+}
+
+/* ---------- Leaderboard render ---------- */
+function renderLeaderboard(teams){
+  const shown = teams.filter(t => (t.name && t.name.trim()) || t.score);
+  if (!shown.length) {
+    if (lastLbSig === "empty") return;
+    lastLbSig = "empty";
+    lbRoot.innerHTML = `<div class="empty"><div class="logo">Kava &amp; Co.</div><div class="msg">Standings will appear here</div></div>`;
+    return;
+  }
+  const ranked = shown.slice().sort((a,b)=>b.score-a.score);
+  const maxScore = Math.max(...ranked.map(t=>t.score),0);
+  const sig = JSON.stringify(ranked.map(t=>[t.name,t.score,t.color]));
+  if (sig === lastLbSig) return;
+  lastLbSig = sig;
+
+  let lastScore=null,lastRank=0;
+  const rows = ranked.map((t,i)=>{
+    const rank=(t.score===lastScore)?lastRank:i+1; lastScore=t.score; lastRank=rank;
+    const leader = t.score===maxScore && maxScore>0;
+    return `<div class="row ${leader?"leader":""}">
+      <div class="rank">${rank}</div>
+      <div class="swatch" style="background:${escapeHtml(t.color||"#45DBE0")}"></div>
+      <div class="name">${escapeHtml(t.name||"Team")}${leader?'<span class="crown">\u{1F451}</span>':''}</div>
+      <div class="score">${(t.score||0).toLocaleString()}</div>
+    </div>`;
+  }).join("");
+  lbRoot.innerHTML = `
+    <div class="title"><div class="logo">Standings</div><div class="sub">Kava &amp; Company Trivia</div></div>
+    <div class="board">${rows}</div>`;
+}
+
+function showView(display){
+  if (display === currentDisplay) return;
+  currentDisplay = display;
+  const wheel = display === "wheel";
+  wheelView.classList.toggle("hidden", !wheel);
+  leaderboardView.classList.toggle("hidden", wheel);
+  // force re-render of whichever is now visible
+  lastLbSig = ""; lastWheelSig = "";
+}
+
+let spinEndsAt = 0;
+
+async function tick(){
+  let data;
+  try { const res = await fetch(API + "?action=status",{cache:"no-store"}); data = await res.json(); pulse(); }
+  catch(e){ return; }
+
+  latestTeams = (data.teams||[]).map(t => ({ id:t.id, name:t.name, score:t.score, color:t.color, out:!!t.out }));
+
+  // spin command? run it once per new token (also flips view to wheel)
+  if (data.spin && data.spin.token && data.spin.token !== lastSpinToken) {
+    lastSpinToken = data.spin.token;
+    showView("wheel");
+    spinEndsAt = Date.now() + 5200;
+    runSpin(data.spin.order || [], data.spin.winnerId, data.spin.turns || 6);
+  }
+
+  // display switch from host
+  showView(data.display === "wheel" ? "wheel" : "leaderboard");
+
+  if (currentDisplay === "leaderboard") {
+    renderLeaderboard(latestTeams);
+  } else {
+    // keep the wheel drawn with current teams when idle (never mid-spin)
+    const active = latestTeams.filter(t => !t.out);
+    const sig = JSON.stringify(active.map(t=>[t.id,t.name,t.color]));
+    if (sig !== lastWheelSig && Date.now() > spinEndsAt) {
+      lastWheelSig = sig;
+      drawTVWheel(active);
+    }
+  }
+}
+
+tick();
+setInterval(tick, 1200);
+</script>
+</body>
+</html>
