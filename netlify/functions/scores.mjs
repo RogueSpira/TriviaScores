@@ -65,7 +65,7 @@ export default async (req) => {
   try {
     if (action === "status") {
       const s = await load();
-      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, updated: s.updated || 0 });
+      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], updated: s.updated || 0 });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -76,6 +76,10 @@ export default async (req) => {
       case "save": {
         if (!Array.isArray(body.teams)) return json({ error: "teams[] required" }, 400);
         state.teams = body.teams.slice(0, 40).map(cleanTeam);
+        if (Array.isArray(body.audit)) {
+          // store the audit log as-is (already small + capped by the client)
+          state.audit = body.audit.slice(0, 200);
+        }
         await save(state);
         return json({ ok: true, updated: state.updated });
       }
@@ -101,6 +105,30 @@ export default async (req) => {
         await save(state);
         return json({ ok: true, token: state.spin.token });
       }
+      case "award_points": {
+        // Another tool (Feud) pushes points to a team by id. Additive.
+        // Body: { teamId, points, note }
+        const teamId = String(body.teamId || "");
+        const points = Math.round(Number(body.points) || 0);
+        const team = (state.teams || []).find(t => t.id === teamId);
+        if (!team) return json({ error: "Team not found" }, 404);
+        if (!points) return json({ error: "No points" }, 400);
+        const before = team.score;
+        team.score += points;
+        // record in the audit log so it shows in Score History
+        if (!Array.isArray(state.audit)) state.audit = [];
+        state.audit.unshift({
+          time: Date.now(),
+          teamId: team.id, teamName: team.name || "Team",
+          change: (points > 0 ? "+" : "\u2212") + Math.abs(points),
+          before, after: team.score,
+          kind: (body.note || "feud").toString().slice(0, 20)
+        });
+        if (state.audit.length > 200) state.audit.length = 200;
+        await save(state);
+        return json({ ok: true, score: team.score });
+      }
+
       case "reset": {
         await save(blankState());
         return json({ ok: true });

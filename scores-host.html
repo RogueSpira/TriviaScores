@@ -266,7 +266,19 @@
   .team-row input[type=number]:focus { outline: none; border-color: var(--accent); }
   .amt-input { width: 54px; color: var(--muted) !important; font-weight: 500 !important; }
   .amt-input:focus { color: var(--ink) !important; }
-  .total-input { width: 66px; }
+  /* Total is now a clear DISPLAY, visually distinct from the amount input */
+  .total-display {
+    min-width: 74px; padding: 6px 10px; border-radius: 7px;
+    background: var(--panel-2); border: 1px solid var(--accent);
+    color: var(--ink); font-size: 18px; font-weight: 800;
+    text-align: right; font-variant-numeric: tabular-nums;
+    margin-left: 4px;
+  }
+  .edit-total-btn {
+    background: transparent; border: 1px solid var(--line); color: var(--muted);
+    font-size: 11px; padding: 4px 8px; border-radius: 6px; cursor: pointer; margin-left: 2px;
+  }
+  .edit-total-btn:hover { border-color: var(--accent); color: var(--accent); }
   .op-btn {
     background: var(--panel); border: 1px solid var(--line);
     color: var(--ink); cursor: pointer;
@@ -449,6 +461,24 @@
   /* Leaderboard link */
   .leaderboard-link { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; word-break: break-all; }
   .leaderboard-link b { color: var(--accent); }
+
+  /* Audit / score history */
+  .audit-panel { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .audit-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .audit-head span { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .audit-clear { background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer; }
+  .audit-clear:hover { border-color: #d9736f; color: #d9736f; }
+  #auditList { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+  .audit-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 6px 0; }
+  .audit-row { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 8px; background: var(--panel-2); border-radius: 6px; }
+  .audit-time { color: var(--muted); flex: 0 0 auto; font-variant-numeric: tabular-nums; }
+  .audit-team { flex: 1 1 auto; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .audit-change { flex: 0 0 auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .audit-change.pos { color: var(--green-soft, #6ee08a); }
+  .audit-change.neg { color: #d9736f; }
+  .audit-tot { flex: 0 0 auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .audit-kind { flex: 0 0 auto; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+  .audit-undo { flex: 0 0 auto; background: transparent; border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 2px 7px; border-radius: 5px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -492,6 +522,14 @@
         Bids: enter a wager (or All in), then Won/Lost to resolve it.</span>
       </div>
       <div class="leaderboard-link">Leaderboard screen for the TV: <b id="boardUrl">&mdash;</b></div>
+
+      <div class="audit-panel">
+        <div class="audit-head">
+          <span>Score history</span>
+          <button id="clearAudit" class="audit-clear">Clear log</button>
+        </div>
+        <div id="auditList"><div class="audit-empty">No score changes yet.</div></div>
+      </div>
     </div>
   </aside>
 
@@ -523,6 +561,55 @@ let lastSavedJSON = "";
 
 function newTeamId(){ return "t_" + Math.random().toString(36).slice(2, 9); }
 
+/* ---------- Audit log ---------- */
+let auditLog = [];   // [{ time, teamId, teamName, change, before, after, kind }]
+function logAudit(team, change, before, after, kind){
+  auditLog.unshift({
+    time: Date.now(),
+    teamId: team.id,
+    teamName: team.name || "Team",
+    change: change,
+    before: before,
+    after: after,
+    kind: kind || "adjust"
+  });
+  if (auditLog.length > 200) auditLog.length = 200; // cap
+  renderAudit();
+  saveState();
+}
+function fmtTime(ts){
+  const d = new Date(ts);
+  let h = d.getHours(), m = d.getMinutes();
+  const ampm = h >= 12 ? "PM" : "AM"; h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2,"0")} ${ampm}`;
+}
+function renderAudit(){
+  const box = document.getElementById("auditList");
+  if (!box) return;
+  if (!auditLog.length) { box.innerHTML = `<div class="audit-empty">No score changes yet.</div>`; return; }
+  box.innerHTML = auditLog.map((e, idx) => `
+    <div class="audit-row">
+      <span class="audit-time">${fmtTime(e.time)}</span>
+      <span class="audit-team">${escapeHtml(e.teamName)}</span>
+      <span class="audit-change ${e.change.startsWith("\u2212")?"neg":"pos"}">${escapeHtml(e.change)}</span>
+      <span class="audit-tot">${e.before.toLocaleString()} \u2192 ${e.after.toLocaleString()}</span>
+      <span class="audit-kind">${escapeHtml(e.kind)}</span>
+      ${idx===0 ? `<button class="audit-undo" onclick="undoLast()">undo</button>` : ""}
+    </div>`).join("");
+}
+window.undoLast = function(){
+  const last = auditLog[0];
+  if (!last) return;
+  const team = teams.find(t => t.id === last.teamId);
+  if (!team) { toast && toast("That team is gone"); auditLog.shift(); renderAudit(); return; }
+  team.score = last.before;           // revert to the pre-change value
+  auditLog.shift();                    // remove the entry
+  renderAudit();
+  syncScores();
+};
+function toast(m){ /* lightweight — reuse save indicator area */ const el=document.getElementById("saveIndicator"); if(el){ el.textContent=m; el.classList.add("show"); setTimeout(()=>{el.classList.remove("show"); el.textContent="Saved \u2713";},1400);} }
+
+
 // Ensure every team has a stable id (older saved data or new rows).
 function ensureIds(){ teams.forEach(t => { if (!t.id) t.id = newTeamId(); }); }
 
@@ -538,7 +625,7 @@ function saveState(){
     try {
       await fetch(SCORES_API + "?action=save", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teams: JSON.parse(payload) })
+        body: JSON.stringify({ teams: JSON.parse(payload), audit: auditLog })
       });
       lastSavedJSON = payload;
       flashSaved();
@@ -561,6 +648,7 @@ async function loadState(){
         id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0
       })));
     }
+    if (Array.isArray(data.audit)) { auditLog = data.audit; renderAudit(); }
   } catch(e) { /* no saved state yet, or offline — keep the defaults */ }
 }
 
@@ -703,7 +791,9 @@ function renderList() {
       // Empty box defaults to 100; otherwise use the typed amount
       const v = raw === "" ? 100 : parseInt(raw, 10);
       if (isNaN(v) || v === 0) { amt.focus(); return; }
+      const before = team.score;
       team.score += sign * v;
+      logAudit(team, (sign>0?"+":"\u2212") + Math.abs(v), before, team.score, "adjust");
       amt.value = "";
       syncScores();
       amt.focus();
@@ -722,15 +812,29 @@ function renderList() {
       if (e.key === "Enter") { e.preventDefault(); applyDelta(e.shiftKey ? -1 : 1); }
     };
 
-    // Current running total (editable directly if needed)
-    const score = document.createElement("input");
-    score.type = "number";
-    score.className = "total-input";
-    score.value = team.score;
+    // Current running total — a DISPLAY, not an editable field, so it can't be
+    // confused with the amount box. Click "Edit" to deliberately correct it.
+    const score = document.createElement("div");
+    score.className = "total-display";
+    score.textContent = team.score.toLocaleString();
     score.title = "Current total";
-    score.oninput = e => { team.score = parseInt(e.target.value || "0", 10); markLeaders(); saveState(); };
 
-    scoreBox.append(amt, minus, plus, score);
+    const editTotal = document.createElement("button");
+    editTotal.className = "edit-total-btn";
+    editTotal.textContent = "Edit";
+    editTotal.title = "Manually correct this total";
+    editTotal.onclick = () => {
+      const current = team.score;
+      const entered = prompt(`Set ${team.name || "team"}'s total to:`, current);
+      if (entered === null) return;
+      const v = parseInt(entered, 10);
+      if (isNaN(v)) return;
+      team.score = v;
+      logAudit(team, "set", current, v, "manual");
+      syncScores();
+    };
+
+    scoreBox.append(amt, minus, plus, score, editTotal);
 
     /* ---- Gamble / wager row ---- */
     const betBox = document.createElement("div");
@@ -773,7 +877,9 @@ function renderList() {
     const resolveBet = (sign) => {
       const v = parseInt(bet.value || "0", 10);
       if (isNaN(v) || v === 0) { bet.focus(); return; }
+      const before = team.score;
       team.score += sign * v;
+      logAudit(team, (sign>0?"+":"\u2212") + Math.abs(v), before, team.score, sign>0?"bid won":"bid lost");
       bet.value = "";
       team.bid = 0;
       syncScores();
@@ -809,8 +915,8 @@ function renderList() {
 function syncScores() {
   const rows = teamList.querySelectorAll(".team-row");
   rows.forEach((row, i) => {
-    const inp = row.querySelector(".total-input");
-    if (inp) inp.value = teams[i].score;
+    const disp = row.querySelector(".total-display");
+    if (disp && teams[i]) disp.textContent = teams[i].score.toLocaleString();
   });
   markLeaders();
   saveState();
@@ -869,6 +975,7 @@ document.getElementById("newNightBtn").onclick = () => {
     { id: newTeamId(), name: "Team 2", score: 0, color: TEAM_COLORS[1], out: false, bid: 0 },
   ];
   colorCursor = teams.length;
+  auditLog = []; renderAudit();
   renderList(); drawWheel(); result.innerHTML = "";
   updateRestoreBtn(); saveState();
 };
@@ -1034,10 +1141,15 @@ wheel.onclick = spin;
   const boardUrlEl = document.getElementById("boardUrl");
   if (boardUrlEl) boardUrlEl.textContent = new URL("scores-board.html", location.href).href;
   document.getElementById("tvToggle").onclick = () => setTVDisplay(tvDisplay === "wheel" ? "leaderboard" : "wheel");
+  document.getElementById("clearAudit").onclick = () => {
+    if (!confirm("Clear the score history log? (Team scores are not affected.)")) return;
+    auditLog = []; renderAudit(); saveState();
+  };
   await loadState();
   renderList();
   drawWheel();
   updateRestoreBtn();
+  renderAudit();
 })();
 </script>
 </body>
