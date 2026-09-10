@@ -482,7 +482,8 @@
 </style>
 </head>
 <body>
-<button id="tvToggle" title="Control what the TV shows">TV shows: Leaderboard</button>
+<button id="modeToggle" title="Switch this screen between wheel and leaderboard">Leaderboard</button>
+<button id="tvToggle" title="Control what the separate TV screen shows">TV shows: Leaderboard</button>
 <div id="saveIndicator">Saved &#10003;</div>
 
 <div class="layout">
@@ -1041,10 +1042,12 @@ function setMode(toBoard) {
   document.body.classList.toggle("board-mode", boardMode);
   if (wheelStage) wheelStage.hidden = boardMode;
   if (boardStage) boardStage.hidden = !boardMode;
+  // Button shows what you'll switch TO next
+  if (modeToggle) modeToggle.textContent = boardMode ? "Wheel" : "Leaderboard";
   if (boardMode) renderBoard();
 }
 
-// Local leaderboard toggle removed — the TV display is controlled by #tvToggle.
+// Local view toggle: flips THIS screen between wheel and leaderboard (no backend).
 if (modeToggle) modeToggle.onclick = () => setMode(!boardMode);
 
 // Control what the TV (scores-board.html) displays: leaderboard or wheel.
