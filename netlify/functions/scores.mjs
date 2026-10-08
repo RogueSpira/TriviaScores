@@ -49,6 +49,48 @@ function cleanTeam(t, i) {
   };
 }
 
+// sanitize the music round:
+// { clip, songs:[{id,yt,start,title,artist,year}], marks:{teamId:{songId:[t,a,y]}}, applied:{teamId:points} }
+const safeKey = k => String(k).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40);
+function cleanMusic(m) {
+  if (!m || typeof m !== "object") return null;
+  const str = (v, n) => (v == null ? "" : String(v)).slice(0, n);
+  const songs = (Array.isArray(m.songs) ? m.songs : []).slice(0, 30).map(s => ({
+    id: safeKey((s && s.id) || ("s_" + Math.random().toString(36).slice(2, 9))) || "s_x",
+    yt: str(s && s.yt, 300),
+    start: Math.max(0, Math.min(36000, Math.round(Number(s && s.start) || 0))),
+    title: str(s && s.title, 150),
+    artist: str(s && s.artist, 150),
+    year: str(s && s.year, 12)
+  }));
+  const songIds = new Set(songs.map(s => s.id));
+  const marks = {};
+  if (m.marks && typeof m.marks === "object") {
+    for (const [tid, row] of Object.entries(m.marks).slice(0, 40)) {
+      if (!row || typeof row !== "object") continue;
+      const out = {};
+      for (const [sid, v] of Object.entries(row)) {
+        if (!songIds.has(sid) || !Array.isArray(v)) continue;
+        const bits = [0, 1, 2].map(i => (v[i] ? 1 : 0));
+        if (bits.some(Boolean)) out[sid] = bits;
+      }
+      if (Object.keys(out).length) marks[safeKey(tid)] = out;
+    }
+  }
+  const applied = {};
+  if (m.applied && typeof m.applied === "object") {
+    for (const [tid, v] of Object.entries(m.applied).slice(0, 40)) {
+      const n = Math.round(Number(v) || 0);
+      if (n) applied[safeKey(tid)] = n;
+    }
+  }
+  return {
+    clip: Math.max(5, Math.min(120, Math.round(Number(m.clip) || 30))),
+    points: Math.max(1, Math.min(10000, Math.round(Number(m.points) || 100))),
+    songs, marks, applied
+  };
+}
+
 export default async (req) => {
   const url = new URL(req.url);
   const action = url.searchParams.get("action") || "status";
@@ -65,7 +107,7 @@ export default async (req) => {
   try {
     if (action === "status") {
       const s = await load();
-      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], updated: s.updated || 0 });
+      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, updated: s.updated || 0 });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -79,6 +121,10 @@ export default async (req) => {
         if (Array.isArray(body.audit)) {
           // store the audit log as-is (already small + capped by the client)
           state.audit = body.audit.slice(0, 200);
+        }
+        if (body.music) {
+          const m = cleanMusic(body.music);
+          if (m) state.music = m;
         }
         await save(state);
         return json({ ok: true, updated: state.updated });

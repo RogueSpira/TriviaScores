@@ -25,7 +25,7 @@
   }
   .layout {
     display: grid;
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 420px;
     height: 100vh;
   }
 
@@ -122,31 +122,38 @@
     min-width: 0;
   }
   .side-head {
-    padding: 18px 20px 12px;
+    padding: 12px 16px 10px;
     border-bottom: 1px solid var(--line);
   }
+  .side-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .side-head h2 {
     margin: 0;
-    font-size: 15px;
+    font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 2px;
   }
-  .side-head .sub { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+  .side-head .sub { margin: 6px 0 0; font-size: 11.5px; color: var(--muted); word-break: break-all; line-height: 1.4; }
+  .side-head .sub b { color: var(--accent); font-weight: 600; }
+  #historyBtn {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    font-size: 12px; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  }
+  #historyBtn:hover, #historyBtn.open { border-color: var(--accent); color: var(--accent); }
 
   .toolbar {
-    display: flex; gap: 8px; flex-wrap: wrap;
-    padding: 12px 20px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 8px 16px;
     border-bottom: 1px solid var(--line);
   }
   .toolbar button {
-    flex: 1 1 calc(50% - 4px);
+    flex: 1 1 calc(33% - 6px);
     background: var(--panel-2);
     border: 1px solid var(--line);
     color: var(--ink);
-    padding: 9px 6px;
-    border-radius: 9px;
+    padding: 7px 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 12.5px;
+    font-size: 12px;
     transition: all .12s ease;
     white-space: nowrap;
   }
@@ -156,42 +163,40 @@
 
   .team-list {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 12px 20px;
+    padding: 10px 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
+  /* Each team = two lines: [name + total] / [points + bid controls] */
   .team-row {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 5px;
     background: var(--panel-2);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 8px 10px;
+    padding: 6px 10px;
     transition: background .3s ease;
+    flex: 0 0 auto;
   }
-  .row-top { display: flex; align-items: flex-start; gap: 8px; }
-  .row-top .rank, .row-top .swatch, .row-top .del-btn { margin-top: 3px; }
-  .row-bottom { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-  .bet-box {
-    display: flex; align-items: center; gap: 4px;
-    justify-content: flex-end;
-    padding-top: 8px;
-    border-top: 1px dashed var(--line);
-  }
+  .row-top { display: flex; align-items: center; gap: 7px; }
+  .row-bottom { display: flex; align-items: center; gap: 4px; }
+  .row-bottom .score-box { margin-right: auto; }
+  .bet-box { display: flex; align-items: center; gap: 4px; }
   .bet-label {
     font-size: 10px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 1.2px;
-    margin-right: auto;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-right: 2px;
   }
   .bet-input {
-    width: 66px;
+    width: 58px;
     background: #000; border: 1px solid var(--line);
     color: var(--ink); font-size: 14px; font-weight: 700;
-    padding: 6px; border-radius: 7px; text-align: right;
+    padding: 4px 6px; border-radius: 7px; text-align: right;
     font-variant-numeric: tabular-nums;
     -moz-appearance: textfield;
   }
@@ -201,7 +206,7 @@
   .bet-btn {
     background: var(--panel); border: 1px solid var(--line);
     color: var(--ink); cursor: pointer;
-    padding: 6px 9px; height: 30px;
+    padding: 5px 8px; height: 28px;
     border-radius: 7px; font-size: 11.5px; font-weight: 700;
     white-space: nowrap; flex: 0 0 auto;
     transition: all .1s ease;
@@ -238,7 +243,7 @@
     font-weight: 600;
     font-family: inherit;
     line-height: 1.3;
-    padding: 4px 2px;
+    padding: 2px;
     resize: none;
     overflow: hidden;
     word-break: break-word;
@@ -255,7 +260,7 @@
     color: var(--ink);
     font-size: 14px;
     font-weight: 700;
-    padding: 6px 6px;
+    padding: 4px 6px;
     border-radius: 7px;
     text-align: right;
     font-variant-numeric: tabular-nums;
@@ -268,9 +273,9 @@
   .amt-input:focus { color: var(--ink) !important; }
   /* Total is now a clear DISPLAY, visually distinct from the amount input */
   .total-display {
-    min-width: 74px; padding: 6px 10px; border-radius: 7px;
+    min-width: 74px; padding: 3px 10px; border-radius: 7px;
     background: var(--panel-2); border: 1px solid var(--accent);
-    color: var(--ink); font-size: 18px; font-weight: 800;
+    color: var(--ink); font-size: 17px; font-weight: 800;
     text-align: right; font-variant-numeric: tabular-nums;
     margin-left: 4px;
   }
@@ -282,7 +287,7 @@
   .op-btn {
     background: var(--panel); border: 1px solid var(--line);
     color: var(--ink); cursor: pointer;
-    width: 26px; height: 30px; line-height: 1;
+    width: 26px; height: 28px; line-height: 1;
     border-radius: 7px; font-size: 17px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     padding: 0; flex: 0 0 auto;
@@ -293,23 +298,35 @@
   .del-btn {
     background: transparent; border: 1px solid var(--line);
     color: var(--muted); border-radius: 7px;
-    width: 26px; height: 30px; cursor: pointer;
+    width: 26px; height: 28px; cursor: pointer;
     font-size: 13px; flex: 0 0 auto;
     display: flex; align-items: center; justify-content: center;
   }
   .del-btn:hover { border-color: #b5484e; color: #d9736f; }
 
+  /* Crowded roster: tighten everything so all teams stay on screen */
+  .team-list.dense { gap: 3px; padding-top: 6px; padding-bottom: 6px; }
+  .team-list.dense .team-row { padding: 3px 8px; gap: 2px; }
+  .team-list.dense .name-input { font-size: 14px; padding: 1px 2px; line-height: 1.25; }
+  .team-list.dense .total-display { font-size: 15px; padding: 2px 8px; }
+  .team-list.dense .op-btn, .team-list.dense .del-btn,
+  .team-list.dense .bet-btn { height: 24px; }
+  .team-list.dense .edit-total-btn { padding: 2px 7px; }
+  .team-list.dense .swatch { width: 18px; height: 18px; }
+  .team-list.dense .team-row input[type=number] { padding: 3px 6px; font-size: 13px; }
+  .music-foot:empty { display: none; }
+
   .side-foot {
-    padding: 12px 20px;
+    padding: 8px 16px 10px;
     border-top: 1px solid var(--line);
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 8px;
   }
   .add-btn {
     width: 100%;
     background: transparent;
     border: 1px dashed var(--line);
     color: var(--muted);
-    padding: 11px; border-radius: 10px;
+    padding: 8px; border-radius: 10px;
     cursor: pointer; font-size: 14px;
     transition: all .12s ease;
   }
@@ -332,34 +349,35 @@
 
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-  /* ---- Mode toggle ---- */
-  #modeToggle {
+  /* ---- View switch (this laptop screen): Wheel / Leaderboard / Music ---- */
+  #viewSwitch {
     position: fixed;
     top: 18px; left: 18px;
     z-index: 40;
+    display: flex;
     background: var(--panel);
     border: 1px solid var(--line);
-    color: var(--ink);
-    padding: 10px 20px;
     border-radius: 999px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all .15s ease;
+    padding: 3px;
   }
-  #modeToggle:hover { border-color: var(--accent); }
+  #viewSwitch button {
+    background: transparent; border: none; color: var(--muted);
+    padding: 7px 16px; border-radius: 999px;
+    font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: all .15s ease;
+  }
+  #viewSwitch button:hover { color: var(--ink); }
+  #viewSwitch button.on { background: var(--panel-2); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
   #tvToggle {
     position: fixed;
-    top: 18px; left: 180px;
+    top: 18px; left: 344px;
     z-index: 40;
     background: var(--accent); color: #000;
     border: 1px solid var(--accent);
-    padding: 10px 20px;
+    padding: 10px 16px;
     border-radius: 999px;
-    font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
     cursor: pointer; transition: all .15s ease;
   }
   #tvToggle:hover { filter: brightness(.92); }
@@ -441,14 +459,16 @@
     .stage { height: 70vh; }
     .sidebar { height: auto; border-left: none; border-top: 1px solid var(--line); }
     .team-list { max-height: none; }
+    .history-drawer { right: 0; width: 100vw; }
+    #saveIndicator { right: 18px; }
   }
   @media (prefers-reduced-motion: reduce) {
     svg#wheel { transition: transform 1s ease-out; }
   }
 
-  /* Save indicator */
+  /* Save indicator — bottom corner, just left of the sidebar, so it never covers controls */
   #saveIndicator {
-    position: fixed; top: 18px; right: 18px; z-index: 20;
+    position: fixed; bottom: 14px; right: 438px; z-index: 50;
     background: var(--panel-2); color: var(--accent); border: 1px solid var(--line);
     padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700;
     opacity: 0; transition: opacity .2s ease; pointer-events: none;
@@ -462,13 +482,23 @@
   .leaderboard-link { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; word-break: break-all; }
   .leaderboard-link b { color: var(--accent); }
 
-  /* Audit / score history */
-  .audit-panel { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
-  .audit-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .audit-head span { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-  .audit-clear { background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 11px; padding: 3px 8px; border-radius: 6px; cursor: pointer; }
+  /* Audit / score history — a drawer beside the sidebar, so it never steals
+     room from the team list */
+  .history-drawer {
+    position: fixed; top: 0; bottom: 0; right: 420px; z-index: 45;
+    width: min(380px, calc(100vw - 440px));
+    background: var(--panel); border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    box-shadow: -18px 0 40px rgba(0,0,0,.45);
+    display: flex; flex-direction: column;
+    padding: 14px 14px 12px;
+  }
+  .audit-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 6px; }
+  .audit-head > span { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .audit-head-btns { display: flex; gap: 6px; }
+  .audit-clear { background: transparent; border: 1px solid var(--line); color: var(--muted); font-size: 11px; padding: 4px 9px; border-radius: 6px; cursor: pointer; }
   .audit-clear:hover { border-color: #d9736f; color: #d9736f; }
-  #auditList { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+  #closeHistory:hover { border-color: var(--accent); color: var(--accent); }
+  #auditList { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
   .audit-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 6px 0; }
   .audit-row { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 5px 8px; background: var(--panel-2); border-radius: 6px; }
   .audit-time { color: var(--muted); flex: 0 0 auto; font-variant-numeric: tabular-nums; }
@@ -479,10 +509,129 @@
   .audit-tot { flex: 0 0 auto; color: var(--muted); font-variant-numeric: tabular-nums; }
   .audit-kind { flex: 0 0 auto; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
   .audit-undo { flex: 0 0 auto; background: transparent; border: 1px solid var(--accent); color: var(--accent); font-size: 10px; padding: 2px 7px; border-radius: 5px; cursor: pointer; }
+
+  /* ---- Music round ---- */
+  .music-stage {
+    justify-content: flex-start; align-items: stretch;
+    padding: 12px 24px 20px;
+    overflow-y: auto;
+    gap: 12px;
+  }
+  .music-head { display: flex; gap: 18px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+  /* left column starts below the fixed view buttons; the player sits beside them */
+  .music-info { display: flex; flex-direction: column; gap: 9px; min-width: 260px; flex: 1 1 300px; margin-top: 54px; }
+  .music-legend { font-size: 12.5px; color: var(--muted); }
+  .music-title { margin: 0; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; font-weight: 800; }
+  .music-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .music-ctl label { display: flex; align-items: center; gap: 6px; }
+  .music-ctl input {
+    width: 62px; background: #000; border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 8px; border-radius: 7px; font-size: 14px; text-align: right; font-weight: 700;
+  }
+  .music-ctl input:focus { outline: none; border-color: var(--accent); }
+  .mbtn {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .mbtn:hover { border-color: var(--accent); }
+  .mbtn.on { border-color: var(--accent); color: var(--accent); }
+  .mbtn.warn:hover { border-color: #d9736f; color: #d9736f; }
+  .mbtn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 800; }
+  .mbtn.primary:hover { filter: brightness(.92); }
+  .mbtn:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+  .now-playing {
+    font-size: 15px; color: var(--muted); min-height: 22px;
+  }
+  .now-playing b { color: var(--accent); }
+  .now-playing .err { color: #f0a08f; }
+  .yt-box {
+    width: 260px; height: 200px; flex: 0 0 auto;  /* YouTube's minimum player size is 200x200 */
+    background: #000; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 12px; text-align: center;
+  }
+  .yt-box iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  .music-table-wrap { overflow-x: auto; }
+  table.music { border-collapse: separate; border-spacing: 0; width: 100%; }
+  table.music th, table.music td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  table.music thead th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    font-weight: 700; text-align: left; position: sticky; top: 0; background: var(--bg);
+  }
+  table.music th.team-col {
+    text-align: center; min-width: 84px; max-width: 120px;
+    border-top: 4px solid var(--line);
+    color: var(--ink); font-size: 12.5px; letter-spacing: .3px; text-transform: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding: 5px 3px;
+  }
+  .team-col .tname { display: block; overflow: hidden; text-overflow: ellipsis; }
+  .team-col .tpts { display: block; font-size: 15px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .song-num { width: 28px; text-align: center; color: var(--muted); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .play-cell { width: 68px; }
+  .play-btn {
+    width: 60px; height: 36px; border-radius: 10px;
+    background: var(--accent); color: #000; border: none; cursor: pointer;
+    font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .play-btn:hover { filter: brightness(.92); }
+  .play-btn.playing { background: #f5c518; }
+  .play-btn:disabled { background: var(--panel-2); color: var(--muted); cursor: not-allowed; }
+  .answer { min-width: 150px; }
+  .answer .t { font-size: 16px; font-weight: 800; line-height: 1.2; }
+  .answer .ay { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+  .answer .ay b { color: var(--ink); font-weight: 700; }
+  .answer .warn { font-size: 11.5px; color: #f0a08f; margin-top: 3px; }
+  tr.is-playing td { background: rgba(69,219,224,.07); }
+  td.marks { text-align: center; white-space: nowrap; padding: 6px 3px; }
+  .mk {
+    width: 25px; height: 30px; margin: 0; border-radius: 7px;
+    background: var(--panel); border: 1px solid var(--line); color: var(--muted);
+    font-size: 12px; font-weight: 800; cursor: pointer; padding: 0;
+  }
+  .mk:hover { border-color: var(--accent); color: var(--ink); }
+  .mk + .mk { margin-left: 2px; }
+  .mk.on { background: #3cb44b; border-color: #3cb44b; color: #000; }
+  table.music tfoot td { border-bottom: none; }
+  .tot-label { text-align: right; }
+  .add-cell { text-align: center; padding: 8px 3px !important; }
+  .add-team-btn {
+    min-width: 76px; padding: 7px 6px; border-radius: 8px; cursor: pointer;
+    background: var(--accent); color: #000; border: 1px solid var(--accent);
+    font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .add-team-btn:hover { filter: brightness(.92); }
+  .add-team-btn.done { background: transparent; color: #6ee08a; border-color: var(--line); cursor: default; font-weight: 700; filter: none; }
+  .add-team-btn.neg { background: transparent; color: #d9736f; border-color: #b5484e; }
+  .add-none { color: var(--muted); }
+  .music-foot { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .music-foot .note { font-size: 12.5px; color: var(--muted); }
+  .music-empty { color: var(--muted); font-style: italic; padding: 18px 6px; }
+
+  /* edit-songs mode */
+  table.music.editing td { padding: 5px 4px; }
+  .edit-in {
+    width: 100%; background: #000; border: 1px solid var(--line); color: var(--ink);
+    padding: 7px 8px; border-radius: 7px; font-size: 13.5px; font-family: inherit;
+  }
+  .edit-in:focus { outline: none; border-color: var(--accent); }
+  .edit-in.bad { border-color: #b5484e; }
+  .edit-in.small { width: 74px; text-align: center; }
+  .edit-in.year { width: 70px; text-align: center; }
+  .yt-state { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .yt-state.ok { color: #6ee08a; }
+  .yt-state.bad { color: #f0a08f; }
+  .rm-song { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 7px; width: 30px; height: 32px; cursor: pointer; }
+  .rm-song:hover { border-color: #b5484e; color: #d9736f; }
 </style>
 </head>
 <body>
-<button id="modeToggle" title="Switch this screen between wheel and leaderboard">Leaderboard</button>
+<div id="viewSwitch" role="group" aria-label="What this screen shows">
+  <button data-view="wheel" class="on">Wheel</button>
+  <button data-view="board">Leaderboard</button>
+  <button data-view="music">Music</button>
+</div>
 <button id="tvToggle" title="Control what the separate TV screen shows">TV shows: Leaderboard</button>
 <div id="saveIndicator">Saved &#10003;</div>
 
@@ -503,14 +652,36 @@
     <div class="board" id="board"></div>
   </div>
 
+  <div class="stage music-stage" id="musicStage" hidden>
+    <div class="music-head">
+      <div class="music-info">
+        <h1 class="music-title">Music Round</h1>
+        <div class="music-ctl">
+          <label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label>
+          <label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label>
+          <button class="mbtn" id="editSongsBtn">Edit songs</button>
+          <button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button>
+        </div>
+        <div class="music-legend" id="musicLegend"></div>
+        <div class="now-playing" id="nowPlaying"></div>
+      </div>
+      <div class="yt-box" id="ytBox"><div id="ytPlayer">YouTube player loads here</div></div>
+    </div>
+    <div class="music-table-wrap"><table class="music" id="musicTable"></table></div>
+    <div class="music-foot" id="musicFoot"></div>
+  </div>
+
   <aside class="sidebar">
     <div class="side-head">
-      <h2>Teams &amp; Scores</h2>
-      <p class="sub">Team names fill the wheel. Track points and sort the standings.</p>
+      <div class="side-title">
+        <h2>Teams &amp; Scores</h2>
+        <button id="historyBtn" title="Show the score history log">History</button>
+      </div>
+      <p class="sub">TV screen: <b id="boardUrl">&mdash;</b></p>
     </div>
     <div class="toolbar">
       <button id="sortBtn" class="primary">Sort by points &#8595;</button>
-      <button id="restoreBtn">Restore all to wheel</button>
+      <button id="restoreBtn">Restore wheel</button>
       <button id="shuffleBtn">Shuffle</button>
       <button id="resetScoresBtn">Reset scores</button>
       <button id="newNightBtn">New night (clear teams)</button>
@@ -518,23 +689,21 @@
     <div class="team-list" id="teamList"></div>
     <div class="side-foot">
       <button class="add-btn" id="addBtn">+ Add team</button>
-      <div class="step-config">
-        <span>Points: hit + or &#8722; for 100, or type an amount first.<br>
-        Bids: enter a wager (or All in), then Won/Lost to resolve it.</span>
-      </div>
-      <div class="leaderboard-link">Leaderboard screen for the TV: <b id="boardUrl">&mdash;</b></div>
-
-      <div class="audit-panel">
-        <div class="audit-head">
-          <span>Score history</span>
-          <button id="clearAudit" class="audit-clear">Clear log</button>
-        </div>
-        <div id="auditList"><div class="audit-empty">No score changes yet.</div></div>
-      </div>
     </div>
   </aside>
 
 </div>
+
+<aside class="history-drawer" id="historyDrawer" hidden>
+  <div class="audit-head">
+    <span>Score history</span>
+    <div class="audit-head-btns">
+      <button id="clearAudit" class="audit-clear">Clear log</button>
+      <button id="closeHistory" class="audit-clear">Close</button>
+    </div>
+  </div>
+  <div id="auditList"><div class="audit-empty">No score changes yet.</div></div>
+</aside>
 
 <script>
 // Distinct default colors, one per team
@@ -586,6 +755,8 @@ function fmtTime(ts){
 }
 function renderAudit(){
   const box = document.getElementById("auditList");
+  const hb = document.getElementById("historyBtn");
+  if (hb) hb.textContent = auditLog.length ? `History (${auditLog.length})` : "History";
   if (!box) return;
   if (!auditLog.length) { box.innerHTML = `<div class="audit-empty">No score changes yet.</div>`; return; }
   box.innerHTML = auditLog.map((e, idx) => `
@@ -604,6 +775,12 @@ window.undoLast = function(){
   const team = teams.find(t => t.id === last.teamId);
   if (!team) { toast && toast("That team is gone"); auditLog.shift(); renderAudit(); return; }
   team.score = last.before;           // revert to the pre-change value
+  // Undoing a music-round add puts those points back to "not added yet"
+  if (last.kind === "music" && music.applied[team.id] != null) {
+    music.applied[team.id] -= (last.after - last.before);
+    if (!music.applied[team.id]) delete music.applied[team.id];
+    if (musicMode) renderMusic();
+  }
   auditLog.shift();                    // remove the entry
   renderAudit();
   syncScores();
@@ -617,17 +794,17 @@ function ensureIds(){ teams.forEach(t => { if (!t.id) t.id = newTeamId(); }); }
 // Debounced save — rapid +/- clicks collapse into one write.
 function saveState(){
   ensureIds();
-  const payload = JSON.stringify(teams.map(t => ({
-    id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0
-  })));
+  const payload = snapshotJSON();
   if (payload === lastSavedJSON) return;         // nothing actually changed
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(async () => {
     try {
-      await fetch(SCORES_API + "?action=save", {
+      const snap = JSON.parse(payload);
+      const res = await fetch(SCORES_API + "?action=save", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teams: JSON.parse(payload), audit: auditLog })
+        body: JSON.stringify({ teams: snap.teams, audit: snap.audit, music: snap.music })
       });
+      if (!res.ok) throw new Error("save failed");
       lastSavedJSON = payload;
       flashSaved();
     } catch(e) { /* offline / hiccup — next change retries */ }
@@ -645,12 +822,20 @@ async function loadState(){
         color: t.color || TEAM_COLORS[0], out: !!t.out, bid: Number(t.bid)||0
       }));
       colorCursor = teams.length;
-      lastSavedJSON = JSON.stringify(teams.map(t => ({
-        id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0
-      })));
     }
     if (Array.isArray(data.audit)) { auditLog = data.audit; renderAudit(); }
+    if (data.music && Array.isArray(data.music.songs)) music = normalizeMusic(data.music);
+    lastSavedJSON = snapshotJSON();
   } catch(e) { /* no saved state yet, or offline — keep the defaults */ }
+}
+
+// Everything the backend keeps, as one string — used to skip no-op saves.
+function snapshotJSON(){
+  return JSON.stringify({
+    teams: teams.map(t => ({ id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0 })),
+    audit: auditLog,
+    music: { clip: music.clip, points: music.points, songs: music.songs, marks: music.marks, applied: music.applied }
+  });
 }
 
 function flashSaved(){
@@ -764,7 +949,7 @@ function renderList() {
     swatch.className = "swatch";
     swatch.value = team.color;
     swatch.title = "Team color";
-    swatch.oninput = e => { team.color = e.target.value; drawWheel(); if (boardMode) renderBoard(); saveState(); };
+    swatch.oninput = e => { team.color = e.target.value; drawWheel(); if (boardMode) renderBoard(); if (musicMode) renderMusic(); saveState(); };
 
     const name = document.createElement("textarea");
     name.className = "name-input";
@@ -772,7 +957,7 @@ function renderList() {
     name.value = team.name;
     name.placeholder = "Team name\u2026";
     const autoGrow = () => { name.style.height = "auto"; name.style.height = name.scrollHeight + "px"; };
-    name.oninput = e => { team.name = e.target.value; autoGrow(); drawWheel(); if (boardMode) renderBoard(); saveState(); };
+    name.oninput = e => { team.name = e.target.value; autoGrow(); drawWheel(); if (boardMode) renderBoard(); if (musicMode) renderMusic(); saveState(); };
     name.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); name.blur(); } };
     // Grow to fit once the row is in the DOM
     requestAnimationFrame(autoGrow);
@@ -835,7 +1020,7 @@ function renderList() {
       syncScores();
     };
 
-    scoreBox.append(amt, minus, plus, score, editTotal);
+    scoreBox.append(amt, minus, plus);
 
     /* ---- Gamble / wager row ---- */
     const betBox = document.createElement("div");
@@ -896,21 +1081,40 @@ function renderList() {
     del.className = "del-btn";
     del.textContent = "\u2715";
     del.title = "Delete team";
-    del.onclick = () => { teams.splice(i,1); renderList(); drawWheel(); saveState(); };
+    del.onclick = () => {
+      teams.splice(i,1);
+      forgetMusicTeam(team.id);
+      renderList(); drawWheel(); saveState();
+    };
 
+    // Line 1: who + running total.  Line 2: points and bid controls.
     const top = document.createElement("div");
     top.className = "row-top";
-    top.append(rank, swatch, name, del);
+    top.append(rank, swatch, name, score, editTotal, del);
 
     const bottom = document.createElement("div");
     bottom.className = "row-bottom";
-    bottom.append(scoreBox);
+    bottom.append(scoreBox, betBox);
 
-    row.append(top, bottom, betBox);
+    row.append(top, bottom);
     teamList.appendChild(row);
   });
   if (typeof boardMode !== "undefined" && boardMode) renderBoard();
+  if (typeof musicMode !== "undefined" && musicMode) renderMusic();
+  fitTeams();
+  requestAnimationFrame(fitTeams);   // again once long names have wrapped
 }
+
+// Keep every team on screen: if the roster overflows the panel, switch the
+// rows to a tighter layout. (Re-checked whenever the list or window changes.)
+function fitTeams() {
+  const regrow = () => teamList.querySelectorAll(".name-input").forEach(n => {
+    n.style.height = "auto"; n.style.height = n.scrollHeight + "px";
+  });
+  teamList.classList.remove("dense"); regrow();
+  if (teamList.scrollHeight > teamList.clientHeight + 1) { teamList.classList.add("dense"); regrow(); }
+}
+window.addEventListener("resize", fitTeams);
 
 // Re-render scores in the list without rebuilding (keeps focus stable on step clicks)
 function syncScores() {
@@ -965,6 +1169,7 @@ document.getElementById("restoreBtn").onclick = () => {
 
 document.getElementById("resetScoresBtn").onclick = () => {
   teams.forEach(t => { t.score = 0; t.out = false; t.bid = 0; });
+  music.marks = {}; music.applied = {};
   renderList(); drawWheel(); result.innerHTML = "";
   updateRestoreBtn(); saveState();
 };
@@ -976,6 +1181,7 @@ document.getElementById("newNightBtn").onclick = () => {
     { id: newTeamId(), name: "Team 2", score: 0, color: TEAM_COLORS[1], out: false, bid: 0 },
   ];
   colorCursor = teams.length;
+  music.marks = {}; music.applied = {};
   auditLog = []; renderAudit();
   renderList(); drawWheel(); result.innerHTML = "";
   updateRestoreBtn(); saveState();
@@ -987,15 +1193,18 @@ function updateRestoreBtn() {
   const anyOut = teams.some(t => t.out);
   btn.disabled = !anyOut;
   const count = teams.filter(t => t.out).length;
-  btn.textContent = anyOut ? `Restore all (${count})` : "Restore all to wheel";
+  btn.textContent = anyOut ? `Restore (${count})` : "Restore wheel";
 }
 
 /* ---------- Leaderboard mode ---------- */
 let boardMode = false;
+let musicMode = false;
+let editingSongs = false;
 const wheelStage = document.getElementById("wheelStage");
 const boardStage = document.getElementById("boardStage");
 const board = document.getElementById("board");
-const modeToggle = document.getElementById("modeToggle");
+const musicStage = document.getElementById("musicStage");
+const viewSwitch = document.getElementById("viewSwitch");
 
 function renderBoard() {
   board.innerHTML = "";
@@ -1037,18 +1246,20 @@ function renderBoard() {
   });
 }
 
-function setMode(toBoard) {
-  boardMode = toBoard;
+// Local view switch: what THIS screen shows (no backend). The TV is separate.
+function setView(view) {
+  boardMode = view === "board";
+  musicMode = view === "music";
   document.body.classList.toggle("board-mode", boardMode);
-  if (wheelStage) wheelStage.hidden = boardMode;
-  if (boardStage) boardStage.hidden = !boardMode;
-  // Button shows what you'll switch TO next
-  if (modeToggle) modeToggle.textContent = boardMode ? "Wheel" : "Leaderboard";
+  wheelStage.hidden = view !== "wheel";
+  boardStage.hidden = !boardMode;
+  musicStage.hidden = !musicMode;
+  viewSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
   if (boardMode) renderBoard();
+  if (musicMode) { loadYouTubeAPI(); renderMusic(); }
+  fitTeams();
 }
-
-// Local view toggle: flips THIS screen between wheel and leaderboard (no backend).
-if (modeToggle) modeToggle.onclick = () => setMode(!boardMode);
+viewSwitch.querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.view));
 
 // Control what the TV (scores-board.html) displays: leaderboard or wheel.
 let tvDisplay = "leaderboard";
@@ -1135,6 +1346,382 @@ function showResult(team) {
 }
 
 function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function escAttr(s){ return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* =====================================================================
+   MUSIC ROUND
+   One view: answer key + play button per song, and a T / A / Y checkbox
+   per team per song. Each check is worth `music.points` (default 100), so
+   a song is worth 300. "Add" pushes only what hasn't been added yet, so
+   fixing a checkmark later adds (or removes) just the difference.
+   ===================================================================== */
+const musicTable = document.getElementById("musicTable");
+const musicFoot = document.getElementById("musicFoot");
+const nowPlaying = document.getElementById("nowPlaying");
+const clipLenIn = document.getElementById("clipLen");
+const ptsEachIn = document.getElementById("ptsEach");
+const editSongsBtn = document.getElementById("editSongsBtn");
+const FIELDS = ["Title", "Artist", "Year"];
+
+function newSongId(){ return "s_" + Math.random().toString(36).slice(2, 9); }
+function blankSong(){ return { id: newSongId(), yt: "", start: 0, title: "", artist: "", year: "" }; }
+function defaultMusic(){ return { clip: 30, points: 100, songs: Array.from({ length: 6 }, blankSong), marks: {}, applied: {} }; }
+let music = defaultMusic();
+
+function normalizeMusic(m){
+  const songs = (Array.isArray(m.songs) ? m.songs : []).map(s => ({
+    id: s.id || newSongId(), yt: s.yt || "", start: Number(s.start) || 0,
+    title: s.title || "", artist: s.artist || "", year: s.year || ""
+  }));
+  return {
+    clip: Number(m.clip) || 30,
+    points: Number(m.points) || 100,
+    songs: songs.length ? songs : defaultMusic().songs,
+    marks: (m.marks && typeof m.marks === "object") ? m.marks : {},
+    applied: (m.applied && typeof m.applied === "object") ? m.applied : {}
+  };
+}
+function forgetMusicTeam(id){ delete music.marks[id]; delete music.applied[id]; }
+
+/* --- YouTube links + times --- */
+function parseTime(v){
+  const s = String(v == null ? "" : v).trim().toLowerCase();
+  if (!s) return 0;
+  if (/^\d+(\.\d+)?s?$/.test(s)) return Math.round(parseFloat(s));
+  if (/^\d+(:\d{1,2}){1,2}$/.test(s)) return s.split(":").reduce((a, p) => a * 60 + parseInt(p, 10), 0);
+  const m = s.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+  if (m && (m[1] || m[2] || m[3])) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+  return NaN;
+}
+function fmtClock(sec){
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(s).padStart(2, "0");
+}
+// Accepts youtube.com/watch?v=, youtu.be/, /shorts/, /embed/, music.youtube.com, or a bare video ID.
+function parseYouTube(raw){
+  const s = String(raw || "").trim();
+  if (!s) return null;
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return { id: s, t: 0 };
+  let u;
+  try { u = new URL(/^https?:\/\//i.test(s) ? s : "https://" + s); } catch(e) { return null; }
+  const host = u.hostname.replace(/^(www|m)\./, "");
+  let id = null;
+  if (host === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+  else if (/(^|\.)youtube(-nocookie)?\.com$/.test(host)) {
+    id = u.searchParams.get("v");
+    if (!id) { const m = u.pathname.match(/^\/(?:embed|shorts|live|v)\/([A-Za-z0-9_-]{11})/); if (m) id = m[1]; }
+  }
+  if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
+  const t = parseTime(u.searchParams.get("t") || u.searchParams.get("start") || "");
+  return { id, t: isNaN(t) ? 0 : t };
+}
+
+/* --- Scoring math --- */
+function teamMusicTotal(tid){
+  const row = music.marks[tid] || {};
+  let checks = 0;
+  music.songs.forEach(s => { const b = row[s.id]; if (b) checks += b.filter(Boolean).length; });
+  return checks * music.points;
+}
+function pendingFor(tid){ return teamMusicTotal(tid) - (music.applied[tid] || 0); }
+
+function toggleMark(tid, sid, k){
+  const row = music.marks[tid] || (music.marks[tid] = {});
+  const b = (row[sid] || [0, 0, 0]).slice();
+  b[k] = b[k] ? 0 : 1;
+  if (b.some(Boolean)) row[sid] = b; else delete row[sid];
+  if (!Object.keys(row).length) delete music.marks[tid];
+  renderMusic(); saveState();
+}
+function addMusicPoints(team){
+  const delta = pendingFor(team.id);
+  if (!delta) return;
+  const before = team.score;
+  team.score += delta;
+  music.applied[team.id] = (music.applied[team.id] || 0) + delta;
+  if (!music.applied[team.id]) delete music.applied[team.id];
+  logAudit(team, (delta > 0 ? "+" : "−") + Math.abs(delta), before, team.score, "music");
+  syncScores();
+  renderMusic();
+}
+
+/* --- YouTube player --- */
+let ytPlayer = null, ytReady = false, ytLoading = false;
+let playing = null;          // { songId, start, end, began, askedAt }
+let playTimer = null;
+const ytErrors = {};         // songId -> problem message (this session only)
+const YT_ERRORS = {
+  2: "That YouTube link isn't a valid video.",
+  5: "YouTube couldn't play this video in the browser.",
+  100: "That video was removed or is private.",
+  101: "This upload won't play outside YouTube — swap in a different upload.",
+  150: "This upload won't play outside YouTube — swap in a different upload."
+};
+
+function setNowPlaying(html){ nowPlaying.innerHTML = html; }
+function idleMessage(){
+  return ytReady
+    ? `Press &#9654; to play a ${music.clip}-second clip. Press it again to stop early.`
+    : "Loading the YouTube player&hellip;";
+}
+
+function loadYouTubeAPI(){
+  if (ytReady || ytLoading) return;
+  ytLoading = true;
+  window.onYouTubeIframeAPIReady = () => {
+    ytPlayer = new YT.Player("ytPlayer", {
+      width: 260, height: 200,
+      playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: () => { ytReady = true; if (!playing) setNowPlaying(idleMessage()); renderMusic(); },
+        onStateChange: onYTState,
+        onError: onYTError
+      }
+    });
+  };
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  s.onerror = () => {
+    ytLoading = false; s.remove();
+    setNowPlaying(`<span class="err">Couldn't reach YouTube. Check the internet connection, then click Music again.</span>`);
+  };
+  document.head.appendChild(s);
+}
+
+function playSong(song){
+  if (playing && playing.songId === song.id) { stopClip(); return; }
+  const num = music.songs.indexOf(song) + 1;
+  const yt = parseYouTube(song.yt);
+  if (!yt) { setNowPlaying(`<span class="err">Song ${num} has no YouTube link yet &mdash; use Edit songs.</span>`); return; }
+  if (!ytReady) { loadYouTubeAPI(); setNowPlaying("Still loading the YouTube player&hellip; try again in a second."); return; }
+  delete ytErrors[song.id];
+  const start = Number(song.start) || 0;
+  playing = { songId: song.id, start, end: start + music.clip, began: false, askedAt: Date.now() };
+  ytPlayer.loadVideoById({ videoId: yt.id, startSeconds: start, endSeconds: start + music.clip });
+  clearInterval(playTimer);
+  playTimer = setInterval(tickClip, 250);
+  renderMusic();
+  tickClip();
+}
+
+function stopClip(){
+  clearInterval(playTimer); playTimer = null;
+  if (playing && ytPlayer) { try { ytPlayer.pauseVideo(); } catch(e) {} }
+  playing = null;
+  setNowPlaying(idleMessage());
+  renderMusic();
+}
+
+function tickClip(){
+  if (!playing) return;
+  const num = music.songs.findIndex(s => s.id === playing.songId) + 1;
+  let left = music.clip;
+  if (playing.began) {
+    let t = playing.start;
+    try { t = ytPlayer.getCurrentTime() || playing.start; } catch(e) {}
+    left = playing.end - Math.max(t, playing.start);
+    if (left <= 0.15) { stopClip(); return; }
+  }
+  const btn = musicTable.querySelector(`[data-play="${playing.songId}"]`);
+  if (btn) btn.innerHTML = "&#9632; " + Math.ceil(left);
+  if (!playing.began) {
+    const waited = (Date.now() - playing.askedAt) / 1000;
+    setNowPlaying(waited > 8
+      ? `<span class="err">Song ${num} is taking a while to start&hellip; check the player, or press &#9632; and try again.</span>`
+      : `Loading song <b>${num}</b>&hellip;`);
+  } else {
+    setNowPlaying(`Playing song <b>${num}</b> &mdash; <b>${Math.ceil(left)}</b> sec left`);
+  }
+}
+
+function onYTState(e){
+  if (!playing) return;
+  if (e.data === YT.PlayerState.PLAYING) { playing.began = true; tickClip(); }
+  else if (e.data === YT.PlayerState.ENDED) stopClip();
+  else if (e.data === YT.PlayerState.PAUSED && playing.began) {
+    // endSeconds pauses the player at the end of the clip
+    let t = 0; try { t = ytPlayer.getCurrentTime(); } catch(err) {}
+    if (t >= playing.end - 0.6) stopClip();
+  }
+}
+
+function onYTError(e){
+  const msg = YT_ERRORS[e.data] || "YouTube couldn't play this video.";
+  const sid = playing && playing.songId;
+  if (sid) ytErrors[sid] = msg;
+  const num = music.songs.findIndex(s => s.id === sid) + 1;
+  clearInterval(playTimer); playTimer = null; playing = null;
+  renderMusic();
+  setNowPlaying(`<span class="err">Song ${num || "?"}: ${msg}</span>`);
+}
+
+/* --- Rendering --- */
+function renderMusic(){
+  if (document.activeElement !== clipLenIn) clipLenIn.value = music.clip;
+  if (document.activeElement !== ptsEachIn) ptsEachIn.value = music.points;
+  editSongsBtn.textContent = editingSongs ? "Done editing" : "Edit songs";
+  editSongsBtn.classList.toggle("on", editingSongs);
+  if (!playing && !nowPlaying.innerHTML.includes("err")) setNowPlaying(idleMessage());
+  if (editingSongs) { renderSongEditor(); return; }
+
+  musicTable.className = "music";
+  let h = `<thead><tr><th class="song-num">#</th><th>Play</th><th>Answer</th>`;
+  teams.forEach(t => {
+    h += `<th class="team-col" style="border-top-color:${escAttr(t.color)}" title="${escAttr(t.name)}">
+      <span class="tname">${escapeHtml(t.name || "Team")}</span>
+      <span class="tpts">${teamMusicTotal(t.id).toLocaleString()}</span></th>`;
+  });
+  h += `</tr></thead><tbody>`;
+
+  music.songs.forEach((s, i) => {
+    const isP = playing && playing.songId === s.id;
+    const hasLink = !!parseYouTube(s.yt);
+    const warn = ytErrors[s.id] ? `<div class="warn">${escapeHtml(ytErrors[s.id])}</div>`
+               : !hasLink ? `<div class="warn">No YouTube link yet</div>` : "";
+    h += `<tr class="${isP ? "is-playing" : ""}">
+      <td class="song-num">${i + 1}</td>
+      <td class="play-cell"><button class="play-btn${isP ? " playing" : ""}" data-play="${s.id}" ${hasLink ? "" : "disabled"}
+          title="${isP ? "Stop" : "Play " + music.clip + " seconds from " + fmtClock(s.start)}">${isP ? "&#9632; " + music.clip : "&#9654;"}</button></td>
+      <td class="answer">
+        <div class="t">${s.title ? escapeHtml(s.title) : `<span style="color:var(--muted)">&mdash;</span>`}</div>
+        <div class="ay"><b>${s.artist ? escapeHtml(s.artist) : "&mdash;"}</b> &middot; ${s.year ? escapeHtml(s.year) : "&mdash;"}</div>
+        ${warn}
+      </td>`;
+    teams.forEach(t => {
+      const b = (music.marks[t.id] || {})[s.id] || [0, 0, 0];
+      h += `<td class="marks">` + ["T", "A", "Y"].map((L, k) =>
+        `<button class="mk${b[k] ? " on" : ""}" data-t="${t.id}" data-s="${s.id}" data-k="${k}" title="${FIELDS[k]} correct">${L}</button>`
+      ).join("") + `</td>`;
+    });
+    h += `</tr>`;
+  });
+  h += `</tbody>`;
+
+  const anyPending = teams.some(t => pendingFor(t.id) !== 0);
+  if (teams.length) {
+    h += `<tfoot><tr><td colspan="3" class="tot-label">
+      <button class="mbtn primary" id="addAllMusic" ${anyPending ? "" : "disabled"}>Add all to scores</button></td>`;
+    teams.forEach(t => {
+      const p = pendingFor(t.id);
+      const added = music.applied[t.id] || 0;
+      if (p > 0) h += `<td class="add-cell"><button class="add-team-btn" data-add="${t.id}" title="Add to ${escAttr(t.name)}'s score">Add +${p.toLocaleString()}</button></td>`;
+      else if (p < 0) h += `<td class="add-cell"><button class="add-team-btn neg" data-add="${t.id}" title="Take back points that were added before a checkmark was removed">Fix &minus;${Math.abs(p).toLocaleString()}</button></td>`;
+      else h += `<td class="add-cell">${added ? `<span class="add-team-btn done">&#10003; added</span>` : `<span class="add-none">&mdash;</span>`}</td>`;
+    });
+    h += `</tr></tfoot>`;
+  }
+  musicTable.innerHTML = h;
+
+  document.getElementById("musicLegend").innerHTML = teams.length
+    ? `T = title &middot; A = artist &middot; Y = year &mdash; ${music.points.toLocaleString()} each, ${(music.points * 3).toLocaleString()} per song.`
+    : `Add teams in the panel on the right to start scoring.`;
+  musicFoot.innerHTML = "";
+  const addAll = document.getElementById("addAllMusic");
+  if (addAll) addAll.onclick = () => teams.forEach(t => addMusicPoints(t));
+}
+
+function renderSongEditor(){
+  musicTable.className = "music editing";
+  let h = `<thead><tr><th class="song-num">#</th><th>YouTube link</th><th>Start at</th><th>Title</th><th>Artist</th><th>Year</th><th></th></tr></thead><tbody>`;
+  music.songs.forEach((s, i) => {
+    h += `<tr>
+      <td class="song-num">${i + 1}</td>
+      <td style="min-width:200px"><input class="edit-in" data-f="yt" data-s="${s.id}" value="${escAttr(s.yt)}" placeholder="Paste the YouTube link">
+          <div class="yt-state" data-state="${s.id}"></div></td>
+      <td><input class="edit-in small" data-f="start" data-s="${s.id}" value="${s.start ? fmtClock(s.start) : ""}" placeholder="0:00" title="Where the clip starts, like 1:05"></td>
+      <td><input class="edit-in" data-f="title" data-s="${s.id}" value="${escAttr(s.title)}" placeholder="Title"></td>
+      <td><input class="edit-in" data-f="artist" data-s="${s.id}" value="${escAttr(s.artist)}" placeholder="Artist"></td>
+      <td><input class="edit-in year" data-f="year" data-s="${s.id}" value="${escAttr(s.year)}" placeholder="Year"></td>
+      <td><button class="rm-song" data-rm="${s.id}" title="Remove this song">&#10005;</button></td>
+    </tr>`;
+  });
+  h += `</tbody>`;
+  musicTable.innerHTML = h;
+  music.songs.forEach(s => showLinkState(s));
+  musicFoot.innerHTML = `<button class="mbtn" id="addSongBtn">+ Add song</button>
+    <button class="mbtn warn" id="clearSongsBtn">Clear all songs</button>
+    <span class="note">Clips play ${music.clip} seconds from the start time. Links with a time in them (like &amp;t=65) fill it in for you.</span>`;
+  document.getElementById("addSongBtn").onclick = () => { music.songs.push(blankSong()); renderMusic(); saveState(); };
+  document.getElementById("clearSongsBtn").onclick = () => {
+    if (!confirm("Clear every song's link and answers? (Checkmarks for this round are cleared too.)")) return;
+    if (playing) stopClip();
+    music.songs = defaultMusic().songs; music.marks = {};
+    renderMusic(); saveState();
+  };
+}
+
+function showLinkState(s){
+  const el = musicTable.querySelector(`[data-state="${s.id}"]`);
+  if (!el) return;
+  const yt = parseYouTube(s.yt);
+  if (!s.yt.trim()) { el.className = "yt-state"; el.textContent = ""; }
+  else if (yt) { el.className = "yt-state ok"; el.textContent = "✓ Video found"; }
+  else { el.className = "yt-state bad"; el.textContent = "Not a YouTube link I recognize"; }
+}
+
+// One click handler for the whole table (play, checkmarks, add, remove song)
+musicTable.addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.play) { const s = music.songs.find(x => x.id === b.dataset.play); if (s) playSong(s); }
+  else if (b.dataset.k != null && b.dataset.t) toggleMark(b.dataset.t, b.dataset.s, +b.dataset.k);
+  else if (b.dataset.add) { const t = teams.find(x => x.id === b.dataset.add); if (t) addMusicPoints(t); }
+  else if (b.dataset.rm) {
+    const s = music.songs.find(x => x.id === b.dataset.rm);
+    if (!s) return;
+    const label = s.title || ("song " + (music.songs.indexOf(s) + 1));
+    if (!confirm(`Remove ${label}? Any checkmarks for it go too.`)) return;
+    if (playing && playing.songId === s.id) stopClip();
+    music.songs = music.songs.filter(x => x !== s);
+    Object.values(music.marks).forEach(row => delete row[s.id]);
+    renderMusic(); saveState();
+  }
+});
+// Typing in the song editor updates the song without redrawing (keeps your cursor)
+musicTable.addEventListener("input", e => {
+  const inp = e.target.closest("input[data-f]");
+  if (!inp) return;
+  const s = music.songs.find(x => x.id === inp.dataset.s);
+  if (!s) return;
+  const f = inp.dataset.f;
+  if (f === "start") {
+    const v = parseTime(inp.value);
+    inp.classList.toggle("bad", isNaN(v));
+    if (!isNaN(v)) s.start = v;
+  } else {
+    s[f] = inp.value;
+    if (f === "yt") {
+      showLinkState(s);
+      delete ytErrors[s.id];
+      const yt = parseYouTube(s.yt);
+      if (yt && yt.t && !s.start) {
+        s.start = yt.t;
+        const st = musicTable.querySelector(`input[data-f="start"][data-s="${s.id}"]`);
+        if (st) { st.value = fmtClock(yt.t); st.classList.remove("bad"); }
+      }
+    }
+  }
+  saveState();
+});
+
+clipLenIn.onchange = () => {
+  const v = Math.round(Number(clipLenIn.value));
+  music.clip = Math.max(5, Math.min(120, v || 30));
+  renderMusic(); saveState();
+};
+ptsEachIn.onchange = () => {
+  const v = Math.round(Number(ptsEachIn.value));
+  music.points = Math.max(1, Math.min(10000, v || 100));
+  renderMusic(); saveState();
+};
+editSongsBtn.onclick = () => { editingSongs = !editingSongs; renderMusic(); };
+document.getElementById("newRoundBtn").onclick = () => {
+  if (!confirm("Start a new music round? This clears all checkmarks. Points already added to scores stay.")) return;
+  if (playing) stopClip();
+  music.marks = {}; music.applied = {};
+  renderMusic(); saveState();
+};
 
 spinBtn.onclick = spin;
 wheel.onclick = spin;
@@ -1144,6 +1731,12 @@ wheel.onclick = spin;
   const boardUrlEl = document.getElementById("boardUrl");
   if (boardUrlEl) boardUrlEl.textContent = new URL("scores-board.html", location.href).href;
   document.getElementById("tvToggle").onclick = () => setTVDisplay(tvDisplay === "wheel" ? "leaderboard" : "wheel");
+  const drawer = document.getElementById("historyDrawer");
+  const historyBtn = document.getElementById("historyBtn");
+  const showHistory = open => { drawer.hidden = !open; historyBtn.classList.toggle("open", open); };
+  historyBtn.onclick = () => showHistory(drawer.hidden);
+  document.getElementById("closeHistory").onclick = () => showHistory(false);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !drawer.hidden) showHistory(false); });
   document.getElementById("clearAudit").onclick = () => {
     if (!confirm("Clear the score history log? (Team scores are not affected.)")) return;
     auditLog = []; renderAudit(); saveState();

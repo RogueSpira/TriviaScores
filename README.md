@@ -9,7 +9,7 @@ Separate site from voting and feud — deploy on its own.
 ## Files
 ```
 trivia-scores/
-├── scores-host.html               ← your control tool (laptop): wheel, scoring, bids
+├── scores-host.html               ← your control tool (laptop): wheel, scoring, bids, music round
 ├── scores-board.html              ← standings for the TV (auto-updates)
 ├── netlify.toml
 ├── package.json
@@ -49,3 +49,21 @@ Each team now carries a stable ID behind the scenes. That's groundwork so a futu
 buzz-in tool (or the Feud/voting tools) could share the same teams — a team could
 buzz in and be recognized here without re-entering anything. Not active yet; just
 built so it's possible without a rewrite.
+
+## Music round (Music button, top left)
+- **Edit songs**: paste each YouTube link, set where the clip starts (a link with
+  `&t=65` fills it in), and type the title, artist and year. Songs save to the backend.
+- **▶** plays the clip (default 30 sec, change "Clip") and stops on its own. Press it
+  again to stop early. If YouTube won't allow an upload to play outside YouTube, the
+  song is flagged so you can swap in a different upload.
+- Grade each team's sheet down its column: **T**itle / **A**rtist / **Y**ear, 100 each
+  (change "Each correct"). The team's round total shows under its name.
+- **Add +N** puts that team's points on the scoreboard (logged as "music" in history,
+  undo works). Change a checkmark afterwards and the button offers just the
+  difference. **Add all to scores** does every team at once.
+- **New round** clears the checkmarks for another music round; songs stay.
+
+## Team panel
+- Each team is two lines: name + total on top, points and bid controls below.
+  When the roster is too tall for the screen, rows tighten automatically.
+- Score history lives behind the **History** button instead of under the list.
