@@ -825,6 +825,9 @@ async function loadState(){
     }
     if (Array.isArray(data.audit)) { auditLog = data.audit; renderAudit(); }
     if (data.music && Array.isArray(data.music.songs)) music = normalizeMusic(data.music);
+    if (data.display === "wheel" || data.display === "song") tvDisplay = data.display;
+    if (data.song && data.song.n) tvSong = data.song.n;
+    updateTVLabel();
     lastSavedJSON = snapshotJSON();
   } catch(e) { /* no saved state yet, or offline — keep the defaults */ }
 }
@@ -1262,15 +1265,23 @@ function setView(view) {
 viewSwitch.querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.view));
 
 // Control what the TV (scores-board.html) displays: leaderboard or wheel.
+// "song" = the TV's big "Song N" card for the music round (set automatically by ▶).
 let tvDisplay = "leaderboard";
-async function setTVDisplay(mode){
-  tvDisplay = mode;
+let tvSong = 0;
+function updateTVLabel(){
   const btn = document.getElementById("tvToggle");
-  if (btn) btn.textContent = "TV shows: " + (mode === "wheel" ? "Wheel" : "Leaderboard");
+  if (!btn) return;
+  btn.textContent = "TV shows: " + (tvDisplay === "wheel" ? "Wheel" : tvDisplay === "song" ? "Song " + tvSong : "Leaderboard");
+  btn.title = tvDisplay === "leaderboard" ? "Switch the TV to the wheel" : "Switch the TV back to the leaderboard";
+}
+async function setTVDisplay(mode, songNum){
+  tvDisplay = mode;
+  if (mode === "song") tvSong = songNum;
+  updateTVLabel();
   try {
     await fetch(SCORES_API + "?action=display", {
       method:"POST", headers:{"content-type":"application/json"},
-      body: JSON.stringify({ display: mode })
+      body: JSON.stringify({ display: mode, song: songNum, total: music.songs.length })
     });
   } catch(e) {}
 }
@@ -1298,6 +1309,7 @@ function spin() {
 
   // Tell the TV to run the same spin (it animates locally to the same winner).
   ensureIds();
+  tvDisplay = "wheel"; updateTVLabel();   // spinning puts the wheel on the TV
   try {
     fetch(SCORES_API + "?action=spin", {
       method:"POST", headers:{"content-type":"application/json"},
@@ -1499,6 +1511,7 @@ function playSong(song){
   const start = Number(song.start) || 0;
   playing = { songId: song.id, start, end: start + music.clip, began: false, askedAt: Date.now() };
   ytPlayer.loadVideoById({ videoId: yt.id, startSeconds: start, endSeconds: start + music.clip });
+  if (tvDisplay !== "song" || tvSong !== num) setTVDisplay("song", num);   // TV shows "Song N"
   clearInterval(playTimer);
   playTimer = setInterval(tickClip, 250);
   renderMusic();
@@ -1730,7 +1743,7 @@ wheel.onclick = spin;
 (async () => {
   const boardUrlEl = document.getElementById("boardUrl");
   if (boardUrlEl) boardUrlEl.textContent = new URL("scores-board.html", location.href).href;
-  document.getElementById("tvToggle").onclick = () => setTVDisplay(tvDisplay === "wheel" ? "leaderboard" : "wheel");
+  document.getElementById("tvToggle").onclick = () => setTVDisplay(tvDisplay === "leaderboard" ? "wheel" : "leaderboard");
   const drawer = document.getElementById("historyDrawer");
   const historyBtn = document.getElementById("historyBtn");
   const showHistory = open => { drawer.hidden = !open; historyBtn.classList.toggle("open", open); };

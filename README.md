@@ -10,7 +10,7 @@ Separate site from voting and feud — deploy on its own.
 ```
 trivia-scores/
 ├── scores-host.html               ← your control tool (laptop): wheel, scoring, bids, music round
-├── scores-board.html              ← standings for the TV (auto-updates)
+├── scores-board.html              ← TV: standings, wheel, or "Song N" card (auto-updates)
 ├── netlify.toml
 ├── package.json
 └── netlify/functions/scores.mjs   ← backend (persists teams + scores)
@@ -62,6 +62,9 @@ built so it's possible without a rewrite.
   undo works). Change a checkmark afterwards and the button offers just the
   difference. **Add all to scores** does every team at once.
 - **New round** clears the checkmarks for another music round; songs stay.
+- **TV:** pressing ▶ puts a big "Song N" card on scores-board.html (with dots for
+  the songs played so far). It stays up until you click the **TV shows: Song N**
+  button, which sends the TV back to the leaderboard.
 
 ## Team panel
 - Each team is two lines: name + total on top, points and bid controls below.

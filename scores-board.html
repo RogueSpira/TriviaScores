@@ -66,6 +66,27 @@
   .empty .logo { font-family:"Bungee",sans-serif; font-size:7vh; color:var(--aqua); }
   .empty .msg { font-size:3vh; margin-top:2vh; }
 
+  /* ---------- Music round: "Song N" card ---------- */
+  .song-wrap { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.6vh; text-align:center; }
+  .song-kicker { font-family:"Bungee",sans-serif; font-size:4vh; color:var(--aqua); letter-spacing:1.2vh; text-shadow:0 0 2.5vh rgba(69,219,224,.45); }
+  .song-label { font-family:"Bungee",sans-serif; font-size:9vh; color:var(--cream); letter-spacing:1vh; line-height:1; }
+  .song-num {
+    font-family:"Bungee",sans-serif; font-size:34vh; line-height:.9; color:var(--gold);
+    text-shadow:0 0 5vh rgba(255,207,58,.55), 0 0 1.2vh rgba(255,207,58,.8);
+  }
+  .song-num.pop { animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes pop { from { transform:scale(.6); opacity:0; } to { transform:scale(1); opacity:1; } }
+  .song-dots { display:flex; gap:1.6vh; margin-top:1vh; }
+  .song-dots span { width:2.4vh; height:2.4vh; border-radius:50%; border:.35vh solid var(--lagoon); }
+  .song-dots span.done { background:var(--lagoon); }
+  .song-dots span.now { background:var(--gold); border-color:var(--gold); box-shadow:0 0 2vh rgba(255,207,58,.6); }
+  .eq { display:flex; align-items:flex-end; gap:1vh; height:7vh; }
+  .eq i { display:block; width:1.6vh; height:100%; background:var(--aqua); border-radius:.6vh; transform-origin:bottom; animation: eq 1s ease-in-out infinite; opacity:.85; }
+  .eq i:nth-child(2){ animation-delay:-.6s; } .eq i:nth-child(3){ animation-delay:-.2s; }
+  .eq i:nth-child(4){ animation-delay:-.8s; } .eq i:nth-child(5){ animation-delay:-.4s; }
+  @keyframes eq { 0%,100% { transform:scaleY(.25); } 50% { transform:scaleY(1); } }
+  @media (prefers-reduced-motion: reduce) { .eq i, .song-num.pop { animation:none; } .eq i { transform:scaleY(.6); } }
+
   .live-dot { position:fixed; top:1.5vh; right:2vw; width:1.2vh; height:1.2vh; border-radius:50%; background:var(--aqua); opacity:.5; transition:opacity .3s; }
   .live-dot.ping { opacity:1; }
   .hidden { display:none !important; }
@@ -89,6 +110,15 @@
       <div class="hub"></div>
     </div>
     <div class="winner-banner" id="winnerBanner"></div>
+  </div>
+
+  <!-- MUSIC ROUND VIEW -->
+  <div id="songView" class="song-wrap hidden">
+    <div class="song-kicker">Music Round</div>
+    <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="song-label">Song</div>
+    <div class="song-num" id="songNum">1</div>
+    <div class="song-dots" id="songDots"></div>
   </div>
 
 <script>
@@ -219,12 +249,28 @@ function renderLeaderboard(teams){
     <div class="board">${rows}</div>`;
 }
 
+const songView = document.getElementById("songView");
+let lastSongSig = "";
+function renderSong(song){
+  const n = (song && song.n) || 1, total = (song && song.total) || 0;
+  const sig = n + "/" + total;
+  if (sig === lastSongSig) return;
+  lastSongSig = sig;
+  const num = document.getElementById("songNum");
+  num.textContent = n;
+  num.classList.remove("pop"); void num.offsetWidth; num.classList.add("pop");
+  let dots = "";
+  for (let i = 1; i <= total; i++) dots += `<span class="${i < n ? "done" : i === n ? "now" : ""}"></span>`;
+  document.getElementById("songDots").innerHTML = dots;
+}
+
 function showView(display){
   if (display === currentDisplay) return;
   currentDisplay = display;
-  const wheel = display === "wheel";
-  wheelView.classList.toggle("hidden", !wheel);
-  leaderboardView.classList.toggle("hidden", wheel);
+  wheelView.classList.toggle("hidden", display !== "wheel");
+  leaderboardView.classList.toggle("hidden", display !== "leaderboard");
+  songView.classList.toggle("hidden", display !== "song");
+  lastSongSig = "";
   // force re-render of whichever is now visible
   lastLbSig = ""; lastWheelSig = "";
 }
@@ -247,10 +293,12 @@ async function tick(){
   }
 
   // display switch from host
-  showView(data.display === "wheel" ? "wheel" : "leaderboard");
+  showView(["wheel", "song"].includes(data.display) ? data.display : "leaderboard");
 
   if (currentDisplay === "leaderboard") {
     renderLeaderboard(latestTeams);
+  } else if (currentDisplay === "song") {
+    renderSong(data.song);
   } else {
     // keep the wheel drawn with current teams when idle (never mid-spin)
     const active = latestTeams.filter(t => !t.out);

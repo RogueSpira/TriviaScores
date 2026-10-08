@@ -107,7 +107,7 @@ export default async (req) => {
   try {
     if (action === "status") {
       const s = await load();
-      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, updated: s.updated || 0 });
+      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null, updated: s.updated || 0 });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -130,9 +130,15 @@ export default async (req) => {
         return json({ ok: true, updated: state.updated });
       }
       case "display": {
-        // What the TV shows: "leaderboard" or "wheel"
-        const d = body.display === "wheel" ? "wheel" : "leaderboard";
+        // What the TV shows: "leaderboard", "wheel", or "song" (music round card)
+        const d = ["wheel", "song"].includes(body.display) ? body.display : "leaderboard";
         state.display = d;
+        if (d === "song") {
+          state.song = {
+            n: Math.max(1, Math.min(99, Math.round(Number(body.song) || 1))),
+            total: Math.max(0, Math.min(99, Math.round(Number(body.total) || 0)))
+          };
+        }
         await save(state);
         return json({ ok: true, display: d });
       }
