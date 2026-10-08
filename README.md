@@ -10,7 +10,7 @@ Separate site from voting and feud — deploy on its own.
 ```
 trivia-scores/
 ├── scores-host.html               ← your control tool (laptop): wheel, scoring, bids, music round
-├── scores-board.html              ← TV: standings, wheel, or "Song N" card (auto-updates)
+├── scores-board.html              ← TV: standings, wheel, "Song N" card, QR cards, Feud board
 ├── netlify.toml
 ├── package.json
 └── netlify/functions/scores.mjs   ← backend (persists teams + scores)
@@ -70,3 +70,26 @@ built so it's possible without a rewrite.
 - Each team is two lines: name + total on top, points and bid controls below.
   When the roster is too tall for the screen, rows tighten automatically.
 - Score history lives behind the **History** button instead of under the list.
+
+## Feud (Feud button, top left)
+All three Feud tabs (Surveys, Build Boards, Play) now run from this page. They talk
+to the Feud site's backend, so surveys and boards live there as before, and
+**feud-host.html / feud-screen.html still work on their own as a backup**.
+
+- **Links** (Feud → Surveys): the Feud site address and the Buzzinga join link.
+  Change the Buzzinga link here if the join code changes.
+- **Put on TV:** buttons at the top of the Feud tab:
+  - **Survey QR** — full-screen "Scan to take the survey" card.
+  - **Buzzer QR** — full-screen "Scan to join the buzzers" card for Buzzinga.
+  - **Feud board** — the board, strikes, big X and buzzer sound (same look as
+    feud-screen.html). With no board loaded it shows the survey screen.
+- **Load to TV** puts the board on this TV page automatically.
+- **Teams & scoring** uses the teams on this page: +1 / −1 correct, then
+  **Add N to score** puts the points straight on the scoreboard (logged as "feud"
+  in history, undo works).
+- The **TV: …** button at the top always sends the TV back to the leaderboard.
+- The TV's sound button needs one click on the TV the first time, so the strike
+  buzzer can play (browsers block sound until someone clicks the page).
+
+The Feud site needs its own small update deployed first (it now allows this site
+to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."

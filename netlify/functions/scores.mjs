@@ -91,6 +91,28 @@ function cleanMusic(m) {
   };
 }
 
+// http(s) links only — these become QR codes and fetch targets
+function cleanUrl(u) {
+  const v = (u == null ? "" : String(u)).trim().slice(0, 300);
+  return /^https?:\/\/[^\s"'<>]+$/i.test(v) ? v.replace(/\/+$/, "") : "";
+}
+function cleanLinks(l) {
+  if (!l || typeof l !== "object") return null;
+  return { feud: cleanUrl(l.feud), buzzinga: cleanUrl(l.buzzinga) };
+}
+// Feud round correct-answer counts kept by the host: { correct: { teamId: n } }
+function cleanFeud(f) {
+  if (!f || typeof f !== "object") return null;
+  const correct = {};
+  if (f.correct && typeof f.correct === "object") {
+    for (const [tid, v] of Object.entries(f.correct).slice(0, 40)) {
+      const n = Math.max(0, Math.min(99, Math.round(Number(v) || 0)));
+      if (n) correct[safeKey(tid)] = n;
+    }
+  }
+  return { correct };
+}
+
 export default async (req) => {
   const url = new URL(req.url);
   const action = url.searchParams.get("action") || "status";
@@ -107,7 +129,8 @@ export default async (req) => {
   try {
     if (action === "status") {
       const s = await load();
-      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null, updated: s.updated || 0 });
+      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null,
+        qr: s.qr || null, links: s.links || null, feud: s.feud || null, updated: s.updated || 0 });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -126,12 +149,24 @@ export default async (req) => {
           const m = cleanMusic(body.music);
           if (m) state.music = m;
         }
+        if (body.links) { const l = cleanLinks(body.links); if (l) state.links = l; }
+        if (body.feud) { const f = cleanFeud(body.feud); if (f) state.feud = f; }
         await save(state);
         return json({ ok: true, updated: state.updated });
       }
       case "display": {
-        // What the TV shows: "leaderboard", "wheel", or "song" (music round card)
-        const d = ["wheel", "song"].includes(body.display) ? body.display : "leaderboard";
+        // What the TV shows: "leaderboard", "wheel", "song" (music round card),
+        // "feud" (the Feud board), or "qr" (a full-screen scan card)
+        let d = ["wheel", "song", "feud", "qr"].includes(body.display) ? body.display : "leaderboard";
+        if (d === "qr") {
+          const url = cleanUrl(body.qr && body.qr.url);
+          if (!url) return json({ error: "QR needs an http(s) link" }, 400);
+          state.qr = {
+            url,
+            label: (body.qr.label == null ? "" : String(body.qr.label)).slice(0, 80),
+            kind: (body.qr.kind == null ? "" : String(body.qr.kind)).replace(/[^a-z]/g, "").slice(0, 12)
+          };
+        }
         state.display = d;
         if (d === "song") {
           state.song = {

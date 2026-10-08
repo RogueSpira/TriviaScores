@@ -350,10 +350,8 @@
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
   /* ---- View switch (this laptop screen): Wheel / Leaderboard / Music ---- */
+  #topBar { position: fixed; top: 18px; left: 18px; z-index: 40; display: flex; gap: 10px; align-items: center; }
   #viewSwitch {
-    position: fixed;
-    top: 18px; left: 18px;
-    z-index: 40;
     display: flex;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -362,17 +360,14 @@
   }
   #viewSwitch button {
     background: transparent; border: none; color: var(--muted);
-    padding: 7px 16px; border-radius: 999px;
-    font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    padding: 7px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
     cursor: pointer; transition: all .15s ease;
   }
   #viewSwitch button:hover { color: var(--ink); }
   #viewSwitch button.on { background: var(--panel-2); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
   #tvToggle {
-    position: fixed;
-    top: 18px; left: 344px;
-    z-index: 40;
     background: var(--accent); color: #000;
     border: 1px solid var(--accent);
     padding: 10px 16px;
@@ -609,6 +604,72 @@
   .music-foot .note { font-size: 12.5px; color: var(--muted); }
   .music-empty { color: var(--muted); font-style: italic; padding: 18px 6px; }
 
+  /* ---- Feud (scoped so it can't collide with the scoreboard styles) ---- */
+  /* the top border keeps scrolled cards from sliding under the fixed top bar */
+  #feudStage { justify-content: flex-start; align-items: stretch; padding: 6px 24px 24px; border-top: 64px solid var(--bg); overflow-y: auto; gap: 0; }
+  #feudStage { --blue:#2f6bff; --green:#3cb44b; --green-soft:#6ee08a; --red:#b5484e; --red-soft:#d9736f; }
+  #feudStage .f-top { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  #feudStage .tabs { display:flex; gap:8px; flex-wrap:wrap; }
+  #feudStage .tab { padding:9px 16px; border-radius:999px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); cursor:pointer; font-weight:700; font-size:13.5px; }
+  #feudStage .tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+  #feudStage .tvbar { display:flex; gap:6px; align-items:center; flex-wrap:wrap; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  #feudStage .tvbar .btn.on { border-color:var(--accent); color:var(--accent); }
+  #feudStage .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
+  #feudStage .card h2 { font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin:0 0 12px; }
+  #feudStage label { display:block; font-size:11px; color:var(--muted); margin:0 0 6px; text-transform:uppercase; letter-spacing:1px; }
+  #feudStage input[type=text], #feudStage input[type=number], #feudStage select, #feudStage textarea {
+    background:#000; border:1px solid var(--line); color:var(--ink); font-size:14.5px; padding:9px 11px; border-radius:9px; font-family:inherit; }
+  #feudStage input:focus, #feudStage select:focus, #feudStage textarea:focus { outline:none; border-color:var(--blue); }
+  #feudStage select { width:100%; }
+  #feudStage .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); padding:9px 15px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; }
+  #feudStage .btn:hover { border-color:var(--accent); }
+  #feudStage .btn.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+  #feudStage .btn.aqua { background:var(--accent); color:#000; border-color:var(--accent); }
+  #feudStage .btn.green { background:var(--green); color:#fff; border-color:var(--green); }
+  #feudStage .btn.danger:hover { border-color:var(--red); color:var(--red-soft); }
+  #feudStage .btn.sm { padding:6px 10px; font-size:12px; }
+  #feudStage .btn:disabled { opacity:.4; cursor:not-allowed; }
+  #feudStage .btn-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  #feudStage .hint { font-size:12px; color:var(--muted); margin-top:8px; }
+  #feudStage .pill { display:inline-block; font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:3px 10px; border-radius:999px; border:1px solid var(--line); color:var(--muted); }
+  #feudStage .pill.live { border-color:var(--green); color:var(--green-soft); }
+  #feudStage .qedit-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  #feudStage .qedit-row input { flex:1 1 auto; }
+  #feudStage .qedit-row .num { width:20px; color:var(--muted); font-weight:700; text-align:center; }
+  #feudStage .survey-item { padding:12px; border:1px solid var(--line); border-radius:10px; margin-bottom:10px; background:var(--panel-2); }
+  #feudStage .survey-item.live { border-color:var(--green); }
+  #feudStage .survey-head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  #feudStage .survey-title { font-weight:800; font-size:15px; }
+  #feudStage .survey-meta { font-size:12px; color:var(--muted); margin-top:3px; }
+  #feudStage .bucket { display:flex; align-items:center; gap:10px; padding:8px; border:1px solid var(--line); border-radius:9px; margin-bottom:8px; background:var(--panel-2); }
+  #feudStage .bucket .brank { font-weight:800; color:var(--muted); width:24px; text-align:center; font-size:14px; }
+  #feudStage .bucket .cnt { width:70px; }
+  #feudStage .bucket.dragging { opacity:.5; }
+  #feudStage .bucket.dragover { border-color:var(--accent); }
+  #feudStage .play-slot { display:flex; align-items:center; gap:12px; padding:9px 12px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; }
+  #feudStage .play-slot .n { font-weight:800; width:24px; color:var(--muted); }
+  #feudStage .play-slot .a { flex:1 1 auto; font-weight:700; }
+  #feudStage .play-slot .c { color:var(--accent); font-weight:800; width:50px; text-align:right; }
+  #feudStage .play-slot.revealed { background:rgba(60,180,75,.12); border-color:var(--green); }
+  #feudStage .teams-row { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:10px; }
+  #feudStage .fteam { border:1px solid var(--line); border-top:4px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--panel-2); text-align:center; }
+  #feudStage .fteam .fname { font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
+  #feudStage .fteam .fcorrect { font-size:24px; font-weight:800; color:var(--green-soft); }
+  #feudStage .fteam .fcorrect span { font-size:12px; color:var(--muted); font-weight:600; }
+  #feudStage .fteam .fpts { font-size:12px; color:var(--muted); margin-bottom:8px; }
+  #feudStage .fteam .btn-row { justify-content:center; }
+  #feudStage .qtabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  #feudStage .qtab { padding:7px 11px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); cursor:pointer; font-size:13px; font-weight:700; }
+  #feudStage .qtab.active { background:var(--accent); color:#000; border-color:var(--accent); }
+  #feudStage .qtab .badge { font-size:10px; opacity:.8; }
+  #feudStage .section { display:none; } #feudStage .section.active { display:block; }
+  #feudStage .urls { font-size:12px; color:var(--muted); margin-top:10px; word-break:break-all; } #feudStage .urls b { color:var(--ink); }
+  #feudStage .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  #feudStage .strike-xs span { font-size:34px; color:#3a4d52; } #feudStage .strike-xs span.on { color:#ff3b3b; }
+  #feudStage .offline { border:1px solid #b5484e; background:rgba(181,72,78,.12); color:#f0a08f; padding:10px 12px; border-radius:10px; font-size:13px; margin-bottom:12px; }
+  #f_toast { position:fixed; bottom:20px; left:calc((100vw - 420px) / 2); transform:translateX(-50%); background:var(--panel-2); border:1px solid var(--line); padding:11px 18px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:60; }
+  #f_toast.show { opacity:1; }
+
   /* edit-songs mode */
   table.music.editing td { padding: 5px 4px; }
   .edit-in {
@@ -627,12 +688,15 @@
 </style>
 </head>
 <body>
-<div id="viewSwitch" role="group" aria-label="What this screen shows">
-  <button data-view="wheel" class="on">Wheel</button>
-  <button data-view="board">Leaderboard</button>
-  <button data-view="music">Music</button>
+<div id="topBar">
+  <div id="viewSwitch" role="group" aria-label="What this screen shows">
+    <button data-view="wheel" class="on">Wheel</button>
+    <button data-view="board">Leaderboard</button>
+    <button data-view="music">Music</button>
+    <button data-view="feud">Feud</button>
+  </div>
+  <button id="tvToggle" title="Control what the separate TV screen shows">TV: Leaderboard</button>
 </div>
-<button id="tvToggle" title="Control what the separate TV screen shows">TV shows: Leaderboard</button>
 <div id="saveIndicator">Saved &#10003;</div>
 
 <div class="layout">
@@ -670,6 +734,154 @@
     <div class="music-table-wrap"><table class="music" id="musicTable"></table></div>
     <div class="music-foot" id="musicFoot"></div>
   </div>
+
+  <!-- ================= FEUD (runs the kavafeud backend from here) ================= -->
+  <div class="stage" id="feudStage" hidden>
+    <div class="f-top">
+      <div class="tabs">
+        <button class="tab active" data-ftab="collect">1 · Surveys</button>
+        <button class="tab" data-ftab="build">2 · Build Boards</button>
+        <button class="tab" data-ftab="play">3 · Play</button>
+      </div>
+      <div class="tvbar">
+        <span>Put on TV:</span>
+        <button class="btn sm" id="f_tvSurvey" title="Full-screen QR for the Feud survey">Survey QR</button>
+        <button class="btn sm" id="f_tvBuzz" title="Full-screen QR for joining the Buzzinga buzzers">Buzzer QR</button>
+        <button class="btn sm" id="f_tvBoard" title="The Feud board (or the survey screen if no board is loaded)">Feud board</button>
+      </div>
+    </div>
+    <div class="offline" id="f_offline" hidden>Can't reach the Feud site. Check the Feud link under Surveys &rarr; Links, and that the Feud site has the latest update deployed.</div>
+
+    <!-- SURVEYS -->
+    <div class="section active" id="f_sec-collect">
+      <div class="grid2">
+        <div class="card">
+          <h2>Create a survey</h2>
+          <label>Survey name</label>
+          <input type="text" id="f_newTitle" placeholder="e.g. Trivia Night — Oct 15" style="width:100%; margin-bottom:12px;">
+          <label>Questions</label>
+          <div id="f_qEditList"></div>
+          <div class="btn-row" style="margin-top:6px;">
+            <button class="btn" id="f_addQ">+ Add question</button>
+            <button class="btn primary" id="f_createSurvey">Create survey</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Your surveys</h2>
+          <div id="f_surveyList"><p class="hint">Loading&hellip;</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Links</h2>
+        <div class="grid2">
+          <div>
+            <label>Feud site</label>
+            <input type="text" id="f_linkFeud" placeholder="https://kavafeud.netlify.app" style="width:100%;">
+          </div>
+          <div>
+            <label>Buzzinga join link</label>
+            <input type="text" id="f_linkBuzz" placeholder="https://play.buzzinga.io/join/…" style="width:100%;">
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn primary" id="f_saveLinks">Save links</button>
+          <span class="hint" id="f_linkStatus" style="margin-top:0;"></span>
+        </div>
+        <div class="urls">Players' survey page: <b id="f_surveyUrl">&mdash;</b></div>
+      </div>
+      <div class="card">
+        <h2>Maintenance</h2>
+        <p class="hint" style="margin-top:0;">Clears ALL Feud surveys and boards. Team scores on this page aren't touched.</p>
+        <button class="btn danger" id="f_resetAll">Reset all Feud data</button>
+      </div>
+    </div>
+
+    <!-- BUILD -->
+    <div class="section" id="f_sec-build">
+      <div class="card">
+        <h2>Pick a survey</h2>
+        <select id="f_buildSurvey"></select>
+      </div>
+      <div class="card" id="f_buildQCard" style="display:none;">
+        <h2>Pick a question to build into a board</h2>
+        <div class="qtabs" id="f_buildQTabs"></div>
+        <div class="btn-row">
+          <button class="btn aqua" id="f_consolidateBtn">Auto-consolidate answers</button>
+          <span class="hint" id="f_rawCount" style="margin-top:0;"></span>
+        </div>
+      </div>
+      <div class="card" id="f_aiAssistCard" style="display:none;">
+        <h2>Consolidate with Claude <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; for messy answers the auto-pass can't group</span></h2>
+        <p class="hint" style="margin-top:0;">Copy the answers (with a ready-made prompt), paste into Claude, then paste Claude's result back below.</p>
+        <div class="btn-row">
+          <button class="btn" id="f_copyForClaudeQ">Copy this question for Claude</button>
+          <button class="btn" id="f_copyForClaudeAll">Copy whole survey for Claude</button>
+          <span class="hint" id="f_copyStatus" style="margin-top:0;"></span>
+        </div>
+        <label style="margin-top:12px;">Paste Claude's result here</label>
+        <textarea id="f_importBox" placeholder="Paste the JSON Claude gives you back…" style="width:100%; min-height:100px; font-size:13px; font-family:monospace;"></textarea>
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn green" id="f_importBtn">Import into board(s)</button>
+          <span class="hint" id="f_importStatus" style="margin-top:0;"></span>
+        </div>
+      </div>
+      <div class="card" id="f_bucketCard" style="display:none;">
+        <h2>Edit the board &mdash; drag to merge, edit text/counts, trim to your top answers</h2>
+        <div id="f_buckets"></div>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn" id="f_addBucket">+ Add row</button>
+          <button class="btn green" id="f_saveBoard">Save board</button>
+          <button class="btn primary" id="f_lockBoard">Lock for play</button>
+        </div>
+        <p class="hint">Drag a row onto another to merge (counts add up). Lock when happy.</p>
+        <div class="btn-row" style="margin-top:12px; border-top:1px solid var(--line); padding-top:12px;">
+          <button class="btn danger" id="f_clearRawQ">Clear raw answers for this question</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAY -->
+    <div class="section" id="f_sec-play">
+      <div class="card">
+        <h2>Load a board to the TV</h2>
+        <label>Survey</label>
+        <select id="f_playSurvey" style="margin-bottom:12px;"></select>
+        <label>Question (locked boards only)</label>
+        <div class="qtabs" id="f_playQTabs"></div>
+        <div class="btn-row" style="margin-top:6px;">
+          <button class="btn aqua" id="f_loadBoard">Load to TV</button>
+          <button class="btn" id="f_clearBoard">Clear board (TV shows survey screen)</button>
+        </div>
+      </div>
+      <div class="card" id="f_playCard" style="display:none;">
+        <h2>Reveal answers <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; tap to flip each open on the TV</span></h2>
+        <div id="f_playBoard"></div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn" id="f_hideAll">Re-hide all</button>
+          <label style="margin:0 0 0 auto; display:flex; align-items:center; gap:8px;">Answers shown on TV
+            <input type="number" id="f_answerCount" min="1" max="10" style="width:70px;"></label>
+        </div>
+      </div>
+      <div class="card" id="f_strikeCounterCard" style="display:none;">
+        <h2>Strikes <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; for the team currently guessing; reset when the next team is up</span></h2>
+        <div class="btn-row" style="justify-content:center; gap:18px;">
+          <div class="strike-xs" id="f_strikeXs"></div>
+          <button class="btn danger" id="f_addStrikeBtn">Add strike</button>
+          <button class="btn" id="f_resetStrikesBtn">Reset</button>
+        </div>
+      </div>
+      <div class="card" id="f_strikeCard" style="display:none;">
+        <h2>Teams &amp; scoring <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; mark correct answers, then add the points to the scoreboard</span></h2>
+        <div class="btn-row" style="margin-bottom:10px;">
+          <label style="margin:0; display:flex; align-items:center; gap:8px;">Points per correct answer
+            <input type="number" id="f_pointsPerAnswer" min="0" step="10" style="width:90px;"></label>
+          <button class="btn sm" id="f_clearAllCorrect" style="margin-left:auto;">Clear all correct</button>
+        </div>
+        <div class="teams-row" id="f_strikeRow"></div>
+      </div>
+    </div>
+  </div>
+  <div id="f_toast"></div>
 
   <aside class="sidebar">
     <div class="side-head">
@@ -802,7 +1014,7 @@ function saveState(){
       const snap = JSON.parse(payload);
       const res = await fetch(SCORES_API + "?action=save", {
         method: "POST", headers: { "content-type": "application/json" },
-        body: JSON.stringify({ teams: snap.teams, audit: snap.audit, music: snap.music })
+        body: JSON.stringify({ teams: snap.teams, audit: snap.audit, music: snap.music, links: snap.links, feud: snap.feud })
       });
       if (!res.ok) throw new Error("save failed");
       lastSavedJSON = payload;
@@ -827,6 +1039,10 @@ async function loadState(){
     if (data.music && Array.isArray(data.music.songs)) music = normalizeMusic(data.music);
     if (data.display === "wheel" || data.display === "song") tvDisplay = data.display;
     if (data.song && data.song.n) tvSong = data.song.n;
+    if (data.display === "feud" || data.display === "qr") tvDisplay = data.display;
+    if (data.qr && data.qr.kind) tvQrKind = data.qr.kind;
+    if (data.links) links = { feud: data.links.feud || links.feud, buzzinga: data.links.buzzinga || links.buzzinga };
+    if (data.feud && data.feud.correct) feudCorrect = data.feud.correct;
     updateTVLabel();
     lastSavedJSON = snapshotJSON();
   } catch(e) { /* no saved state yet, or offline — keep the defaults */ }
@@ -837,7 +1053,9 @@ function snapshotJSON(){
   return JSON.stringify({
     teams: teams.map(t => ({ id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out, bid: t.bid || 0 })),
     audit: auditLog,
-    music: { clip: music.clip, points: music.points, songs: music.songs, marks: music.marks, applied: music.applied }
+    music: { clip: music.clip, points: music.points, songs: music.songs, marks: music.marks, applied: music.applied },
+    links,
+    feud: { correct: feudCorrect }
   });
 }
 
@@ -952,7 +1170,7 @@ function renderList() {
     swatch.className = "swatch";
     swatch.value = team.color;
     swatch.title = "Team color";
-    swatch.oninput = e => { team.color = e.target.value; drawWheel(); if (boardMode) renderBoard(); if (musicMode) renderMusic(); saveState(); };
+    swatch.oninput = e => { team.color = e.target.value; drawWheel(); if (boardMode) renderBoard(); if (musicMode) renderMusic(); if (feudMode) paintFeudTeams(); saveState(); };
 
     const name = document.createElement("textarea");
     name.className = "name-input";
@@ -960,7 +1178,7 @@ function renderList() {
     name.value = team.name;
     name.placeholder = "Team name\u2026";
     const autoGrow = () => { name.style.height = "auto"; name.style.height = name.scrollHeight + "px"; };
-    name.oninput = e => { team.name = e.target.value; autoGrow(); drawWheel(); if (boardMode) renderBoard(); if (musicMode) renderMusic(); saveState(); };
+    name.oninput = e => { team.name = e.target.value; autoGrow(); drawWheel(); if (boardMode) renderBoard(); if (musicMode) renderMusic(); if (feudMode) paintFeudTeams(); saveState(); };
     name.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); name.blur(); } };
     // Grow to fit once the row is in the DOM
     requestAnimationFrame(autoGrow);
@@ -1087,6 +1305,7 @@ function renderList() {
     del.onclick = () => {
       teams.splice(i,1);
       forgetMusicTeam(team.id);
+      delete feudCorrect[team.id];
       renderList(); drawWheel(); saveState();
     };
 
@@ -1104,6 +1323,7 @@ function renderList() {
   });
   if (typeof boardMode !== "undefined" && boardMode) renderBoard();
   if (typeof musicMode !== "undefined" && musicMode) renderMusic();
+  if (typeof feudMode !== "undefined" && feudMode && typeof paintFeudTeams === "function") paintFeudTeams();
   fitTeams();
   requestAnimationFrame(fitTeams);   // again once long names have wrapped
 }
@@ -1172,7 +1392,7 @@ document.getElementById("restoreBtn").onclick = () => {
 
 document.getElementById("resetScoresBtn").onclick = () => {
   teams.forEach(t => { t.score = 0; t.out = false; t.bid = 0; });
-  music.marks = {}; music.applied = {};
+  music.marks = {}; music.applied = {}; feudCorrect = {};
   renderList(); drawWheel(); result.innerHTML = "";
   updateRestoreBtn(); saveState();
 };
@@ -1184,7 +1404,7 @@ document.getElementById("newNightBtn").onclick = () => {
     { id: newTeamId(), name: "Team 2", score: 0, color: TEAM_COLORS[1], out: false, bid: 0 },
   ];
   colorCursor = teams.length;
-  music.marks = {}; music.applied = {};
+  music.marks = {}; music.applied = {}; feudCorrect = {};
   auditLog = []; renderAudit();
   renderList(); drawWheel(); result.innerHTML = "";
   updateRestoreBtn(); saveState();
@@ -1202,12 +1422,18 @@ function updateRestoreBtn() {
 /* ---------- Leaderboard mode ---------- */
 let boardMode = false;
 let musicMode = false;
+let feudMode = false;
+// Links used for Feud + QR cards (saved to the backend, editable in Feud → Surveys → Links)
+let links = { feud: "https://kavafeud.netlify.app", buzzinga: "https://play.buzzinga.io/join/4l4jy" };
+// Feud correct-answer counts per team, for the board in play
+let feudCorrect = {};
 let editingSongs = false;
 const wheelStage = document.getElementById("wheelStage");
 const boardStage = document.getElementById("boardStage");
 const board = document.getElementById("board");
 const musicStage = document.getElementById("musicStage");
 const viewSwitch = document.getElementById("viewSwitch");
+const feudStage = document.getElementById("feudStage");
 
 function renderBoard() {
   board.innerHTML = "";
@@ -1257,32 +1483,49 @@ function setView(view) {
   wheelStage.hidden = view !== "wheel";
   boardStage.hidden = !boardMode;
   musicStage.hidden = !musicMode;
+  feudStage.hidden = view !== "feud";
+  feudMode = view === "feud";
   viewSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
   if (boardMode) renderBoard();
   if (musicMode) { loadYouTubeAPI(); renderMusic(); }
+  if (feudMode) feudOpened();
   fitTeams();
 }
 viewSwitch.querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.view));
 
 // Control what the TV (scores-board.html) displays: leaderboard or wheel.
 // "song" = the TV's big "Song N" card for the music round (set automatically by ▶).
+// "feud" = the Feud board; "qr" = a full-screen scan card (survey / buzzers).
 let tvDisplay = "leaderboard";
 let tvSong = 0;
+let tvQrKind = "";
+const QR_NAMES = { survey: "Survey QR", buzz: "Buzzer QR" };
 function updateTVLabel(){
   const btn = document.getElementById("tvToggle");
   if (!btn) return;
-  btn.textContent = "TV shows: " + (tvDisplay === "wheel" ? "Wheel" : tvDisplay === "song" ? "Song " + tvSong : "Leaderboard");
+  const what = tvDisplay === "wheel" ? "Wheel"
+    : tvDisplay === "song" ? "Song " + tvSong
+    : tvDisplay === "feud" ? "Feud board"
+    : tvDisplay === "qr" ? (QR_NAMES[tvQrKind] || "QR code")
+    : "Leaderboard";
+  btn.textContent = "TV: " + what;
   btn.title = tvDisplay === "leaderboard" ? "Switch the TV to the wheel" : "Switch the TV back to the leaderboard";
+  if (typeof paintFeudTVBar === "function") paintFeudTVBar();
 }
-async function setTVDisplay(mode, songNum){
+// arg: the song number for "song", or { url, label, kind } for "qr"
+async function setTVDisplay(mode, arg){
+  const body = { display: mode };
+  if (mode === "song") { tvSong = arg; body.song = arg; body.total = music.songs.length; }
+  if (mode === "qr") { tvQrKind = arg.kind || ""; body.qr = arg; }
   tvDisplay = mode;
-  if (mode === "song") tvSong = songNum;
   updateTVLabel();
   try {
-    await fetch(SCORES_API + "?action=display", {
+    const res = await fetch(SCORES_API + "?action=display", {
       method:"POST", headers:{"content-type":"application/json"},
-      body: JSON.stringify({ display: mode, song: songNum, total: music.songs.length })
+      body: JSON.stringify(body)
     });
+    const data = await res.json().catch(() => ({}));
+    if (data.error) toast(data.error);
   } catch(e) {}
 }
 
@@ -1738,6 +1981,428 @@ document.getElementById("newRoundBtn").onclick = () => {
 
 spinBtn.onclick = spin;
 wheel.onclick = spin;
+
+/* =====================================================================
+   FEUD — all three tabs of feud-host.html, running the kavafeud backend
+   from this page. Differences from feud-host.html:
+   - teams come from this page (no roster sync), and correct answers are
+     added straight to these scores (logged as "feud" in history, undo works)
+   - "Load to TV" also switches this TV page to the Feud board
+   feud-host.html still works on its own as a backup.
+   ===================================================================== */
+(function(){
+  const $ = id => document.getElementById("f_" + id);
+  const feudBase = () => (links.feud || "https://kavafeud.netlify.app").replace(/\/+$/, "");
+  const API = () => feudBase() + "/.netlify/functions/feud";
+  const surveyUrl = () => feudBase() + "/feud-survey.html";
+  let state = null;
+  let newQuestions = [""];
+  let buildSel = { sid:null, qid:null };
+  let editingBuckets = [];
+  let playSel = { sid:null, qid:null };
+  let pollTimer = null;
+
+  function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1800); }
+  async function api(action, body){
+    try {
+      const res = await fetch(API() + "?action=" + action, { method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body||{}) });
+      return await res.json();
+    } catch(e) { return { error: "Couldn't reach the Feud site" }; }
+  }
+  async function refresh(){
+    try {
+      const res = await fetch(API()+"?action=status",{cache:"no-store"});
+      if (!res.ok) throw new Error("status " + res.status);
+      state = await res.json();
+      $("offline").hidden = true;
+      paint();
+    } catch(e) { $("offline").hidden = false; }
+  }
+  function escapeHtml(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
+  function escapeAttr(s){return escapeHtml(s).replace(/"/g,"&quot;");}
+
+  // Called when the Feud view is opened: fetch now, then poll while it's open.
+  window.feudOpened = function(){
+    paintLinks(); paintFeudTVBar(); paintQEdit();
+    refresh();
+    clearInterval(pollTimer);
+    pollTimer = setInterval(() => { if (feudMode) refresh(); else clearInterval(pollTimer); }, 2500);
+  };
+
+  document.querySelectorAll("#feudStage .tab").forEach(t => t.onclick = () => {
+    document.querySelectorAll("#feudStage .tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll("#feudStage .section").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active"); $("sec-"+t.dataset.ftab).classList.add("active"); paint();
+  });
+
+  /* ---------- TV buttons ---------- */
+  window.paintFeudTVBar = function(){
+    $("tvSurvey").classList.toggle("on", tvDisplay === "qr" && tvQrKind === "survey");
+    $("tvBuzz").classList.toggle("on", tvDisplay === "qr" && tvQrKind === "buzz");
+    $("tvBoard").classList.toggle("on", tvDisplay === "feud");
+  };
+  $("tvSurvey").onclick = () => setTVDisplay("qr", { url: surveyUrl(), label: "Scan to take the survey", kind: "survey" });
+  $("tvBuzz").onclick = () => {
+    if (!links.buzzinga) { toast("Add the Buzzinga link under Surveys → Links"); return; }
+    setTVDisplay("qr", { url: links.buzzinga, label: "Scan to join the buzzers", kind: "buzz" });
+  };
+  $("tvBoard").onclick = () => setTVDisplay("feud");
+
+  /* ---------- Links ---------- */
+  function paintLinks(){
+    if (document.activeElement !== $("linkFeud")) $("linkFeud").value = links.feud || "";
+    if (document.activeElement !== $("linkBuzz")) $("linkBuzz").value = links.buzzinga || "";
+    $("surveyUrl").textContent = surveyUrl();
+  }
+  $("saveLinks").onclick = () => {
+    const ok = v => /^https?:\/\/\S+$/i.test(v);
+    const f = $("linkFeud").value.trim().replace(/\/+$/, ""), b = $("linkBuzz").value.trim();
+    if (f && !ok(f)) { $("linkStatus").textContent = "The Feud link needs to start with https://"; return; }
+    if (b && !ok(b)) { $("linkStatus").textContent = "The Buzzinga link needs to start with https://"; return; }
+    links = { feud: f || "https://kavafeud.netlify.app", buzzinga: b };
+    saveState(); paintLinks();
+    $("linkStatus").textContent = "Saved ✓";
+    refresh();
+  };
+
+  /* ---------- Create-survey form ---------- */
+  function paintQEdit(){
+    $("qEditList").innerHTML = newQuestions.map((q,i) => `
+      <div class="qedit-row">
+        <span class="num">${i+1}</span>
+        <input type="text" value="${escapeAttr(q)}" data-i="${i}" placeholder="Type a question…">
+        <button class="btn sm danger" onclick="fRmQ(${i})">&#10005;</button>
+      </div>`).join("");
+    $("qEditList").querySelectorAll("input").forEach(inp => {
+      inp.oninput = () => { newQuestions[+inp.dataset.i] = inp.value; };
+    });
+  }
+  window.fRmQ = (i) => { newQuestions.splice(i,1); if(!newQuestions.length) newQuestions=[""]; paintQEdit(); };
+  $("addQ").onclick = () => { newQuestions.push(""); paintQEdit(); };
+  $("createSurvey").onclick = async () => {
+    const title = $("newTitle").value.trim();
+    const questions = newQuestions.map(q=>q.trim()).filter(Boolean);
+    if (!questions.length) return toast("Add at least one question");
+    const r = await api("survey_create", { title, questions });
+    if (r.error) return toast(r.error);
+    $("newTitle").value = ""; newQuestions=[""]; paintQEdit();
+    toast("Survey created"); refresh();
+  };
+
+  /* ---------- Survey list ---------- */
+  function paintSurveyList(){
+    const box = $("surveyList");
+    const ids = Object.keys(state.surveys||{});
+    if (!ids.length){ box.innerHTML=`<p class="hint">No surveys yet.</p>`; return; }
+    box.innerHTML = ids.map(sid => {
+      const s = state.surveys[sid];
+      if (!s || !Array.isArray(s.questions)) {
+        return `<div class="survey-item"><div class="survey-head">
+            <div><div class="survey-title">${escapeHtml((s && s.title) || (s && s.question) || "Old survey")}</div>
+            <div class="survey-meta" style="color:var(--red-soft);">Old format — delete this</div></div>
+            <div class="btn-row"><button class="btn sm danger" onclick="fDelSurvey('${sid}')">Delete</button></div>
+          </div></div>`;
+      }
+      const isLive = state.liveSurveyId === sid;
+      const responses = s.responseCount || 0;
+      const locked = s.questions.filter(q=>q && q.board && q.board.locked).length;
+      return `
+        <div class="survey-item ${isLive?"live":""}">
+          <div class="survey-head">
+            <div>
+              <div class="survey-title">${escapeHtml(s.title)} ${isLive?'<span class="pill live">Live on phones</span>':''}</div>
+              <div class="survey-meta">${s.questions.length} question${s.questions.length!==1?"s":""} · ${responses} response${responses!==1?"s":""}${locked?` · ${locked} board${locked!==1?"s":""} locked`:""}</div>
+            </div>
+            <div class="btn-row">
+              ${isLive
+                ? `<button class="btn sm" onclick="fGoLive(null)">Take offline</button>`
+                : `<button class="btn sm aqua" onclick="fGoLive('${sid}')">Go live</button>`}
+              <button class="btn sm danger" onclick="fDelSurvey('${sid}')">Delete</button>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+  }
+  window.fGoLive = async (id) => { const r = await api("survey_live",{id}); if (r.error) return toast(r.error); toast(id?"Survey is live on phones":"Survey taken offline"); refresh(); };
+  window.fDelSurvey = async (id) => { if(!confirm("Delete this survey and all its answers?"))return; await api("survey_delete",{id}); refresh(); };
+  $("resetAll").onclick = async () => {
+    if (!confirm("This wipes ALL Feud surveys and boards. Are you sure?")) return;
+    if (!confirm("Really sure? This cannot be undone.")) return;
+    await api("reset_all"); toast("Feud data reset"); refresh();
+  };
+
+  /* ---------- Build ---------- */
+  function paintBuildSurvey(){
+    const sel = $("buildSurvey");
+    const ids = Object.keys(state.surveys||{}).filter(sid => Array.isArray(state.surveys[sid].questions));
+    const cur = sel.value || buildSel.sid;
+    sel.innerHTML = `<option value="">— pick a survey —</option>` + ids.map(sid =>
+      `<option value="${sid}">${escapeHtml(state.surveys[sid].title)}</option>`).join("");
+    if (cur && state.surveys[cur]) sel.value = cur;
+    sel.onchange = () => { buildSel = { sid: sel.value||null, qid:null }; editingBuckets=[]; $("bucketCard").style.display="none"; $("aiAssistCard").style.display="none"; paint(); };
+    if (buildSel.sid && state.surveys[buildSel.sid]) { $("buildQCard").style.display="block"; paintBuildQTabs(); }
+    else { $("buildQCard").style.display="none"; }
+  }
+  function paintBuildQTabs(){
+    const s = state.surveys[buildSel.sid];
+    $("buildQTabs").innerHTML = s.questions.map((q,i) => {
+      const active = buildSel.qid === q.qid;
+      const status = q.board ? (q.board.locked ? "\u{1F512}" : "✎") : "";
+      return `<button class="qtab ${active?"active":""}" onclick="fPickBuildQ('${q.qid}')">Q${i+1} <span class="badge">(${q.submissions.length}) ${status}</span></button>`;
+    }).join("");
+  }
+  window.fPickBuildQ = (qid) => {
+    buildSel.qid = qid; editingBuckets=[]; $("bucketCard").style.display="none";
+    const s = state.surveys[buildSel.sid];
+    const q = s.questions.find(x=>x.qid===qid);
+    $("rawCount").textContent = `Question: "${q.text}" — ${q.submissions.length} raw answers`;
+    $("aiAssistCard").style.display = "block";
+    $("importBox").value = ""; $("importStatus").textContent = ""; $("copyStatus").textContent = "";
+    if (q.board) { editingBuckets = q.board.slots.map(sl=>({text:sl.text,count:sl.count})); paintBuckets(); $("bucketCard").style.display="block"; }
+    paintBuildQTabs();
+  };
+  $("consolidateBtn").onclick = async () => {
+    if (!buildSel.sid || !buildSel.qid) return toast("Pick a question first");
+    const r = await api("consolidate", { id:buildSel.sid, qid:buildSel.qid });
+    if (r.error) return toast(r.error);
+    editingBuckets = r.draft.map(d=>({text:d.text,count:d.count}));
+    $("rawCount").textContent = `${r.total} raw answers → ${r.draft.length} groups`;
+    paintBuckets(); $("bucketCard").style.display="block";
+  };
+
+  /* ---------- Consolidate-with-Claude: export & import ---------- */
+  function claudePrompt(){
+    return [
+      "You are helping run a Family Feud style game. Below are raw survey answers,",
+      "one per line. Group answers that mean the SAME thing (e.g. \"idk\", \"no idea\",",
+      "\"not sure\" are one group; \"the beach\", \"beach\", \"going to the beach\" are one).",
+      "Pick the clearest short label for each group and total how many people gave it.",
+      "",
+      "Return ONLY a JSON array, highest count first, no other text, in exactly this shape:",
+      "[{\"question\":\"<the question>\",\"answers\":[{\"text\":\"Label\",\"count\":12},...]}]",
+      "If multiple questions are included, return one object per question in the array.",
+      ""
+    ].join("\n");
+  }
+  function exportBlock(scope){
+    const s = state.surveys[buildSel.sid];
+    if (!s) return "";
+    const qs = scope === "all" ? s.questions : s.questions.filter(q => q.qid === buildSel.qid);
+    let out = claudePrompt() + "\n";
+    qs.forEach(q => {
+      out += `QUESTION: ${q.text}\n`;
+      (q.submissions || []).forEach(a => { out += a + "\n"; });
+      out += "\n";
+    });
+    return out.trim();
+  }
+  async function copyText(txt, statusEl){
+    try { await navigator.clipboard.writeText(txt); statusEl.textContent = "Copied — paste into Claude"; }
+    catch(e) {
+      const ta = document.createElement("textarea");
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); statusEl.textContent = "Copied — paste into Claude"; }
+      catch(_) { statusEl.textContent = "Couldn't auto-copy — select the box manually"; }
+      ta.remove();
+    }
+  }
+  $("copyForClaudeQ").onclick = () => { if (!buildSel.qid) return toast("Pick a question first"); copyText(exportBlock("one"), $("copyStatus")); };
+  $("copyForClaudeAll").onclick = () => { if (!buildSel.sid) return toast("Pick a survey first"); copyText(exportBlock("all"), $("copyStatus")); };
+
+  $("importBtn").onclick = async () => {
+    const raw = $("importBox").value.trim();
+    if (!raw) return toast("Paste Claude's result first");
+    let parsed;
+    try {
+      const cleaned = raw.replace(/```json/gi,"").replace(/```/g,"").trim();
+      const match = cleaned.match(/\[[\s\S]*\]/);
+      parsed = JSON.parse(match ? match[0] : cleaned);
+    } catch(e) { $("importStatus").textContent = "Couldn't read that — make sure it's the JSON Claude returned"; return; }
+    const s = state.surveys[buildSel.sid];
+    if (!s) return toast("Pick a survey first");
+    let imported = 0;
+    try {
+      if (Array.isArray(parsed) && parsed.length && parsed[0].answers) {
+        for (const block of parsed) {
+          const q = s.questions.find(x => x.text.trim().toLowerCase() === String(block.question||"").trim().toLowerCase())
+                 || (parsed.length === 1 ? s.questions.find(x=>x.qid===buildSel.qid) : null);
+          if (!q) continue;
+          const slots = (block.answers||[]).map(a => ({ text:String(a.text||"").slice(0,60), count:Math.max(0,Math.round(Number(a.count)||0)) })).filter(a=>a.text);
+          if (slots.length) { await api("board_save",{id:s.id,qid:q.qid,slots}); imported++; }
+        }
+      } else if (Array.isArray(parsed)) {
+        if (!buildSel.qid) { $("importStatus").textContent="Pick a question first (this looks like a single-question result)"; return; }
+        const slots = parsed.map(a => ({ text:String(a.text||"").slice(0,60), count:Math.max(0,Math.round(Number(a.count)||0)) })).filter(a=>a.text);
+        if (slots.length) { await api("board_save",{id:s.id,qid:buildSel.qid,slots}); imported = 1; }
+      }
+    } catch(e) { $("importStatus").textContent = "Import hit an error — check the format"; return; }
+    if (imported) {
+      $("importStatus").textContent = `Imported ${imported} board${imported!==1?"s":""} ✓`;
+      toast(`Imported ${imported} board${imported!==1?"s":""}`);
+      await refresh();
+      if (buildSel.qid) fPickBuildQ(buildSel.qid);
+    } else {
+      $("importStatus").textContent = "Nothing matched — check the question text matches";
+    }
+  };
+  function paintBuckets(){
+    const box = $("buckets");
+    box.innerHTML = editingBuckets.map((b,i)=>`
+      <div class="bucket" draggable="true" data-i="${i}">
+        <span class="brank">${i+1}</span>
+        <input type="text" value="${escapeAttr(b.text)}" data-i="${i}" data-f="text" style="flex:1;">
+        <input type="number" class="cnt" value="${b.count}" data-i="${i}" data-f="count">
+        <button class="btn sm danger" onclick="fRmBucket(${i})">&#10005;</button>
+      </div>`).join("");
+    box.querySelectorAll("input").forEach(inp => {
+      inp.onchange = () => { const i=+inp.dataset.i,f=inp.dataset.f; editingBuckets[i][f]= f==="count"?Math.max(0,Math.round(+inp.value||0)):inp.value; };
+    });
+    let dragI=null;
+    box.querySelectorAll(".bucket").forEach(el=>{
+      el.ondragstart=()=>{dragI=+el.dataset.i;el.classList.add("dragging");};
+      el.ondragend=()=>{el.classList.remove("dragging");box.querySelectorAll(".bucket").forEach(b=>b.classList.remove("dragover"));};
+      el.ondragover=(e)=>{e.preventDefault();el.classList.add("dragover");};
+      el.ondragleave=()=>el.classList.remove("dragover");
+      el.ondrop=(e)=>{e.preventDefault();const dropI=+el.dataset.i;if(dragI===null||dragI===dropI)return;
+        editingBuckets[dropI].count+=editingBuckets[dragI].count;editingBuckets.splice(dragI,1);dragI=null;paintBuckets();};
+    });
+  }
+  window.fRmBucket = (i)=>{editingBuckets.splice(i,1);paintBuckets();};
+  $("addBucket").onclick = ()=>{editingBuckets.push({text:"New answer",count:0});paintBuckets();};
+  $("saveBoard").onclick = async ()=>{
+    if(!buildSel.qid)return; editingBuckets.sort((a,b)=>b.count-a.count);
+    const r = await api("board_save",{id:buildSel.sid,qid:buildSel.qid,slots:editingBuckets});
+    if(r.error)return toast(r.error); paintBuckets(); toast("Board saved"); refresh();
+  };
+  $("lockBoard").onclick = async ()=>{
+    if(!buildSel.qid)return; editingBuckets.sort((a,b)=>b.count-a.count);
+    await api("board_save",{id:buildSel.sid,qid:buildSel.qid,slots:editingBuckets});
+    const r = await api("board_lock",{id:buildSel.sid,qid:buildSel.qid,lock:true});
+    if(r.error)return toast(r.error); toast("Board locked — ready to play"); refresh();
+  };
+  $("clearRawQ").onclick = async ()=>{
+    if(!buildSel.qid) return;
+    if(!confirm("Clear the raw (unconsolidated) answers for this question? Your board stays; only the raw pile is removed.")) return;
+    await api("clear_submissions",{id:buildSel.sid, qid:buildSel.qid});
+    toast("Raw answers cleared"); refresh();
+  };
+
+  /* ---------- Play ---------- */
+  function paintPlaySurvey(){
+    const sel = $("playSurvey");
+    const ids = Object.keys(state.surveys||{}).filter(sid => Array.isArray(state.surveys[sid].questions));
+    const cur = sel.value || playSel.sid;
+    sel.innerHTML = `<option value="">— pick a survey —</option>` + ids.map(sid=>
+      `<option value="${sid}">${escapeHtml(state.surveys[sid].title)}</option>`).join("");
+    if (cur && state.surveys[cur]) sel.value = cur;
+    playSel.sid = sel.value || null;
+    sel.onchange = () => { playSel={sid:sel.value||null,qid:null}; paint(); };
+    paintPlayQTabs();
+  }
+  function paintPlayQTabs(){
+    const box = $("playQTabs");
+    if (!playSel.sid || !state.surveys[playSel.sid]) { box.innerHTML = `<span class="hint" style="margin:0;">Pick a survey.</span>`; return; }
+    const s = state.surveys[playSel.sid];
+    const locked = s.questions.filter(q=>q.board&&q.board.locked);
+    if (!locked.length) { box.innerHTML = `<span class="hint" style="margin:0;">No locked boards in this survey yet — lock some in the Build tab.</span>`; return; }
+    box.innerHTML = s.questions.map((q,i)=>{
+      if(!q.board||!q.board.locked) return "";
+      const active = playSel.qid===q.qid;
+      const onTV = state.play.surveyId===playSel.sid && state.play.qid===q.qid;
+      return `<button class="qtab ${active?"active":""}" onclick="fPickPlayQ('${q.qid}')">Q${i+1}: ${escapeHtml(q.text.slice(0,24))}${q.text.length>24?"…":""}${onTV?" \u{1F4FA}":""}</button>`;
+    }).join("");
+  }
+  window.fPickPlayQ = (qid)=>{ playSel.qid=qid; paintPlayQTabs(); };
+  $("loadBoard").onclick = async ()=>{
+    if(!playSel.sid||!playSel.qid)return toast("Pick a survey and question");
+    const r = await api("play_load",{surveyId:playSel.sid,qid:playSel.qid});
+    if(r.error)return toast(r.error);
+    setTVDisplay("feud");
+    toast("Board loaded to TV"); refresh();
+  };
+  $("clearBoard").onclick = async ()=>{
+    await api("play_reset");
+    setTVDisplay("feud");
+    toast("Board cleared — TV shows the survey screen"); refresh();
+  };
+  function paintPlay(){
+    const pid = state.play.surveyId, qid = state.play.qid;
+    const s = pid?state.surveys[pid]:null;
+    const q = s?s.questions.find(x=>x.qid===qid):null;
+    const show = !!(q && q.board);
+    ["playCard","strikeCounterCard"].forEach(k => $(k).style.display = show ? "block" : "none");
+    $("strikeCard").style.display = "block";      // scoring is useful even before a board loads
+    const ppaEl = $("pointsPerAnswer"), acEl = $("answerCount");
+    if (document.activeElement !== ppaEl) ppaEl.value = state.pointsPerAnswer || 100;
+    if (document.activeElement !== acEl) acEl.value = state.answerCount || 5;
+    paintFeudTeams();
+    if (!show) return;
+    const strikes = (state.play && state.play.strikes) || 0;
+    $("strikeXs").innerHTML = [1,2,3].map(n=>`<span class="${n<=strikes?"on":""}">✕</span>`).join("");
+    $("playBoard").innerHTML = q.board.slots.map((sl,i)=>`
+      <div class="play-slot ${sl.revealed?"revealed":""}">
+        <span class="n">${i+1}</span><span class="a">${escapeHtml(sl.text)}</span><span class="c">${sl.count}</span>
+        <button class="btn sm ${sl.revealed?"":"aqua"}" onclick="fRevealSlot(${i})" ${sl.revealed?"disabled":""}>${sl.revealed?"Revealed":"Reveal"}</button>
+      </div>`).join("");
+  }
+  window.fRevealSlot = async (i)=>{ await api("reveal",{index:i}); refresh(); };
+  $("addStrikeBtn").onclick = async ()=>{ await api("strike",{mode:"add"}); refresh(); };
+  $("resetStrikesBtn").onclick = async ()=>{ await api("strike",{mode:"clear"}); refresh(); };
+  $("hideAll").onclick = async ()=>{ await api("hide_all"); refresh(); };
+  $("answerCount").onchange = async ()=>{ await api("set_answer_count",{count: +$("answerCount").value || 5}); toast("Answers on TV updated"); refresh(); };
+  $("pointsPerAnswer").onchange = async ()=>{ await api("set_points_per_answer",{points: +$("pointsPerAnswer").value || 0}); toast("Points per answer updated"); refresh(); };
+
+  /* ---------- Teams & scoring (this page's teams) ---------- */
+  const ppa = () => (state && typeof state.pointsPerAnswer === "number") ? state.pointsPerAnswer : 100;
+  window.paintFeudTeams = function(){
+    const box = $("strikeRow");
+    if (!box) return;
+    if (!teams.length) { box.innerHTML = `<span class="hint" style="margin:0;">Add teams in the panel on the right.</span>`; return; }
+    box.innerHTML = teams.map(t => {
+      const n = feudCorrect[t.id] || 0, pts = n * ppa();
+      return `<div class="fteam" style="border-top-color:${escapeAttr(t.color)}">
+        <div class="fname" title="${escapeAttr(t.name)}">${escapeHtml(t.name || "Team")}</div>
+        <div class="fcorrect">${n} <span>correct</span></div>
+        <div class="fpts">= ${pts.toLocaleString()} pts</div>
+        <div class="btn-row">
+          <button class="btn sm green" onclick="fCorrect('${t.id}',1)">+1</button>
+          <button class="btn sm" onclick="fCorrect('${t.id}',-1)" ${n?"":"disabled"}>&minus;1</button>
+        </div>
+        <div class="btn-row" style="margin-top:6px;">
+          <button class="btn sm primary" onclick="fAddPts('${t.id}')" ${pts>0?"":"disabled"}>Add ${pts.toLocaleString()} to score</button>
+        </div>
+      </div>`;
+    }).join("");
+  };
+  window.fCorrect = (id, d) => {
+    const n = Math.max(0, (feudCorrect[id] || 0) + d);
+    if (n) feudCorrect[id] = n; else delete feudCorrect[id];
+    paintFeudTeams(); saveState();
+  };
+  window.fAddPts = (id) => {
+    const team = teams.find(t => t.id === id);
+    const pts = (feudCorrect[id] || 0) * ppa();
+    if (!team || !pts) return;
+    const before = team.score;
+    team.score += pts;
+    delete feudCorrect[id];          // counted — start fresh so it can't be added twice
+    logAudit(team, "+" + pts, before, team.score, "feud");
+    syncScores();
+    paintFeudTeams();
+    toast(`Added ${pts.toLocaleString()} to ${team.name || "team"}`);
+  };
+  $("clearAllCorrect").onclick = () => {
+    if (!Object.keys(feudCorrect).length) return;
+    if (!confirm("Clear the correct-answer counts for every team? (Points already added stay.)")) return;
+    feudCorrect = {}; paintFeudTeams(); saveState();
+  };
+
+  function paint(){
+    if (!state) return;
+    paintLinks(); paintFeudTVBar();
+    paintSurveyList(); paintBuildSurvey(); paintPlaySurvey(); paintPlay();
+  }
+})();
 
 // Load any saved state from the backend first, then render.
 (async () => {
