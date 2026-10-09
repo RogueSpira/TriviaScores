@@ -10,7 +10,8 @@ Separate site from voting and feud — deploy on its own.
 ```
 trivia-scores/
 ├── scores-host.html               ← your control tool (laptop): wheel, scoring, bids, music round
-├── scores-board.html              ← TV: standings, wheel, "Song N" card, QR cards, Feud board
+├── scores-board.html              ← TV: standings, reveal, wheel, "Song N" card, QR cards, title screens, Feud board
+├── assets/                        ← Mandarin logo, background pattern, Manny
 ├── netlify.toml
 ├── package.json
 └── netlify/functions/scores.mjs   ← backend (persists teams + scores)
@@ -96,17 +97,29 @@ to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
 ## Header + On TV bar (Oct 2026)
 - Tabs for this laptop: **Wheel · Music · Feud** (the local leaderboard view is gone —
   the team panel is already sorted by points).
-- **On TV** bar, always visible: Starting Soon · Trivia Night · Leaderboard · Wheel ·
-  Song N · Feud board · Survey QR · Buzzer QR. The highlighted button is what the TV
+- **On TV** bar, always visible: Starting Soon · Trivia Night · Leaderboard · Reveal ·
+  Wheel · Song N · Feud board · Survey QR · Buzzer QR. The highlighted button is what the TV
   is showing right now.
 - **Title screens:** "Trivia Starting Soon" and "Trivia Night", for before the first
   round and between rounds.
 
-## Point step
-- **Step** chips at the top of the team panel: 100 · 250 · 500 · 1000. Pick one, then
-  + / − on any team adds or takes away that much. Typing a number in a team's box
-  still overrides it. The chosen step is remembered on that laptop.
+## Points
+- Each team has three lines: name + total, then points (type an amount and +/−, or
+  one-click **+250 / +500 / +1,000**), then the bid line.
+- **Bids: on/off** in the toolbar hides the bid line when there's no wager round
+  (handy with 7–8 teams, so everyone fits). Remembered on that laptop.
 
-## Look
-- Navy, blue and white throughout. The TV uses the Outfit font (the Feud board keeps
-  its game-show look). The TV screen link moved to Feud → Surveys → Links.
+## Leaderboard reveal
+- **Reveal** in the On TV bar puts every team face-down on the TV ("? ? ?").
+- A Reveal row appears under the bar: **Reveal 5th place → … → Reveal the winner!**
+  flips one team at a time from last place up. The winner gets confetti and a glow,
+  and the title changes to "Champions!".
+- **Show all** flips the rest at once; **Start over** hides everyone again (and picks
+  up any score changes). **Leaderboard** goes back to the normal view.
+
+## TV look
+- Mandarin branding: jungle green and sunset orange over the Mandarin pattern, the
+  Kava & Co. Mandarin logo, Shrikhand / Fredoka / DM Sans per the brand guide.
+  The Feud board keeps its own game-show look.
+- Manny hides in the bottom-right corner and pops up for a wiggle every ~48 seconds.
+- The scores page (laptop) uses its original teal colors.

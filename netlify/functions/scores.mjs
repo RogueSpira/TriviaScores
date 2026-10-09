@@ -130,7 +130,7 @@ export default async (req) => {
     if (action === "status") {
       const s = await load();
       return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null,
-        qr: s.qr || null, title: s.title || null, links: s.links || null, feud: s.feud || null, updated: s.updated || 0 });
+        qr: s.qr || null, title: s.title || null, reveal: s.reveal || null, links: s.links || null, feud: s.feud || null, updated: s.updated || 0 });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -158,7 +158,13 @@ export default async (req) => {
         // What the TV shows: "leaderboard", "wheel", "song" (music round card),
         // "feud" (the Feud board), or "qr" (a full-screen scan card)
         // "title" = title screen: body.title "soon" (Trivia Starting Soon) or "night" (Trivia Night)
-        let d = ["wheel", "song", "feud", "qr", "title"].includes(body.display) ? body.display : "leaderboard";
+        // "reveal" = leaderboard reveal: body.reveal { order:[team ids, 1st place first], shown:n }
+        let d = ["wheel", "song", "feud", "qr", "title", "reveal"].includes(body.display) ? body.display : "leaderboard";
+        if (d === "reveal") {
+          const rv = body.reveal || {};
+          const order = (Array.isArray(rv.order) ? rv.order : []).slice(0, 40).map(safeKey).filter(Boolean);
+          state.reveal = { order, shown: Math.max(0, Math.min(order.length, Math.round(Number(rv.shown) || 0))) };
+        }
         if (d === "title") state.title = body.title === "soon" ? "soon" : "night";
         if (d === "qr") {
           const url = cleanUrl(body.qr && body.qr.url);

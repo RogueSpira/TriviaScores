@@ -6,96 +6,140 @@
 <title>Kava &amp; Co. Trivia — Screen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Shrikhand&family=Fredoka:wght@500;600;700&family=DM+Sans:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
+  /* Mandarin "tropical escape" look: jungle green + sunset orange, black pop-art outlines.
+     Type per the brand guide: Shrikhand for big moments, Fredoka for names/scores, DM Sans for small text. */
   :root {
-    --bg:#060b18; --panel:#0e1730; --panel-2:#142145; --line:#22335f;
-    --ink:#f5f7fb; --muted:#8fa0c4;
-    /* blue + white theme (names kept from the old teal theme) */
-    --aqua:#4f8cff; --aqua-bright:#a9c6ff; --lagoon:#3366e0; --cream:#ffffff;
-    --display:"Outfit","Segoe UI",system-ui,sans-serif;
-    --gold:#FFCF3A;
+    --jungle:#0e2c18; --jungle-2:#163f23; --leaf:#5f951f; --neon:#34E209; --lime:#C0FF5B;
+    --orange:#F36F03; --orange-2:#ff8a2a; --sun:#F0BF17; --cream:#FFF3E0; --ink:#0b0800;
+    --muted:#cfe2c4;
+    --groovy:"Shrikhand","Georgia",serif;
+    --round:"Fredoka","Segoe UI",system-ui,sans-serif;
+    --body:"DM Sans","Segoe UI",system-ui,sans-serif;
+    /* names the Feud view and older bits still use */
+    --gold:#F0BF17; --aqua:#F36F03;
   }
   * { box-sizing:border-box; }
-  html,body { margin:0; height:100%; overflow:hidden;
-    background: radial-gradient(circle at 50% 0%, #15295e 0%, var(--bg) 70%);
-    color:var(--ink); font-family:var(--display); }
-  body { display:flex; flex-direction:column; height:100vh; padding:4vh 4vw; }
+  html,body { margin:0; height:100%; overflow:hidden; color:var(--cream); font-family:var(--body); }
+  html { background:var(--jungle); }
+  body {
+    display:flex; flex-direction:column; height:100vh; padding:3.5vh 4vw;
+    background:
+      radial-gradient(ellipse 75% 70% at 50% 45%, rgba(14,44,24,.74) 0%, rgba(10,32,17,.86) 65%, rgba(6,22,11,.94) 100%),
+      url("assets/mandarin-pattern.jpg") center / cover no-repeat;
+  }
+  body.title-mode {
+    background:
+      radial-gradient(ellipse 70% 60% at 50% 50%, rgba(14,44,24,.35) 0%, rgba(9,30,16,.6) 80%),
+      url("assets/mandarin-pattern.jpg") center / cover no-repeat;
+  }
+  .groovy { font-family:var(--groovy); font-weight:400; }
+  .retro { color:var(--cream); -webkit-text-stroke:.3vh var(--ink); paint-order:stroke fill; text-shadow:.55vh .55vh 0 var(--orange); }
 
   /* ---------- Leaderboard ---------- */
-  .title { text-align:center; flex:0 0 auto; margin-bottom:3vh; }
-  .title .logo { font-family:var(--display); font-weight:800; font-size:5vh; color:var(--aqua); letter-spacing:.2vh; }
-  .title .sub { font-size:2.2vh; color:var(--muted); text-transform:uppercase; letter-spacing:.5vh; margin-top:.6vh; }
-  .board { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:1.4vh; max-width:1100px; width:100%; margin:0 auto; }
+  .lb-head { display:flex; flex-direction:column; align-items:center; flex:0 0 auto; margin-bottom:2.6vh; gap:.4vh; }
+  .lb-logo { height:12vh; width:auto; filter:drop-shadow(0 .8vh 1.6vh rgba(0,0,0,.45)); }
+  .lb-title { font-family:var(--groovy); font-size:5.6vh; line-height:1.1; }
+  .board { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:1.5vh; max-width:1100px; width:100%; margin:0 auto; perspective:120vh; }
   .row {
-    display:flex; align-items:center; gap:2vw; height:9vh; padding:0 2.5vw;
-    background:linear-gradient(180deg,var(--panel),var(--panel-2));
-    border:2px solid var(--line); border-radius:1.6vh;
-    transition: border-color .3s;
+    display:flex; align-items:center; gap:2vw; height:8.6vh; padding:0 2.4vw 0 1.4vw;
+    background:var(--cream); color:var(--ink);
+    border:.45vh solid var(--ink); border-radius:1.8vh;
+    box-shadow:.7vh .7vh 0 var(--ink);
+    transition: transform .3s ease;
   }
-  .row.leader { border-color:var(--aqua); box-shadow:0 0 3.5vh rgba(79,140,255,.35); }
-  .rank { font-family:var(--display); font-weight:800; font-size:4.6vh; color:var(--aqua-bright); width:8vh; text-align:center; flex:0 0 auto; }
-  .row.leader .rank { color:var(--gold); }
-  .swatch { width:3vh; height:3vh; border-radius:50%; flex:0 0 auto; border:.3vh solid rgba(255,255,255,.3); }
-  .name { flex:1 1 auto; font-size:4vh; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .score { font-family:var(--display); font-weight:800; font-size:4.6vh; color:var(--cream); flex:0 0 auto; font-variant-numeric:tabular-nums; }
-  .row.leader .score { color:var(--gold); }
+  .row.leader { background:var(--sun); }
+  .rank {
+    width:6.6vh; height:6.6vh; flex:0 0 auto; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--orange); color:var(--cream); border:.4vh solid var(--ink);
+    font-family:var(--round); font-weight:700; font-size:3.6vh;
+  }
+  .row.leader .rank { background:var(--leaf); }
+  .swatch { width:2.8vh; height:2.8vh; border-radius:50%; flex:0 0 auto; border:.35vh solid var(--ink); }
+  .name { flex:1 1 auto; font-family:var(--round); font-size:4vh; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .score { font-family:var(--round); font-weight:700; font-size:4.6vh; color:#2c6b0e; flex:0 0 auto; font-variant-numeric:tabular-nums; }
+  .row.leader .score { color:var(--ink); }
   .crown { font-size:3.4vh; margin-left:1vh; }
+
+  /* reveal mode: rows stay face-down until the host reveals them, lowest place first */
+  .row.face-down { background:var(--jungle-2); color:var(--cream); border-style:dashed; border-color:var(--cream); box-shadow:none; }
+  .row.face-down .rank { background:transparent; border-color:var(--cream); }
+  .row.face-down .name { font-family:var(--groovy); font-weight:400; letter-spacing:1vh; opacity:.75; }
+  .row.flip { animation: flipin .7s cubic-bezier(.2,1.2,.4,1); transform-origin:center; }
+  @keyframes flipin { 0% { transform:rotateX(90deg); } 100% { transform:rotateX(0); } }
+  .row.champ { animation: flipin .9s cubic-bezier(.2,1.2,.4,1), champglow 1.6s ease-in-out .9s infinite alternate; }
+  @keyframes champglow { from { box-shadow:.7vh .7vh 0 var(--ink), 0 0 0 rgba(240,191,23,0); } to { box-shadow:.7vh .7vh 0 var(--ink), 0 0 6vh rgba(240,191,23,.9); } }
+  #confetti { position:fixed; inset:0; pointer-events:none; z-index:30; }
 
   /* ---------- Wheel ---------- */
   .wheel-wrap { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3vh; }
   .wheel-holder { position:relative; width:min(76vh, 90vw); aspect-ratio:1; }
   .pointer {
-    position:absolute; top:-1vh; left:50%; transform:translateX(-50%);
-    width:0; height:0; border-left:2.4vh solid transparent; border-right:2.4vh solid transparent;
-    border-top:4.4vh solid var(--aqua); z-index:5; filter:drop-shadow(0 .4vh .6vh rgba(0,0,0,.7));
+    position:absolute; top:-1.2vh; left:50%; transform:translateX(-50%);
+    width:0; height:0; border-left:2.6vh solid transparent; border-right:2.6vh solid transparent;
+    border-top:4.8vh solid var(--orange); z-index:5; filter:drop-shadow(0 0 0 var(--ink)) drop-shadow(.4vh .4vh 0 var(--ink));
   }
   svg#tvwheel {
     width:100%; height:100%; display:block; border-radius:50%;
-    box-shadow:0 0 0 .9vh #000, 0 0 0 1.4vh var(--aqua), 0 3vh 7vh rgba(0,0,0,.6);
+    box-shadow:0 0 0 .9vh var(--ink), 0 0 0 1.8vh var(--orange), 0 0 0 2.3vh var(--ink), 0 3vh 7vh rgba(0,0,0,.6);
     transition: transform 5s cubic-bezier(.17,.67,.28,1);
   }
   .hub { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:7vh; height:7vh; border-radius:50%; background:var(--aqua); border:.6vh solid #000; z-index:4; }
-  .winner-banner {
-    font-family:var(--display); font-weight:800; font-size:5vh; color:var(--gold); min-height:6vh;
-    text-align:center; text-shadow:0 0 3vh rgba(255,207,58,.5);
-    opacity:0; transition:opacity .4s;
-  }
+    width:7vh; height:7vh; border-radius:50%; background:var(--sun); border:.6vh solid var(--ink); z-index:4; }
+  .winner-banner { font-family:var(--groovy); font-size:6vh; min-height:7vh; text-align:center; opacity:0; transition:opacity .4s; }
   .winner-banner.show { opacity:1; }
 
   .empty { margin:auto; text-align:center; color:var(--muted); }
-  .empty .logo { font-family:var(--display); font-weight:800; font-size:7vh; color:var(--aqua); }
-  .empty .msg { font-size:3vh; margin-top:2vh; }
+  .empty img { width:min(70vw, 100vh); height:auto; filter:drop-shadow(0 1vh 2vh rgba(0,0,0,.5)); }
+  .empty .msg { font-family:var(--round); font-size:3vh; margin-top:3vh; }
 
   /* ---------- Music round: "Song N" card ---------- */
-  .song-wrap { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.6vh; text-align:center; }
-  .song-kicker { font-family:var(--display); font-weight:800; font-size:4vh; color:var(--aqua); letter-spacing:1.2vh; text-shadow:0 0 2.5vh rgba(79,140,255,.45); }
-  .song-label { font-family:var(--display); font-weight:800; font-size:9vh; color:var(--cream); letter-spacing:1vh; line-height:1; }
+  .song-wrap { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2vh; text-align:center; }
+  .song-kicker { font-family:var(--round); font-weight:700; font-size:3.6vh; color:var(--lime); letter-spacing:1vh; text-transform:uppercase; }
+  .song-label { font-family:var(--groovy); font-size:10vh; line-height:1; }
   .song-num {
-    font-family:var(--display); font-weight:800; font-size:34vh; line-height:.9; color:var(--gold);
-    text-shadow:0 0 5vh rgba(255,207,58,.55), 0 0 1.2vh rgba(255,207,58,.8);
+    font-family:var(--groovy); font-size:32vh; line-height:.95; color:var(--orange);
+    -webkit-text-stroke:.6vh var(--ink); paint-order:stroke fill;
+    text-shadow:1.2vh 1.2vh 0 var(--sun), 1.8vh 1.8vh 0 var(--ink);
   }
   .song-num.pop { animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
   @keyframes pop { from { transform:scale(.6); opacity:0; } to { transform:scale(1); opacity:1; } }
-  .song-dots { display:flex; gap:1.6vh; margin-top:1vh; }
-  .song-dots span { width:2.4vh; height:2.4vh; border-radius:50%; border:.35vh solid var(--lagoon); }
-  .song-dots span.done { background:var(--lagoon); }
-  .song-dots span.now { background:var(--gold); border-color:var(--gold); box-shadow:0 0 2vh rgba(255,207,58,.6); }
-  .eq { display:flex; align-items:flex-end; gap:1vh; height:7vh; }
-  .eq i { display:block; width:1.6vh; height:100%; background:var(--aqua); border-radius:.6vh; transform-origin:bottom; animation: eq 1s ease-in-out infinite; opacity:.85; }
-  .eq i:nth-child(2){ animation-delay:-.6s; } .eq i:nth-child(3){ animation-delay:-.2s; }
-  .eq i:nth-child(4){ animation-delay:-.8s; } .eq i:nth-child(5){ animation-delay:-.4s; }
+  .song-dots { display:flex; gap:1.6vh; margin-top:1.4vh; }
+  .song-dots span { width:2.6vh; height:2.6vh; border-radius:50%; border:.4vh solid var(--ink); background:var(--cream); }
+  .song-dots span.done { background:var(--leaf); }
+  .song-dots span.now { background:var(--orange); transform:scale(1.25); }
+  .eq { display:flex; align-items:flex-end; gap:1vh; height:6vh; }
+  .eq i { display:block; width:1.6vh; height:100%; background:var(--lime); border:.3vh solid var(--ink); border-radius:.6vh; transform-origin:bottom; animation: eq 1s ease-in-out infinite; }
+  .eq i:nth-child(2){ animation-delay:-.6s; background:var(--orange); } .eq i:nth-child(3){ animation-delay:-.2s; background:var(--sun); }
+  .eq i:nth-child(4){ animation-delay:-.8s; background:var(--orange); } .eq i:nth-child(5){ animation-delay:-.4s; }
   @keyframes eq { 0%,100% { transform:scaleY(.25); } 50% { transform:scaleY(1); } }
-  @media (prefers-reduced-motion: reduce) { .eq i, .song-num.pop { animation:none; } .eq i { transform:scaleY(.6); } }
+  @media (prefers-reduced-motion: reduce) { .eq i, .song-num.pop, .row.flip, .row.champ { animation:none; } .eq i { transform:scaleY(.6); } }
 
   /* ---------- QR card ---------- */
-  .qr-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.4vh; text-align:center; }
-  .qr-view .qr-label { font-family:var(--display); font-weight:800; font-size:6vh; color:var(--aqua); text-shadow:0 0 3vh rgba(79,140,255,.45); line-height:1.1; max-width:90vw; }
-  .qr-view .qr-box { background:#fff; border-radius:2.4vh; padding:2.4vh; width:52vh; height:52vh; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 .8vh var(--aqua), 0 3vh 7vh rgba(0,0,0,.6); }
+  .qr-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.6vh; text-align:center; }
+  .qr-view .qr-label { font-family:var(--groovy); font-size:6.4vh; line-height:1.15; max-width:90vw; }
+  .qr-view .qr-box { background:#fff; border-radius:2.4vh; padding:2.4vh; width:52vh; height:52vh; display:flex; align-items:center; justify-content:center; border:.6vh solid var(--ink); box-shadow:1.2vh 1.2vh 0 var(--orange), 1.8vh 1.8vh 0 var(--ink); }
   .qr-view .qr-box img, .qr-view .qr-box canvas { width:100% !important; height:100% !important; display:block; }
-  .qr-view .qr-url { font-size:2.6vh; color:var(--muted); letter-spacing:.1vh; word-break:break-all; max-width:80vw; }
+  .qr-view .qr-url { font-family:var(--round); font-size:2.6vh; color:var(--muted); word-break:break-all; max-width:80vw; }
+
+  /* ---------- Manny, hiding in the corner ---------- */
+  #manny {
+    position:fixed; right:2.6vw; bottom:-12vh; height:24vh; width:auto; z-index:6; pointer-events:none;
+    transform:rotate(-7deg); transform-origin:50% 100%;
+    filter:drop-shadow(0 .6vh 1vh rgba(0,0,0,.45));
+    animation: mannypeek 48s ease-in-out infinite;
+  }
+  /* mostly tucked below the edge; every so often he pops up and wiggles, then ducks back down */
+  @keyframes mannypeek {
+    0%, 86%, 100% { bottom:-12vh; transform:rotate(-7deg); }
+    89% { bottom:-1vh; transform:rotate(-7deg); }
+    91% { transform:rotate(6deg); } 93% { transform:rotate(-8deg); } 95% { bottom:-1vh; transform:rotate(4deg); }
+    98% { bottom:-12vh; transform:rotate(-7deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { #manny { animation:none; } }
 
   /* ---------- Feud board (same look as feud-screen.html, scoped to #feudView) ---------- */
   #feudView {
@@ -144,27 +188,24 @@
   #muteBtn { position:fixed; top:1.5vh; left:2vw; z-index:45; background:#0f2246; color:var(--ink); border:1px solid #1e3a6b; border-radius:999px; padding:1vh 2vh; font-size:1.8vh; font-weight:700; cursor:pointer; }
 
   /* ---------- Title screens: "Trivia Starting Soon" / "Trivia Night" ---------- */
-  .title-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; }
-  .title-view::before { content:""; position:fixed; inset:-20vh; z-index:-1; pointer-events:none;
-    background: radial-gradient(40vw 40vh at 25% 30%, rgba(59,130,246,.22), transparent 70%),
-                radial-gradient(45vw 45vh at 78% 72%, rgba(147,185,255,.14), transparent 70%);
-    animation: drift 18s ease-in-out infinite alternate; }
-  @keyframes drift { from { transform:translate(-2vw,-1vh); } to { transform:translate(2vw,1vh); } }
-  .tt-brand { font-weight:600; font-size:2.8vh; letter-spacing:1.1vh; text-transform:uppercase; color:var(--muted); margin-bottom:5vh; }
-  .tt-l1 { font-weight:900; font-size:19vh; line-height:.92; color:#fff; letter-spacing:-.4vh; }
-  .tt-l2 { font-weight:900; font-size:14vh; line-height:1.05; letter-spacing:-.2vh;
-    background:linear-gradient(90deg,#4f8cff 0%,#cfe0ff 50%,#4f8cff 100%); background-size:200% 100%;
-    -webkit-background-clip:text; background-clip:text; color:transparent; animation: sheen 7s linear infinite; }
-  @keyframes sheen { from { background-position:200% 0; } to { background-position:0 0; } }
-  .tt-dots { display:flex; gap:2vh; margin-top:4vh; }
-  .tt-dots span { width:1.8vh; height:1.8vh; border-radius:50%; background:#4f8cff; animation: dotpulse 1.4s ease-in-out infinite; }
-  .tt-dots span:nth-child(2){ animation-delay:.2s; } .tt-dots span:nth-child(3){ animation-delay:.4s; }
-  @keyframes dotpulse { 0%,100% { opacity:.25; transform:scale(.8); } 50% { opacity:1; transform:scale(1.15); } }
-  .tt-rule { width:12vh; height:.5vh; border-radius:.5vh; background:#4f8cff; margin:4.5vh auto 0; }
-  .tt-sub { margin-top:3vh; font-size:2.6vh; font-weight:500; color:var(--muted); letter-spacing:.15vh; }
-  @media (prefers-reduced-motion: reduce) { .title-view::before, .tt-l2, .tt-dots span { animation:none; } }
+  .title-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .tt-card {
+    display:flex; flex-direction:column; align-items:center;
+    background:rgba(14,44,24,.92); border:.6vh solid var(--ink); border-radius:4vh;
+    box-shadow:1.4vh 1.4vh 0 var(--orange), 2vh 2vh 0 var(--ink);
+    padding:5vh 7vw 5.5vh; max-width:92vw;
+  }
+  .tt-logo { width:min(62vw, 100vh); height:auto; filter:drop-shadow(0 .8vh 1.4vh rgba(0,0,0,.4)); }
+  .tt-main { font-family:var(--groovy); font-size:15vh; line-height:1.05; margin-top:3vh; white-space:nowrap; }
+  .tt-main .soon { color:var(--sun); display:block; font-size:.78em; }
+  .tt-dots { display:flex; gap:2.2vh; margin-top:3vh; }
+  .tt-dots span { width:2.4vh; height:2.4vh; border-radius:50%; border:.35vh solid var(--ink); animation: dotpulse 1.4s ease-in-out infinite; }
+  .tt-dots span:nth-child(1){ background:var(--orange); } .tt-dots span:nth-child(2){ background:var(--sun); animation-delay:.2s; } .tt-dots span:nth-child(3){ background:var(--neon); animation-delay:.4s; }
+  @keyframes dotpulse { 0%,100% { opacity:.35; transform:scale(.8); } 50% { opacity:1; transform:scale(1.15); } }
+  .tt-sub { margin-top:3vh; font-family:var(--round); font-size:2.8vh; font-weight:500; color:var(--cream); letter-spacing:.15vh; }
+  @media (prefers-reduced-motion: reduce) { .tt-dots span { animation:none; } }
 
-  .live-dot { position:fixed; top:1.5vh; right:2vw; width:1.2vh; height:1.2vh; border-radius:50%; background:var(--aqua); opacity:.5; transition:opacity .3s; }
+  .live-dot { position:fixed; top:1.5vh; right:2vw; width:1.2vh; height:1.2vh; border-radius:50%; background:var(--lime); opacity:.4; transition:opacity .3s; }
   .live-dot.ping { opacity:1; }
   .hidden { display:none !important; }
 </style>
@@ -175,7 +216,7 @@
   <!-- LEADERBOARD VIEW -->
   <div id="leaderboardView">
     <div id="lbRoot">
-      <div class="empty"><div class="logo">Kava &amp; Co.</div><div class="msg">Standings will appear here</div></div>
+      <div class="empty"><img src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin"><div class="msg">Standings will appear here</div></div>
     </div>
   </div>
 
@@ -186,14 +227,14 @@
       <svg id="tvwheel" viewBox="0 0 400 400" role="img" aria-label="Team spinner"></svg>
       <div class="hub"></div>
     </div>
-    <div class="winner-banner" id="winnerBanner"></div>
+    <div class="winner-banner retro" id="winnerBanner"></div>
   </div>
 
   <!-- MUSIC ROUND VIEW -->
   <div id="songView" class="song-wrap hidden">
     <div class="song-kicker">Music Round</div>
     <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="song-label">Song</div>
+    <div class="song-label retro">Song</div>
     <div class="song-num" id="songNum">1</div>
     <div class="song-dots" id="songDots"></div>
   </div>
@@ -203,7 +244,7 @@
 
   <!-- QR CARD VIEW -->
   <div id="qrView" class="qr-view hidden">
-    <div class="qr-label" id="qrLabel"></div>
+    <div class="qr-label retro" id="qrLabel"></div>
     <div class="qr-box" id="qrBox"></div>
     <div class="qr-url" id="qrUrl"></div>
   </div>
@@ -214,6 +255,8 @@
     <div id="feudRoot"></div>
   </div>
   <div id="bigX">&#10007;</div>
+  <canvas id="confetti" hidden></canvas>
+  <img id="manny" src="assets/manny.png" alt="">
 
 <script>
 const API = "/.netlify/functions/scores";
@@ -244,7 +287,7 @@ function drawTVWheel(activeTeams){
   const NS = "http://www.w3.org/2000/svg";
   if (n === 0) {
     const c=document.createElementNS(NS,"circle");
-    c.setAttribute("cx",CX);c.setAttribute("cy",CY);c.setAttribute("r",R);c.setAttribute("fill","#143540");
+    c.setAttribute("cx",CX);c.setAttribute("cy",CY);c.setAttribute("r",R);c.setAttribute("fill","#163f23");
     tvwheel.appendChild(c); return;
   }
   if (n === 1) {
@@ -313,34 +356,76 @@ function runSpin(order, winnerId, turns){
 }
 
 /* ---------- Leaderboard render ---------- */
-function renderLeaderboard(teams){
-  const shown = teams.filter(t => (t.name && t.name.trim()) || t.score);
-  if (!shown.length) {
+// reveal = null for the normal leaderboard, or { order:[team ids, 1st place first], shown:n }
+// for a reveal: rows stay face-down and flip over from last place up to 1st.
+let prevShown = null;
+function renderLeaderboard(teams, reveal){
+  const LOGO = `<img class="lb-logo" src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin">`;
+  let ranked;
+  if (reveal && Array.isArray(reveal.order)) ranked = reveal.order.map(id => teams.find(t => t.id === id)).filter(Boolean);
+  else ranked = teams.filter(t => (t.name && t.name.trim()) || t.score).sort((a,b) => b.score - a.score);
+  if (!ranked.length) {
     if (lastLbSig === "empty") return;
-    lastLbSig = "empty";
-    lbRoot.innerHTML = `<div class="empty"><div class="logo">Kava &amp; Co.</div><div class="msg">Standings will appear here</div></div>`;
+    lastLbSig = "empty"; prevShown = null;
+    lbRoot.innerHTML = `<div class="empty"><img src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin"><div class="msg">Standings will appear here</div></div>`;
     return;
   }
-  const ranked = shown.slice().sort((a,b)=>b.score-a.score);
-  const maxScore = Math.max(...ranked.map(t=>t.score),0);
-  const sig = JSON.stringify(ranked.map(t=>[t.name,t.score,t.color]));
+  const n = ranked.length;
+  const shown = reveal ? Math.max(0, Math.min(n, Math.round(Number(reveal.shown) || 0))) : n;
+  const sig = JSON.stringify([!!reveal, shown, ranked.map(t => [t.id, t.name, t.score, t.color])]);
   if (sig === lastLbSig) return;
   lastLbSig = sig;
+  // rows that just flipped over since the last render (none on first load / refresh)
+  const before = (reveal && prevShown !== null && prevShown <= shown) ? prevShown : shown;
+  prevShown = reveal ? shown : null;
 
-  let lastScore=null,lastRank=0;
-  const rows = ranked.map((t,i)=>{
-    const rank=(t.score===lastScore)?lastRank:i+1; lastScore=t.score; lastRank=rank;
-    const leader = t.score===maxScore && maxScore>0;
-    return `<div class="row ${leader?"leader":""}">
+  const maxScore = Math.max(...ranked.map(t => t.score), 0);
+  let lastScore = null, lastRank = 0;
+  const rows = ranked.map((t, i) => {
+    const rank = (t.score === lastScore) ? lastRank : i + 1; lastScore = t.score; lastRank = rank;
+    const up = i >= n - shown;                     // face-up?
+    const justNow = reveal && up && i < n - before;
+    if (!up) return `<div class="row face-down"><div class="rank">${rank}</div><div class="name">? ? ?</div></div>`;
+    const leader = t.score === maxScore && maxScore > 0;
+    const cls = ["row", leader ? "leader" : "", justNow ? (i === 0 ? "champ" : "flip") : ""].join(" ");
+    return `<div class="${cls}">
       <div class="rank">${rank}</div>
-      <div class="swatch" style="background:${escapeHtml(t.color||"#45DBE0")}"></div>
-      <div class="name">${escapeHtml(t.name||"Team")}${leader?'<span class="crown">\u{1F451}</span>':''}</div>
-      <div class="score">${(t.score||0).toLocaleString()}</div>
+      <div class="swatch" style="background:${escapeHtml(t.color || "#F36F03")}"></div>
+      <div class="name">${escapeHtml(t.name || "Team")}${leader ? '<span class="crown">\u{1F451}</span>' : ''}</div>
+      <div class="score">${(t.score || 0).toLocaleString()}</div>
     </div>`;
   }).join("");
+  const title = !reveal ? "Standings" : (shown === n ? "Champions!" : "Final Standings");
   lbRoot.innerHTML = `
-    <div class="title"><div class="logo">Standings</div><div class="sub">Kava &amp; Company Trivia</div></div>
+    <div class="lb-head">${LOGO}<div class="lb-title retro">${title}</div></div>
     <div class="board">${rows}</div>`;
+  if (reveal && shown === n && before < n) confetti();
+}
+
+/* ---------- Confetti for the winner reveal ---------- */
+function confetti(){
+  const cv = document.getElementById("confetti");
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  cv.hidden = false;
+  const W = cv.width = innerWidth, H = cv.height = innerHeight, ctx = cv.getContext("2d");
+  const colors = ["#F36F03", "#F0BF17", "#34E209", "#FFF3E0", "#5f951f", "#C0FF5B"];
+  const bits = Array.from({ length: 220 }, () => ({
+    x: Math.random() * W, y: -Math.random() * H * .6, w: 8 + Math.random() * 10, h: 6 + Math.random() * 8,
+    vx: (Math.random() - .5) * 3, vy: 3 + Math.random() * 4, r: Math.random() * 6, vr: (Math.random() - .5) * .3,
+    c: colors[Math.floor(Math.random() * colors.length)]
+  }));
+  const t0 = performance.now();
+  (function frame(t){
+    ctx.clearRect(0, 0, W, H);
+    bits.forEach(b => {
+      b.x += b.vx; b.y += b.vy; b.r += b.vr; b.vy += .03;
+      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r);
+      ctx.fillStyle = b.c; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
+      ctx.strokeStyle = "#0b0800"; ctx.lineWidth = 1.5; ctx.strokeRect(-b.w / 2, -b.h / 2, b.w, b.h);
+      ctx.restore();
+    });
+    if (t - t0 < 6500) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, W, H); cv.hidden = true; }
+  })(t0);
 }
 
 const songView = document.getElementById("songView");
@@ -362,7 +447,9 @@ function showView(display){
   if (display === currentDisplay) return;
   currentDisplay = display;
   wheelView.classList.toggle("hidden", display !== "wheel");
-  leaderboardView.classList.toggle("hidden", display !== "leaderboard");
+  leaderboardView.classList.toggle("hidden", display !== "leaderboard" && display !== "reveal");
+  document.body.classList.toggle("title-mode", display === "title");
+  prevShown = null;
   songView.classList.toggle("hidden", display !== "song");
   qrView.classList.toggle("hidden", display !== "qr");
   titleView.classList.toggle("hidden", display !== "title");
@@ -391,11 +478,13 @@ async function tick(){
   }
 
   // display switch from host
-  showView(["wheel", "song", "qr", "feud", "title"].includes(data.display) ? data.display : "leaderboard");
+  showView(["wheel", "song", "qr", "feud", "title", "reveal"].includes(data.display) ? data.display : "leaderboard");
   if (data.links && data.links.feud) feudBase = data.links.feud.replace(/\/+$/, "");
 
   if (currentDisplay === "leaderboard") {
-    renderLeaderboard(latestTeams);
+    renderLeaderboard(latestTeams, null);
+  } else if (currentDisplay === "reveal") {
+    renderLeaderboard(latestTeams, data.reveal);
   } else if (currentDisplay === "song") {
     renderSong(data.song);
   } else if (currentDisplay === "qr") {
@@ -424,11 +513,12 @@ function renderTitle(which){
   if (sig === lastTitleSig) return;
   lastTitleSig = sig;
   titleView.innerHTML = `
-    <div class="tt-brand">Kava &amp; Company</div>
-    <div class="tt-l1">Trivia</div>
-    <div class="tt-l2">${soon ? "Starting Soon" : "Night"}</div>
-    ${soon ? `<div class="tt-dots" aria-hidden="true"><span></span><span></span><span></span></div>` : `<div class="tt-rule"></div>`}
-    <div class="tt-sub">Jacksonville's First Kava Bar - Your Second Home</div>`;
+    <div class="tt-card">
+      <img class="tt-logo" src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin">
+      <div class="tt-main retro">Trivia ${soon ? `<span class="soon">Starting Soon</span>` : "Night"}</div>
+      ${soon ? `<div class="tt-dots" aria-hidden="true"><span></span><span></span><span></span></div>` : ""}
+      <div class="tt-sub">Jacksonville's First Kava Bar - Your Second Home</div>
+    </div>`;
 }
 
 /* ---------- QR card ---------- */

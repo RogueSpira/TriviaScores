@@ -4,29 +4,26 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Team Wheel &amp; Scoreboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0f1d;
-    --panel: #10182b;
-    --panel-2: #172238;
-    --line: #26334f;
-    --ink: #f5f7fb;
-    --muted: #8a97b4;
-    --accent: #3b82f6;
-    --accent-soft: #93b9ff;
-    --on-accent: #ffffff;
-    --field: #0b1222;
-    --focus: #60a5fa;
+    --bg: #07141a;
+    --panel: #0f2830;
+    --panel-2: #143540;
+    --line: #1f4a52;
+    --ink: #f5f5f5;
+    --muted: #7fa8b0;
+    --accent: #45DBE0;
+    --accent-soft: #45DBE0;
+    --on-accent: #000;
+    --field: #000;
+    --focus: #45DBE0;
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; height: 100%;
     background: var(--bg);
     color: var(--ink);
-    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-family: "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
     overflow: hidden;
   }
   .layout {
@@ -68,7 +65,7 @@
     width: 100%; height: 100%;
     display: block;
     border-radius: 50%;
-    box-shadow: 0 0 0 8px #050814, 0 0 0 12px var(--accent), 0 24px 60px rgba(0,0,0,.6);
+    box-shadow: 0 0 0 8px #000, 0 0 0 12px var(--accent), 0 24px 60px rgba(0,0,0,.6);
     transition: transform 5s cubic-bezier(.17,.67,.28,1);
     cursor: pointer;
   }
@@ -104,7 +101,7 @@
     text-align: center;
   }
   .result .lbl { color: var(--muted); font-weight: 400; font-size: 13px; display:block; text-transform: uppercase; letter-spacing: 1px; }
-  .result .val { color: var(--ink); }
+  .result .val { color: var(--accent); }
   .result-inner { display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .remove-btn {
     background: transparent;
@@ -143,9 +140,17 @@
   }
   .side-head .sub { margin: 6px 0 0; font-size: 11.5px; color: var(--muted); word-break: break-all; line-height: 1.4; }
   .side-head .sub b { color: var(--accent-soft); font-weight: 600; }
-  .step-row { display: flex; align-items: center; gap: 10px; margin-top: 7px; }
-  .step-row .hdr-lbl { min-width: 0; }
-  #stepChips button { padding: 5px 13px; font-variant-numeric: tabular-nums; }
+  /* one-click point buttons on each team (line 2, right side) */
+  .quick-box { display: flex; gap: 4px; margin-left: auto; }
+  .quick-btn {
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink);
+    height: 28px; padding: 0 9px; border-radius: 7px; cursor: pointer;
+    font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap;
+    transition: all .1s ease;
+  }
+  .quick-btn:hover { border-color: #3cb44b; color: #6ee08a; background: rgba(60,180,75,.12); }
+  .quick-btn.bump { animation: bump .25s ease; }
+  @keyframes bump { 50% { transform: scale(1.12); } }
   #historyBtn {
     background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
     font-size: 12px; padding: 6px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
@@ -197,12 +202,11 @@
   }
   .row-top { display: flex; align-items: center; gap: 7px; }
   .row-bottom { display: flex; align-items: center; gap: 4px; }
-  .row-bottom .score-box { margin-right: auto; }
-  .bet-box { display: flex; align-items: center; gap: 4px; }
+  .bet-box { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
   .bet-label {
     font-size: 10px; color: var(--muted);
     text-transform: uppercase; letter-spacing: 1px;
-    margin-right: 2px;
+    margin-right: auto;
   }
   .bet-input {
     width: 58px;
@@ -319,13 +323,16 @@
   /* Crowded roster: tighten everything so all teams stay on screen */
   .team-list.dense { gap: 3px; padding-top: 6px; padding-bottom: 6px; }
   .team-list.dense .team-row { padding: 3px 8px; gap: 2px; }
-  .team-list.dense .name-input { font-size: 14px; padding: 1px 2px; line-height: 1.25; }
-  .team-list.dense .total-display { font-size: 15px; padding: 2px 8px; }
+  .team-list.dense .name-input { font-size: 14px; padding: 0 2px; line-height: 1.25; }
+  .team-list.dense .total-display { font-size: 15px; padding: 1px 8px; }
   .team-list.dense .op-btn, .team-list.dense .del-btn,
-  .team-list.dense .bet-btn { height: 24px; }
+  .team-list.dense .bet-btn, .team-list.dense .quick-btn { height: 22px; }
   .team-list.dense .edit-total-btn { padding: 2px 7px; }
   .team-list.dense .swatch { width: 18px; height: 18px; }
-  .team-list.dense .team-row input[type=number] { padding: 3px 6px; font-size: 13px; }
+  .team-list.dense .team-row input[type=number] { padding: 2px 6px; font-size: 13px; }
+  /* Bids toggle (toolbar): hide the bid line when no wager round is on */
+  .team-list.no-bids .bet-box { display: none; }
+  #bidsBtn.on { border-color: var(--accent); color: var(--accent); }
   .music-foot:empty { display: none; }
 
   .side-foot {
@@ -367,25 +374,34 @@
     display: flex; flex-direction: column; gap: 10px;
     padding: 14px 24px 12px;
     border-bottom: 1px solid var(--line);
-    background: linear-gradient(180deg, #0d1426, var(--bg));
+    background: var(--bg);
   }
   .hdr-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .hdr-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); min-width: 52px; }
-  #tvBar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .hdr-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); min-width: 46px; }
+  #tvBar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
   .tvgrp { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
   .tvgrp button {
     background: transparent; border: none; color: var(--ink);
-    padding: 7px 11px; border-radius: 7px; cursor: pointer;
-    font: 600 12.5px/1 "Inter", "Segoe UI", system-ui, sans-serif; white-space: nowrap;
+    padding: 7px 9px; border-radius: 7px; cursor: pointer;
+    font: 700 12px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; white-space: nowrap;
     transition: background .12s ease, color .12s ease;
   }
   .tvgrp button:hover { background: var(--panel-2); }
-  .tvgrp button.on { background: var(--accent); color: var(--on-accent); box-shadow: 0 2px 10px rgba(59,130,246,.35); }
+  .tvgrp button.on { background: var(--accent); color: var(--on-accent); }
+  .rv-btn {
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink);
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700;
+  }
+  .rv-btn:hover { border-color: var(--accent); }
+  .rv-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .rv-next { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 190px; }
+  .rv-next.winner { background: #F0BF17; border-color: #F0BF17; color: #000; }
+  .rv-status { font-size: 12.5px; color: var(--muted); }
   #viewSwitch { display: flex; gap: 4px; }
   #viewSwitch button {
     background: transparent; border: none; color: var(--muted);
     padding: 7px 14px; border-radius: 8px;
-    font: 700 14px/1 "Inter", "Segoe UI", system-ui, sans-serif;
+    font: 700 14px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
     cursor: pointer; transition: all .15s ease;
   }
   #viewSwitch button:hover { color: var(--ink); background: var(--panel); }
@@ -522,7 +538,7 @@
   .answer .ay { font-size: 13.5px; color: var(--muted); margin-top: 3px; }
   .answer .ay b { color: var(--ink); font-weight: 700; }
   .answer .warn { font-size: 11.5px; color: #f0a08f; margin-top: 3px; }
-  tr.is-playing td { background: rgba(59,130,246,.10); }
+  tr.is-playing td { background: rgba(69,219,224,.07); }
   td.marks { text-align: center; white-space: nowrap; padding: 6px 3px; }
   .mk {
     width: 25px; height: 30px; margin: 0; border-radius: 7px;
@@ -531,7 +547,7 @@
   }
   .mk:hover { border-color: var(--accent); color: var(--ink); }
   .mk + .mk { margin-left: 2px; }
-  .mk.on { background: #22c55e; border-color: #22c55e; color: #04230f; }
+  .mk.on { background: #3cb44b; border-color: #3cb44b; color: #000; }
   table.music tfoot td { border-bottom: none; }
   .tot-label { text-align: right; }
   .add-cell { text-align: center; padding: 8px 3px !important; }
@@ -555,18 +571,18 @@
   #feudStage .f-top { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
   #feudStage .tabs { display:flex; gap:8px; flex-wrap:wrap; }
   #feudStage .tab { padding:9px 16px; border-radius:999px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); cursor:pointer; font-weight:700; font-size:13.5px; }
-  #feudStage .tab.active { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  #feudStage .tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
   #feudStage .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
   #feudStage .card h2 { font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin:0 0 12px; }
   #feudStage label { display:block; font-size:11px; color:var(--muted); margin:0 0 6px; text-transform:uppercase; letter-spacing:1px; }
   #feudStage input[type=text], #feudStage input[type=number], #feudStage select, #feudStage textarea {
     background:var(--field); border:1px solid var(--line); color:var(--ink); font-size:14.5px; padding:9px 11px; border-radius:9px; font-family:inherit; }
-  #feudStage input:focus, #feudStage select:focus, #feudStage textarea:focus { outline:none; border-color:var(--accent); }
+  #feudStage input:focus, #feudStage select:focus, #feudStage textarea:focus { outline:none; border-color:var(--blue); }
   #feudStage select { width:100%; }
   #feudStage .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); padding:9px 15px; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; }
   #feudStage .btn:hover { border-color:var(--accent); }
-  #feudStage .btn.primary { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
-  #feudStage .btn.aqua { background:#e8efff; color:#0b1530; border-color:#e8efff; }
+  #feudStage .btn.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+  #feudStage .btn.aqua { background:var(--accent); color:#000; border-color:var(--accent); }
   #feudStage .btn.green { background:var(--green); color:#fff; border-color:var(--green); }
   #feudStage .btn.danger:hover { border-color:var(--red); color:var(--red-soft); }
   #feudStage .btn.sm { padding:6px 10px; font-size:12px; }
@@ -651,6 +667,7 @@
         </div>
         <div class="tvgrp">
           <button data-tv="leaderboard" class="on">Leaderboard</button>
+          <button data-tv="reveal" title="Leaderboard reveal: every team starts hidden, then you reveal last place up to 1st">Reveal</button>
           <button data-tv="wheel">Wheel</button>
         </div>
         <div class="tvgrp">
@@ -662,6 +679,13 @@
           <button data-tv="qr:buzz" title="Full-screen QR for joining the Buzzinga buzzers">Buzzer QR</button>
         </div>
       </div>
+    </div>
+    <div class="hdr-row" id="revealRow" hidden>
+      <span class="hdr-lbl">Reveal</span>
+      <button class="rv-btn rv-next" id="rvNext">Reveal last place</button>
+      <span class="rv-status" id="rvStatus"></span>
+      <button class="rv-btn" id="rvAll" title="Flip every remaining team at once">Show all</button>
+      <button class="rv-btn" id="rvRestart" title="Hide everyone again (picks up any score changes)">Start over</button>
     </div>
   </header>
 
@@ -844,21 +868,14 @@
         <h2>Teams &amp; Scores</h2>
         <button id="historyBtn" title="Show the score history log">History</button>
       </div>
-      <div class="step-row">
-        <span class="hdr-lbl" title="How much + and &minus; add or take away (type a number first for anything else)">Step</span>
-        <div class="tvgrp" id="stepChips">
-          <button data-step="100">100</button>
-          <button data-step="250">250</button>
-          <button data-step="500">500</button>
-          <button data-step="1000">1000</button>
-        </div>
-      </div>
+
     </div>
     <div class="toolbar">
       <button id="sortBtn" class="primary">Sort by points &#8595;</button>
       <button id="restoreBtn">Restore wheel</button>
       <button id="shuffleBtn">Shuffle</button>
       <button id="resetScoresBtn">Reset scores</button>
+      <button id="bidsBtn" title="Show or hide the bid line on every team">Bids: on</button>
       <button id="newNightBtn">New night (clear teams)</button>
     </div>
     <div class="team-list" id="teamList"></div>
@@ -1002,7 +1019,8 @@ async function loadState(){
     if (data.music && Array.isArray(data.music.songs)) music = normalizeMusic(data.music);
     if (data.display === "wheel" || data.display === "song") tvDisplay = data.display;
     if (data.song && data.song.n) tvSong = data.song.n;
-    if (["feud", "qr", "title"].includes(data.display)) tvDisplay = data.display;
+    if (["feud", "qr", "title", "reveal"].includes(data.display)) tvDisplay = data.display;
+    if (data.reveal && Array.isArray(data.reveal.order)) reveal = { order: data.reveal.order, shown: data.reveal.shown || 0 };
     if (data.title === "soon" || data.title === "night") tvTitle = data.title;
     if (data.qr && data.qr.kind) tvQrKind = data.qr.kind;
     if (data.links) links = { feud: data.links.feud || links.feud, buzzinga: data.links.buzzinga || links.buzzinga };
@@ -1154,13 +1172,13 @@ function renderList() {
     const amt = document.createElement("input");
     amt.type = "number";
     amt.className = "amt-input";
-    amt.placeholder = String(pointStep);
-    amt.title = "Points to add or subtract (blank = the step picked above)";
+    amt.placeholder = "100";
+    amt.title = "Points to add or subtract (defaults to 100)";
 
     const applyDelta = (sign) => {
       const raw = amt.value.trim();
-      // Empty box uses the step chip (100 / 250 / 500 / 1000); otherwise the typed amount
-      const v = raw === "" ? pointStep : parseInt(raw, 10);
+      // Empty box defaults to 100; otherwise use the typed amount
+      const v = raw === "" ? 100 : parseInt(raw, 10);
       if (isNaN(v) || v === 0) { amt.focus(); return; }
       const before = team.score;
       team.score += sign * v;
@@ -1278,11 +1296,29 @@ function renderList() {
     top.className = "row-top";
     top.append(rank, swatch, name, score, editTotal, del);
 
+    // one-click amounts: a single click adds that many points
+    const quick = document.createElement("div");
+    quick.className = "quick-box";
+    QUICK_POINTS.forEach(n => {
+      const qb = document.createElement("button");
+      qb.className = "quick-btn";
+      qb.textContent = "+" + n.toLocaleString();
+      qb.title = `Add ${n.toLocaleString()} points`;
+      qb.onclick = () => {
+        const before = team.score;
+        team.score += n;
+        logAudit(team, "+" + n, before, team.score, "adjust");
+        syncScores();
+        qb.classList.remove("bump"); void qb.offsetWidth; qb.classList.add("bump");
+      };
+      quick.appendChild(qb);
+    });
+
     const bottom = document.createElement("div");
     bottom.className = "row-bottom";
-    bottom.append(scoreBox, betBox);
+    bottom.append(scoreBox, quick);
 
-    row.append(top, bottom);
+    row.append(top, bottom, betBox);
     teamList.appendChild(row);
   });
   if (typeof musicMode !== "undefined" && musicMode) renderMusic();
@@ -1293,6 +1329,21 @@ function renderList() {
 
 // Keep every team on screen: if the roster overflows the panel, switch the
 // rows to a tighter layout. (Re-checked whenever the list or window changes.)
+// Bid line on/off (toolbar). Remembered on this laptop; on by default.
+let showBids = true;
+try { if (localStorage.getItem("kavaShowBids") === "0") showBids = false; } catch(e) {}
+function paintBids(){
+  teamList.classList.toggle("no-bids", !showBids);
+  const b = document.getElementById("bidsBtn");
+  b.textContent = showBids ? "Bids: on" : "Bids: off";
+  b.classList.toggle("on", showBids);
+}
+document.getElementById("bidsBtn").onclick = () => {
+  showBids = !showBids;
+  try { localStorage.setItem("kavaShowBids", showBids ? "1" : "0"); } catch(e) {}
+  paintBids(); fitTeams();
+};
+paintBids();
 function fitTeams() {
   const regrow = () => teamList.querySelectorAll(".name-input").forEach(n => {
     n.style.height = "auto"; n.style.height = n.scrollHeight + "px";
@@ -1383,9 +1434,8 @@ function updateRestoreBtn() {
 
 /* ---------- Leaderboard mode ---------- */
 let musicMode = false;
-// +/− step, picked with the chips at the top of the team panel (remembered on this laptop)
-let pointStep = 100;
-try { const v = parseInt(localStorage.getItem("kavaPointStep"), 10); if ([100,250,500,1000].includes(v)) pointStep = v; } catch(e) {}
+// One-click amounts shown on every team (challenge points etc.)
+const QUICK_POINTS = [250, 500, 1000];
 let feudMode = false;
 // Links used for Feud + QR cards (saved to the backend, editable in Feud → Surveys → Links)
 let links = { feud: "https://kavafeud.netlify.app", buzzinga: "https://play.buzzinga.io/join/4l4jy" };
@@ -1420,6 +1470,7 @@ let tvDisplay = "leaderboard";
 let tvSong = 0;
 let tvQrKind = "";
 let tvTitle = "night";
+let reveal = { order: [], shown: 0 };        // leaderboard reveal (order = team ids, 1st place first)
 const tvBar = document.getElementById("tvBar");
 // The "On TV" bar in the header: highlights what the TV is showing right now.
 function updateTVLabel(){
@@ -1428,13 +1479,46 @@ function updateTVLabel(){
     : tvDisplay;
   tvBar.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.tv === key));
   tvBar.querySelector('[data-tv="song"]').textContent = "Song " + (tvSong || 1);
+  paintReveal();
 }
+function ordinal(n){ const s = ["th","st","nd","rd"], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+// rank (with ties) of the team at position i in reveal.order
+function revealRank(i){
+  const sc = id => { const t = teams.find(x => x.id === id); return t ? t.score : 0; };
+  let r = i; while (r > 0 && sc(reveal.order[r - 1]) === sc(reveal.order[i])) r--;
+  return r + 1;
+}
+function paintReveal(){
+  const row = document.getElementById("revealRow");
+  row.hidden = tvDisplay !== "reveal";
+  if (row.hidden) return;
+  const n = reveal.order.length, k = reveal.shown, next = document.getElementById("rvNext");
+  next.classList.toggle("winner", n > 0 && k === n - 1);
+  if (!n) { next.textContent = "No teams yet"; next.disabled = true; }
+  else if (k >= n) { next.textContent = "All revealed"; next.disabled = true; }
+  else {
+    next.disabled = false;
+    const pos = n - k - 1;                       // next row to flip, counted from the top
+    next.textContent = pos === 0 ? "Reveal the winner! \u{1F3C6}" : "Reveal " + ordinal(revealRank(pos)) + " place";
+  }
+  document.getElementById("rvStatus").textContent = n ? `${k} of ${n} revealed` : "";
+  document.getElementById("rvAll").disabled = !n || k >= n;
+}
+function startReveal(){
+  const list = teams.filter(t => (t.name && t.name.trim()) || t.score).slice().sort((a, b) => b.score - a.score);
+  reveal = { order: list.map(t => t.id), shown: 0 };
+  setTVDisplay("reveal");
+}
+document.getElementById("rvNext").onclick = () => { if (reveal.shown < reveal.order.length) { reveal.shown++; setTVDisplay("reveal"); } };
+document.getElementById("rvAll").onclick = () => { reveal.shown = reveal.order.length; setTVDisplay("reveal"); };
+document.getElementById("rvRestart").onclick = startReveal;
 function feudSurveyUrl(){ return (links.feud || "https://kavafeud.netlify.app").replace(/\/+$/, "") + "/feud-survey.html"; }
 tvBar.addEventListener("click", e => {
   const b = e.target.closest("button[data-tv]");
   if (!b) return;
   const [mode, sub] = b.dataset.tv.split(":");
   if (mode === "title") setTVDisplay("title", sub);
+  else if (mode === "reveal") startReveal();
   else if (mode === "song") setTVDisplay("song", tvSong || 1);
   else if (mode === "qr" && sub === "survey") setTVDisplay("qr", { url: feudSurveyUrl(), label: "Scan to take the survey", kind: "survey" });
   else if (mode === "qr" && sub === "buzz") {
@@ -1449,6 +1533,7 @@ async function setTVDisplay(mode, arg){
   if (mode === "song") { tvSong = arg; body.song = arg; body.total = music.songs.length; }
   if (mode === "qr") { tvQrKind = arg.kind || ""; body.qr = arg; }
   if (mode === "title") { tvTitle = arg; body.title = arg; }
+  if (mode === "reveal") body.reveal = { order: reveal.order, shown: reveal.shown };
   tvDisplay = mode;
   updateTVLabel();
   try {
@@ -2328,17 +2413,6 @@ wheel.onclick = spin;
 (async () => {
   const boardUrlEl = document.getElementById("boardUrl");
   if (boardUrlEl) boardUrlEl.textContent = new URL("scores-board.html", location.href).href;
-  const chips = document.getElementById("stepChips");
-  const paintChips = () => chips.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.step === pointStep));
-  chips.onclick = e => {
-    const b = e.target.closest("button[data-step]");
-    if (!b) return;
-    pointStep = +b.dataset.step;
-    try { localStorage.setItem("kavaPointStep", String(pointStep)); } catch(err) {}
-    paintChips();
-    teamList.querySelectorAll(".amt-input").forEach(i => i.placeholder = String(pointStep));
-  };
-  paintChips();
   updateTVLabel();
   const drawer = document.getElementById("historyDrawer");
   const historyBtn = document.getElementById("historyBtn");
