@@ -63,8 +63,8 @@ built so it's possible without a rewrite.
   difference. **Add all to scores** does every team at once.
 - **New round** clears the checkmarks for another music round; songs stay.
 - **TV:** pressing ▶ puts a big "Song N" card on scores-board.html (with dots for
-  the songs played so far). It stays up until you click the **TV shows: Song N**
-  button, which sends the TV back to the leaderboard.
+  the songs played so far). It stays up until you pick something else in the
+  **On TV** bar (e.g. Leaderboard).
 
 ## Team panel
 - Each team is two lines: name + total on top, points and bid controls below.
@@ -78,7 +78,7 @@ to the Feud site's backend, so surveys and boards live there as before, and
 
 - **Links** (Feud → Surveys): the Feud site address and the Buzzinga join link.
   Change the Buzzinga link here if the join code changes.
-- **Put on TV:** buttons at the top of the Feud tab:
+- **On TV bar** (header, every screen) has the Feud buttons:
   - **Survey QR** — full-screen "Scan to take the survey" card.
   - **Buzzer QR** — full-screen "Scan to join the buzzers" card for Buzzinga.
   - **Feud board** — the board, strikes, big X and buzzer sound (same look as
@@ -87,9 +87,26 @@ to the Feud site's backend, so surveys and boards live there as before, and
 - **Teams & scoring** uses the teams on this page: +1 / −1 correct, then
   **Add N to score** puts the points straight on the scoreboard (logged as "feud"
   in history, undo works).
-- The **TV: …** button at the top always sends the TV back to the leaderboard.
 - The TV's sound button needs one click on the TV the first time, so the strike
   buzzer can play (browsers block sound until someone clicks the page).
 
 The Feud site needs its own small update deployed first (it now allows this site
 to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
+
+## Header + On TV bar (Oct 2026)
+- Tabs for this laptop: **Wheel · Music · Feud** (the local leaderboard view is gone —
+  the team panel is already sorted by points).
+- **On TV** bar, always visible: Starting Soon · Trivia Night · Leaderboard · Wheel ·
+  Song N · Feud board · Survey QR · Buzzer QR. The highlighted button is what the TV
+  is showing right now.
+- **Title screens:** "Trivia Starting Soon" and "Trivia Night", for before the first
+  round and between rounds.
+
+## Point step
+- **Step** chips at the top of the team panel: 100 · 250 · 500 · 1000. Pick one, then
+  + / − on any team adds or takes away that much. Typing a number in a team's box
+  still overrides it. The chosen step is remembered on that laptop.
+
+## Look
+- Navy, blue and white throughout. The TV uses the Outfit font (the Feud board keeps
+  its game-show look). The TV screen link moved to Feud → Surveys → Links.

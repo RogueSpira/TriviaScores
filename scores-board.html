@@ -6,24 +6,26 @@
 <title>Kava &amp; Co. Trivia — Screen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
-    --bg:#07141a; --panel:#0f2830; --panel-2:#143540; --line:#1f4a52;
-    --ink:#f5f5f5; --muted:#7fa8b0;
-    --aqua:#45DBE0; --aqua-bright:#7fe9ed; --lagoon:#2ba6ab; --cream:#FFF3E0;
+    --bg:#060b18; --panel:#0e1730; --panel-2:#142145; --line:#22335f;
+    --ink:#f5f7fb; --muted:#8fa0c4;
+    /* blue + white theme (names kept from the old teal theme) */
+    --aqua:#4f8cff; --aqua-bright:#a9c6ff; --lagoon:#3366e0; --cream:#ffffff;
+    --display:"Outfit","Segoe UI",system-ui,sans-serif;
     --gold:#FFCF3A;
   }
   * { box-sizing:border-box; }
   html,body { margin:0; height:100%; overflow:hidden;
-    background: radial-gradient(circle at 50% 0%, #0d3038 0%, var(--bg) 70%);
-    color:var(--ink); font-family:"Helvetica Neue","Segoe UI",system-ui,sans-serif; }
+    background: radial-gradient(circle at 50% 0%, #15295e 0%, var(--bg) 70%);
+    color:var(--ink); font-family:var(--display); }
   body { display:flex; flex-direction:column; height:100vh; padding:4vh 4vw; }
 
   /* ---------- Leaderboard ---------- */
   .title { text-align:center; flex:0 0 auto; margin-bottom:3vh; }
-  .title .logo { font-family:"Bungee",sans-serif; font-size:5vh; color:var(--aqua); letter-spacing:.2vh; }
+  .title .logo { font-family:var(--display); font-weight:800; font-size:5vh; color:var(--aqua); letter-spacing:.2vh; }
   .title .sub { font-size:2.2vh; color:var(--muted); text-transform:uppercase; letter-spacing:.5vh; margin-top:.6vh; }
   .board { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:1.4vh; max-width:1100px; width:100%; margin:0 auto; }
   .row {
@@ -32,12 +34,12 @@
     border:2px solid var(--line); border-radius:1.6vh;
     transition: border-color .3s;
   }
-  .row.leader { border-color:var(--aqua); box-shadow:0 0 3.5vh rgba(69,219,224,.35); }
-  .rank { font-family:"Bungee",sans-serif; font-size:4.6vh; color:var(--aqua-bright); width:8vh; text-align:center; flex:0 0 auto; }
+  .row.leader { border-color:var(--aqua); box-shadow:0 0 3.5vh rgba(79,140,255,.35); }
+  .rank { font-family:var(--display); font-weight:800; font-size:4.6vh; color:var(--aqua-bright); width:8vh; text-align:center; flex:0 0 auto; }
   .row.leader .rank { color:var(--gold); }
   .swatch { width:3vh; height:3vh; border-radius:50%; flex:0 0 auto; border:.3vh solid rgba(255,255,255,.3); }
   .name { flex:1 1 auto; font-size:4vh; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .score { font-family:"Bungee",sans-serif; font-size:4.6vh; color:var(--cream); flex:0 0 auto; font-variant-numeric:tabular-nums; }
+  .score { font-family:var(--display); font-weight:800; font-size:4.6vh; color:var(--cream); flex:0 0 auto; font-variant-numeric:tabular-nums; }
   .row.leader .score { color:var(--gold); }
   .crown { font-size:3.4vh; margin-left:1vh; }
 
@@ -57,22 +59,22 @@
   .hub { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     width:7vh; height:7vh; border-radius:50%; background:var(--aqua); border:.6vh solid #000; z-index:4; }
   .winner-banner {
-    font-family:"Bungee",sans-serif; font-size:5vh; color:var(--gold); min-height:6vh;
+    font-family:var(--display); font-weight:800; font-size:5vh; color:var(--gold); min-height:6vh;
     text-align:center; text-shadow:0 0 3vh rgba(255,207,58,.5);
     opacity:0; transition:opacity .4s;
   }
   .winner-banner.show { opacity:1; }
 
   .empty { margin:auto; text-align:center; color:var(--muted); }
-  .empty .logo { font-family:"Bungee",sans-serif; font-size:7vh; color:var(--aqua); }
+  .empty .logo { font-family:var(--display); font-weight:800; font-size:7vh; color:var(--aqua); }
   .empty .msg { font-size:3vh; margin-top:2vh; }
 
   /* ---------- Music round: "Song N" card ---------- */
   .song-wrap { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.6vh; text-align:center; }
-  .song-kicker { font-family:"Bungee",sans-serif; font-size:4vh; color:var(--aqua); letter-spacing:1.2vh; text-shadow:0 0 2.5vh rgba(69,219,224,.45); }
-  .song-label { font-family:"Bungee",sans-serif; font-size:9vh; color:var(--cream); letter-spacing:1vh; line-height:1; }
+  .song-kicker { font-family:var(--display); font-weight:800; font-size:4vh; color:var(--aqua); letter-spacing:1.2vh; text-shadow:0 0 2.5vh rgba(79,140,255,.45); }
+  .song-label { font-family:var(--display); font-weight:800; font-size:9vh; color:var(--cream); letter-spacing:1vh; line-height:1; }
   .song-num {
-    font-family:"Bungee",sans-serif; font-size:34vh; line-height:.9; color:var(--gold);
+    font-family:var(--display); font-weight:800; font-size:34vh; line-height:.9; color:var(--gold);
     text-shadow:0 0 5vh rgba(255,207,58,.55), 0 0 1.2vh rgba(255,207,58,.8);
   }
   .song-num.pop { animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
@@ -90,7 +92,7 @@
 
   /* ---------- QR card ---------- */
   .qr-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.4vh; text-align:center; }
-  .qr-view .qr-label { font-family:"Bungee",sans-serif; font-size:6vh; color:var(--aqua); text-shadow:0 0 3vh rgba(69,219,224,.45); line-height:1.1; max-width:90vw; }
+  .qr-view .qr-label { font-family:var(--display); font-weight:800; font-size:6vh; color:var(--aqua); text-shadow:0 0 3vh rgba(79,140,255,.45); line-height:1.1; max-width:90vw; }
   .qr-view .qr-box { background:#fff; border-radius:2.4vh; padding:2.4vh; width:52vh; height:52vh; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 .8vh var(--aqua), 0 3vh 7vh rgba(0,0,0,.6); }
   .qr-view .qr-box img, .qr-view .qr-box canvas { width:100% !important; height:100% !important; display:block; }
   .qr-view .qr-url { font-size:2.6vh; color:var(--muted); letter-spacing:.1vh; word-break:break-all; max-width:80vw; }
@@ -141,6 +143,27 @@
   @keyframes xflash { 0%{opacity:0;transform:scale(.4);} 15%{opacity:1;transform:scale(1.1);} 40%{opacity:1;transform:scale(1);} 100%{opacity:0;transform:scale(1);} }
   #muteBtn { position:fixed; top:1.5vh; left:2vw; z-index:45; background:#0f2246; color:var(--ink); border:1px solid #1e3a6b; border-radius:999px; padding:1vh 2vh; font-size:1.8vh; font-weight:700; cursor:pointer; }
 
+  /* ---------- Title screens: "Trivia Starting Soon" / "Trivia Night" ---------- */
+  .title-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; }
+  .title-view::before { content:""; position:fixed; inset:-20vh; z-index:-1; pointer-events:none;
+    background: radial-gradient(40vw 40vh at 25% 30%, rgba(59,130,246,.22), transparent 70%),
+                radial-gradient(45vw 45vh at 78% 72%, rgba(147,185,255,.14), transparent 70%);
+    animation: drift 18s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform:translate(-2vw,-1vh); } to { transform:translate(2vw,1vh); } }
+  .tt-brand { font-weight:600; font-size:2.8vh; letter-spacing:1.1vh; text-transform:uppercase; color:var(--muted); margin-bottom:5vh; }
+  .tt-l1 { font-weight:900; font-size:19vh; line-height:.92; color:#fff; letter-spacing:-.4vh; }
+  .tt-l2 { font-weight:900; font-size:14vh; line-height:1.05; letter-spacing:-.2vh;
+    background:linear-gradient(90deg,#4f8cff 0%,#cfe0ff 50%,#4f8cff 100%); background-size:200% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent; animation: sheen 7s linear infinite; }
+  @keyframes sheen { from { background-position:200% 0; } to { background-position:0 0; } }
+  .tt-dots { display:flex; gap:2vh; margin-top:4vh; }
+  .tt-dots span { width:1.8vh; height:1.8vh; border-radius:50%; background:#4f8cff; animation: dotpulse 1.4s ease-in-out infinite; }
+  .tt-dots span:nth-child(2){ animation-delay:.2s; } .tt-dots span:nth-child(3){ animation-delay:.4s; }
+  @keyframes dotpulse { 0%,100% { opacity:.25; transform:scale(.8); } 50% { opacity:1; transform:scale(1.15); } }
+  .tt-rule { width:12vh; height:.5vh; border-radius:.5vh; background:#4f8cff; margin:4.5vh auto 0; }
+  .tt-sub { margin-top:3vh; font-size:2.6vh; font-weight:500; color:var(--muted); letter-spacing:.15vh; }
+  @media (prefers-reduced-motion: reduce) { .title-view::before, .tt-l2, .tt-dots span { animation:none; } }
+
   .live-dot { position:fixed; top:1.5vh; right:2vw; width:1.2vh; height:1.2vh; border-radius:50%; background:var(--aqua); opacity:.5; transition:opacity .3s; }
   .live-dot.ping { opacity:1; }
   .hidden { display:none !important; }
@@ -174,6 +197,9 @@
     <div class="song-num" id="songNum">1</div>
     <div class="song-dots" id="songDots"></div>
   </div>
+
+  <!-- TITLE SCREEN VIEW -->
+  <div id="titleView" class="title-view hidden"></div>
 
   <!-- QR CARD VIEW -->
   <div id="qrView" class="qr-view hidden">
@@ -339,6 +365,8 @@ function showView(display){
   leaderboardView.classList.toggle("hidden", display !== "leaderboard");
   songView.classList.toggle("hidden", display !== "song");
   qrView.classList.toggle("hidden", display !== "qr");
+  titleView.classList.toggle("hidden", display !== "title");
+  lastTitleSig = "";
   feudView.classList.toggle("hidden", display !== "feud");
   lastSongSig = ""; lastQrSig = ""; lastFeudSig = ""; lastStrikeEvent = null; prevRevealed = {};
   // force re-render of whichever is now visible
@@ -363,7 +391,7 @@ async function tick(){
   }
 
   // display switch from host
-  showView(["wheel", "song", "qr", "feud"].includes(data.display) ? data.display : "leaderboard");
+  showView(["wheel", "song", "qr", "feud", "title"].includes(data.display) ? data.display : "leaderboard");
   if (data.links && data.links.feud) feudBase = data.links.feud.replace(/\/+$/, "");
 
   if (currentDisplay === "leaderboard") {
@@ -372,6 +400,8 @@ async function tick(){
     renderSong(data.song);
   } else if (currentDisplay === "qr") {
     renderQrCard(data.qr);
+  } else if (currentDisplay === "title") {
+    renderTitle(data.title);
   } else if (currentDisplay === "feud") {
     await feudTick();
   } else {
@@ -383,6 +413,22 @@ async function tick(){
       drawTVWheel(active);
     }
   }
+}
+
+/* ---------- Title screens ---------- */
+const titleView = document.getElementById("titleView");
+let lastTitleSig = "";
+function renderTitle(which){
+  const soon = which === "soon";
+  const sig = soon ? "soon" : "night";
+  if (sig === lastTitleSig) return;
+  lastTitleSig = sig;
+  titleView.innerHTML = `
+    <div class="tt-brand">Kava &amp; Company</div>
+    <div class="tt-l1">Trivia</div>
+    <div class="tt-l2">${soon ? "Starting Soon" : "Night"}</div>
+    ${soon ? `<div class="tt-dots" aria-hidden="true"><span></span><span></span><span></span></div>` : `<div class="tt-rule"></div>`}
+    <div class="tt-sub">Jacksonville's First Kava Bar - Your Second Home</div>`;
 }
 
 /* ---------- QR card ---------- */

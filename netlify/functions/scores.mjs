@@ -130,7 +130,7 @@ export default async (req) => {
     if (action === "status") {
       const s = await load();
       return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null,
-        qr: s.qr || null, links: s.links || null, feud: s.feud || null, updated: s.updated || 0 });
+        qr: s.qr || null, title: s.title || null, links: s.links || null, feud: s.feud || null, updated: s.updated || 0 });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -157,7 +157,9 @@ export default async (req) => {
       case "display": {
         // What the TV shows: "leaderboard", "wheel", "song" (music round card),
         // "feud" (the Feud board), or "qr" (a full-screen scan card)
-        let d = ["wheel", "song", "feud", "qr"].includes(body.display) ? body.display : "leaderboard";
+        // "title" = title screen: body.title "soon" (Trivia Starting Soon) or "night" (Trivia Night)
+        let d = ["wheel", "song", "feud", "qr", "title"].includes(body.display) ? body.display : "leaderboard";
+        if (d === "title") state.title = body.title === "soon" ? "soon" : "night";
         if (d === "qr") {
           const url = cleanUrl(body.qr && body.qr.url);
           if (!url) return json({ error: "QR needs an http(s) link" }, 400);
