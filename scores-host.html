@@ -641,7 +641,17 @@
   .jp-boardpick { display: flex; align-items: center; gap: 8px; }
   .jp-catctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .jp-catstatus { font-size: 13px; color: var(--muted); margin-right: auto; }
-  .jp-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .jp-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .jp-gamble { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .jp-gcat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 18px 12px; cursor: pointer; color: var(--ink); display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; font: inherit; }
+  .jp-gcat b { font-size: 19px; }
+  .jp-gcat small { font-size: 11.5px; color: var(--muted); font-weight: 700; letter-spacing: .5px; }
+  .jp-gcat:hover { border-color: var(--accent); }
+  .jp-gcat.current { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .jp-gcat.current small { color: var(--on-accent); }
+  .jp-gcat.used { opacity: .5; background: transparent; }
+  .jp-gcat.used b { text-decoration: line-through; }
+  .jp-gcat.empty small:last-child { color: #d9736f; }
   .jp-h { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 6px; min-height: 52px;
     display: flex; flex-direction: column; justify-content: center; text-align: center; font-weight: 800; font-size: 13px; line-height: 1.2; word-break: break-word; }
   .jp-h.hidden-tv { opacity: .55; border-style: dashed; }
@@ -684,22 +694,53 @@
   .jp-cattab .cnt { opacity: .75; font-size: 11px; }
   .jp-cated { display: flex; flex-direction: column; gap: 8px; }
   .jp-cated .catname { font-size: 16px; font-weight: 800; width: 100%; }
-  .jp-qrow { display: grid; grid-template-columns: 62px minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.25fr); gap: 8px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
-  .jp-qrow.drop { border-color: var(--accent); }
-  .jp-qrow .v { font-weight: 800; color: var(--accent); font-size: 16px; padding-top: 8px; text-align: center; font-variant-numeric: tabular-nums; }
-  .jp-qrow textarea { width: 100%; min-height: 58px; resize: vertical; }
-  .jp-qrow input.ans { width: 100%; }
-  .jp-mz { display: flex; flex-direction: column; gap: 5px; }
-  .jp-mz input.link { width: 100%; border-style: dashed; }
-  .jp-mz .mrow { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
-  .jp-mz img { max-height: 70px; max-width: 120px; border-radius: 6px; border: 1px solid var(--line); }
-  .jp-mz .mtag { font-weight: 800; color: var(--ink); }
-  .jp-mz .msrc { word-break: break-all; font-size: 11.5px; max-height: 32px; overflow: hidden; }
-  .jp-mz .mini { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: 11.5px; }
-  .jp-mz .mini:hover { border-color: var(--accent); color: var(--ink); }
-  .jp-mz .err { color: #f0a08f; font-size: 11.5px; }
-  .jp-mz select { padding: 3px 6px; font-size: 12px; }
-  .jp-mz input.start { width: 64px; padding: 3px 6px; font-size: 12px; }
+  .jp-status { font-size: 13.5px; color: var(--ink); background: var(--panel-2); border-radius: 8px; padding: 8px 10px; }
+  .jp-status b { color: var(--accent); }
+  .jp-pvs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .jp-pv { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .jp-pvlbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .jp-pvtext { font-size: 17px; font-weight: 700; line-height: 1.3; }
+  .jp-pv img { max-height: 120px; max-width: 100%; border-radius: 8px; border: 1px solid var(--line); align-self: flex-start; }
+  .jp-pvclip { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+  .jp-pvclip img { width: 96px; max-height: none; }
+  .jp-qcard { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 8px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+  .jp-gedit .jp-qcard { grid-template-columns: minmax(0, 1fr); }
+  .jp-gedit { display: flex; flex-direction: column; gap: 6px; padding-bottom: 6px; }
+  .jp-qcard .v { font-weight: 800; color: var(--accent); font-size: 16px; padding-top: 10px; text-align: center; font-variant-numeric: tabular-nums; }
+  .jp-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
+  .jp-side { background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 7px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .jp-side.drop { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+  .jp-sidehd { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+  .jp-sidelbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .jp-side.resp .jp-sidelbl { color: #6ee08a; }
+  .jp-ttabs { display: flex; gap: 3px; }
+  .jp-tt { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 3px 7px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+  .jp-tt span { font-weight: 800; }
+  .jp-tt:hover { color: var(--ink); border-color: var(--accent); }
+  .jp-tt.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .jp-side textarea { width: 100%; min-height: 54px; resize: vertical; }
+  .jp-side input.link, .jp-side input.cap { width: 100%; }
+  .jp-side input.link { border-style: dashed; }
+  .jp-drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 10px; font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center; }
+  .jp-imgrow { display: flex; gap: 8px; align-items: flex-start; }
+  .jp-imgrow img { max-height: 90px; max-width: 160px; border-radius: 6px; border: 1px solid var(--line); }
+  .jp-imgbtns { display: flex; flex-direction: column; gap: 5px; }
+  .jp-side .mrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+  .jp-side .ytthumb { width: 80px; border-radius: 5px; border: 1px solid var(--line); }
+  .jp-side .msrc { word-break: break-all; font-size: 11px; color: var(--muted); max-height: 30px; overflow: hidden; }
+  .jp-side .mini { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 3px 8px; cursor: pointer; font-size: 11.5px; }
+  .jp-side .mini:hover { border-color: var(--accent); color: var(--ink); }
+  .jp-side .err { color: #f0a08f; font-size: 11.5px; }
+  .jp-side .err:empty { display: none; }
+  .jp-side input.start { width: 60px; padding: 3px 6px; font-size: 12px; }
+  .jp-side input.bad { border-color: #d9736f; }
+  .jp-switch { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--ink); font-weight: 700; }
+  .jp-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .jp-switch i { width: 30px; height: 17px; border-radius: 999px; background: var(--line); position: relative; transition: background .15s; flex: 0 0 auto; }
+  .jp-switch i::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .jp-switch input:checked + i { background: var(--accent); }
+  .jp-switch input:checked + i::after { left: 15px; }
+  .jp-switch input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* edit-songs mode */
   table.music.editing td { padding: 5px 4px; }
@@ -829,7 +870,7 @@
         <span class="hdr-lbl">Board</span>
         <div class="tvgrp" id="jpBoardPick">
           <button data-jb="r1">Round 1</button>
-          <button data-jb="r2">Gamble round</button>
+          <button data-jb="g1">Gamble round</button>
         </div>
       </div>
     </div>
@@ -852,22 +893,16 @@
     <section id="jpEdit" hidden>
       <div class="jp-settings">
         <label>Board name <input type="text" id="jpName" maxlength="40"></label>
-        <label>Scoring
-          <select id="jpScoring">
-            <option value="award">Buzz-in: award the value</option>
-            <option value="wager">Gamble: wagers on the Bid line</option>
-          </select>
-        </label>
         <label>Answer timer <input type="number" id="jpTimer" min="5" max="120"> sec</label>
       </div>
-      <div class="jp-values">
+      <div class="jp-values" id="jpValues">
         <span class="hdr-lbl">Values</span>
         <input type="number" class="jp-val" data-r="0"><input type="number" class="jp-val" data-r="1"><input type="number" class="jp-val" data-r="2"><input type="number" class="jp-val" data-r="3"><input type="number" class="jp-val" data-r="4">
       </div>
       <div class="jp-cattabs" id="jpCatTabs"></div>
       <div class="jp-cated" id="jpCatEd"></div>
       <div class="jp-foot">
-        <span class="jp-hint">Paste a picture straight into any question (Ctrl+V / &#8984;V), or paste a link to a picture, audio or video (YouTube works). Saves automatically.</span>
+        <span class="jp-hint">Pick Text, Picture or Audio/Video for each clue and each answer. Paste a picture straight in (Ctrl+V / &#8984;V) or drag one on. Saves automatically.</span>
         <button class="mbtn warn" id="jpClear">Clear this board</button>
       </div>
     </section>
@@ -1601,25 +1636,42 @@ let links = { feud: "https://kavafeud.netlify.app", buzzinga: "https://play.buzz
 // Feud correct-answer counts per team, for the board in play
 let feudCorrect = {};
 // Jeopardy: questions (jq) and what's happening on the board right now (jp)
+// r1 = Round 1 grid (5 categories x 5); g1 = the gamble board (3 categories x 1 question) used at the
+// midpoint and the final gamble: a category played at the midpoint stays greyed out for the final.
+// Every question has a clue and a response; each is text, a picture, or an audio/video clip.
+const JB_IDS = ["r1", "g1"];
+const jIsGamble = id => id === "g1";
+function blankJSide(){ return { type: "text", text: "", src: "", start: 0, show: true }; }
+function blankJQ(){ return { clue: blankJSide(), resp: blankJSide() }; }
 function blankJBoard(id){
-  return { name: id === "r1" ? "Round 1" : "Gamble round", scoring: id === "r1" ? "award" : "wager",
-    values: [200, 400, 600, 800, 1000],
-    cats: Array.from({ length: 6 }, () => ({ name: "", qs: Array.from({ length: 5 }, () => ({ q: "", a: "" })) })) };
+  if (jIsGamble(id)) return { name: "Gamble round", kind: "gamble", values: null,
+    cats: Array.from({ length: 3 }, () => ({ name: "", qs: [blankJQ()] })) };
+  return { name: "Round 1", kind: "grid", values: [200, 400, 600, 800, 1000],
+    cats: Array.from({ length: 5 }, () => ({ name: "", qs: Array.from({ length: 5 }, blankJQ) })) };
+}
+function normJSide(sd){
+  const o = blankJSide(); if (!sd) return o;
+  let t = sd.type;
+  if (t === "audio") { t = "media"; o.show = false; } else if (t === "video") t = "media";
+  if (sd.show === false) o.show = false;
+  o.type = ["text", "image", "media"].includes(t) ? t : "text";
+  o.text = sd.text || ""; o.src = sd.src || ""; o.start = Number(sd.start) || 0;
+  return o;
 }
 function normalizeJeopardy(j){
   const out = { timer: Number(j && j.timer) || 30, boards: {} };
-  ["r1", "r2"].forEach(id => {
+  JB_IDS.forEach(id => {
     const b = (j && j.boards && j.boards[id]) || {}, base = blankJBoard(id);
     out.boards[id] = {
-      name: b.name || base.name, scoring: b.scoring || base.scoring,
-      values: base.values.map((v, i) => (b.values && b.values[i] != null) ? Number(b.values[i]) : v),
+      name: b.name || base.name, kind: base.kind,
+      values: base.values ? base.values.map((v, i) => (b.values && b.values[i] != null) ? Number(b.values[i]) : v) : null,
       cats: base.cats.map((c, ci) => {
         const src = (b.cats && b.cats[ci]) || {};
         return { name: src.name || "", qs: c.qs.map((_, qi) => {
           const q = (src.qs && src.qs[qi]) || {};
-          const o = { q: q.q || "", a: q.a || "" };
-          if (q.media && q.media.src) o.media = { type: q.media.type, src: q.media.src, start: q.media.start || 0 };
-          return o;
+          if (q.clue || q.resp) return { clue: normJSide(q.clue), resp: normJSide(q.resp) };
+          const m = q.media || {};
+          return { clue: normJSide({ type: m.type || "text", text: q.q, src: m.src, start: m.start }), resp: normJSide({ type: "text", text: q.a }) };
         }) };
       })
     };
@@ -1627,7 +1679,7 @@ function normalizeJeopardy(j){
   return out;
 }
 let jq = normalizeJeopardy(null);
-function blankJplay(){ return { board: "r1", cats: 0, used: { r1: [], r2: [] }, cell: null, stage: "question", timer: null, media: null }; }
+function blankJplay(){ return { board: "r1", cats: 0, used: { r1: [], g1: [] }, cell: null, stage: "question", timer: null, media: null }; }
 let jp = blankJplay();
 let jpClock = 0;     // server clock minus this laptop's clock (for the timer)
 let editingSongs = false;
@@ -2192,10 +2244,12 @@ spinBtn.onclick = spin;
 wheel.onclick = spin;
 
 /* =====================================================================
-   JEOPARDY — two boards (Round 1 = buzz-in, Gamble round = wagers), each
-   6 categories x 5 questions. Questions can be text, a picture (pasted or
-   linked), audio or video (links; YouTube works). Play state goes to the
-   backend right away so the TV keeps up; the questions save like the rest.
+   JEOPARDY — Round 1 (5 categories x 5, buzz-in) and the Gamble board
+   (3 categories x 1 question, wagers; one board for the midpoint and the
+   final gamble, so a played category stays out). Every clue and every correct response
+   is Text, a Picture (pasted / dropped / linked) or Audio/Video (YouTube or
+   file links, with a Show-video toggle). Play state goes to the backend right
+   away so the TV keeps up; the questions save like the rest.
    ===================================================================== */
 (function(){
   const $ = id => document.getElementById(id);
@@ -2204,12 +2258,20 @@ wheel.onclick = spin;
   let editCat = 0;
   let mediaN = 0;
   let timerTick = null;
-  const ORD = ["1st","2nd","3rd","4th","5th","6th"];
-  const cellIdx = (c, r) => r * 6 + c;
+  const ORD = ["1st","2nd","3rd","4th","5th"];
   const board = id => jq.boards[id || jp.board];
-  const isUsed = (id, c, r) => !!((jp.used[id] || [])[cellIdx(c, r)]);
+  const gambleNow = () => jIsGamble(jp.board);
+  const nCats = id => board(id).cats.length;
+  const cellIdx = (id, c, r) => jIsGamble(id) ? c : r * 5 + c;
+  const isUsed = (id, c, r) => !!((jp.used[id] || [])[cellIdx(id, c, r)]);
   const esc = s => { const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
   const escA = s => esc(s).replace(/"/g, "&quot;");
+  const filled = sd => !!(sd && (sd.text || sd.src));
+  const isUpload = src => String(src || "").startsWith("/.netlify/");
+  const ytThumb = src => { const y = parseYouTube(src || ""); return y ? `https://img.youtube.com/vi/${y.id}/mqdefault.jpg` : ""; };
+  // What the TV shows right now for this question: the response replaces the clue when it's a picture/clip
+  const respTakesOver = q => jp.stage === "answer" && q.resp.type !== "text" && !!q.resp.src;
+  const sideOnTV = q => jp.stage === "pick" ? null : (respTakesOver(q) ? q.resp : q.clue);
 
   /* ---------- talk to the backend ---------- */
   async function sendJplay(extra){
@@ -2237,8 +2299,8 @@ wheel.onclick = spin;
   };
 
   /* ---------- PLAY ---------- */
-  $("jpCatNext").onclick = () => { if (jp.cats < 6) { jp.cats++; onTV(); sendJplay(); } };
-  $("jpCatAll").onclick = () => { jp.cats = 6; onTV(); sendJplay(); };
+  $("jpCatNext").onclick = () => { if (jp.cats < nCats()) { jp.cats++; onTV(); sendJplay(); } };
+  $("jpCatAll").onclick = () => { jp.cats = nCats(); onTV(); sendJplay(); };
   $("jpCatHide").onclick = () => { jp.cats = 0; sendJplay(); };
   $("jpResetUsed").onclick = () => {
     if (!confirm(`Reset "${board().name}"? Every question becomes unused and the categories hide again.`)) return;
@@ -2246,102 +2308,142 @@ wheel.onclick = spin;
     sendJplay({ timer: "stop" });
   };
   $("jpGrid").onclick = e => {
-    const b = e.target.closest(".jp-cell"); if (!b) return;
+    const b = e.target.closest("[data-c]"); if (!b) return;
     const c = +b.dataset.c, r = +b.dataset.r;
-    jp.cell = { c, r }; jp.stage = "question";
+    jp.cell = { c, r };
+    // Gamble: the chosen category goes up with "Place your wagers!"; the question comes after the wagers are in
+    jp.stage = gambleNow() ? "pick" : "question";
+    if (gambleNow() && jp.cats <= c) jp.cats = c + 1;
     onTV(); sendJplay({ timer: "stop" });
   };
   function finishCell(markUsed){
     if (!jp.cell) return;
     if (markUsed) {
-      const u = (jp.used[jp.board] || []).slice(); u[cellIdx(jp.cell.c, jp.cell.r)] = true; jp.used[jp.board] = u;
+      const u = (jp.used[jp.board] || []).slice(); u[cellIdx(jp.board, jp.cell.c, jp.cell.r)] = true; jp.used[jp.board] = u;
     }
     jp.cell = null; jp.stage = "question";
     sendJplay({ timer: "stop" });
   }
+  const awarded = {};
   function award(teamId){
     const t = teams.find(x => x.id === teamId); if (!t || !jp.cell) return;
-    const v = board().values[jp.cell.r] || 0;
+    const v = (board().values || [])[jp.cell.r] || 0;
     const before = t.score; t.score += v;
     logAudit(t, "+" + v, before, t.score, "jeopardy");
     syncScores();
     awarded[t.id + "@" + jp.board + jp.cell.c + jp.cell.r] = true;
     renderJeopardy();
   }
-  const awarded = {};
   function timeLeft(){
     if (!jp.timer) return null;
     return Math.max(0, (jp.timer.endsAt - (Date.now() + jpClock)) / 1000);
   }
+  const TYPE_ICON = { text: "", image: "\u{1F5BC}", media: "\u{1F3B5}" };
+  function typeIcon(sd){ return !sd.src ? "" : (sd.type === "media" ? (sd.show ? "\u{1F3AC}" : "\u{1F3B5}") : TYPE_ICON[sd.type] || ""); }
 
   function renderPlay(){
-    const B = board();
-    $("jpCatStatus").textContent = `${B.name}: ${jp.cats} of 6 categories showing on the TV`;
-    $("jpCatNext").disabled = jp.cats >= 6;
-    $("jpCatNext").textContent = jp.cats >= 6 ? "All categories showing" : `Reveal ${ORD[jp.cats]} category`;
+    const B = board(), n = B.cats.length, G = gambleNow();
+    $("jpCatStatus").textContent = `${B.name}: ${jp.cats} of ${n} categories showing on the TV`;
+    $("jpCatNext").disabled = jp.cats >= n;
+    $("jpCatNext").textContent = jp.cats >= n ? "All categories showing" : `Reveal ${ORD[jp.cats]} category`;
+    $("jpGrid").className = G ? "jp-gamble" : "jp-grid";
     let h = "";
-    B.cats.forEach((c, ci) => {
-      const shown = ci < jp.cats;
-      h += `<div class="jp-h ${shown ? "" : "hidden-tv"}" style="grid-column:${ci + 1};grid-row:1">${esc(c.name || "Category " + (ci + 1))}${shown ? "" : "<small>hidden on TV</small>"}</div>`;
-      c.qs.forEach((q, r) => {
-        const used = isUsed(jp.board, ci, r);
-        const cur = jp.cell && jp.cell.c === ci && jp.cell.r === r;
-        const empty = !q.q && !(q.media && q.media.src);
-        const mi = q.media ? ({ image: "\u{1F5BC}", audio: "\u{1F3B5}", video: "\u{1F3AC}" }[q.media.type] || "") : "";
-        h += `<button class="jp-cell ${used ? "used" : ""} ${cur ? "current" : ""} ${empty ? "empty" : ""}" style="grid-column:${ci + 1};grid-row:${r + 2}"
-          data-c="${ci}" data-r="${r}" title="${empty ? "No question written yet" : escA(q.q || "(" + q.media.type + ")")}">${(B.values[r] || 0).toLocaleString()}${mi ? `<span class="mi">${mi}</span>` : ""}</button>`;
+    if (G) {
+      B.cats.forEach((c, ci) => {
+        const q = c.qs[0], used = isUsed(jp.board, ci, 0), cur = jp.cell && jp.cell.c === ci, shown = ci < jp.cats;
+        const empty = !filled(q.clue);
+        h += `<button class="jp-gcat ${used ? "used" : ""} ${cur ? "current" : ""} ${empty ? "empty" : ""}" data-c="${ci}" data-r="0">
+          <small>Category ${ci + 1}${typeIcon(q.clue) ? " " + typeIcon(q.clue) : ""}</small>
+          <b>${esc(c.name || "Category " + (ci + 1))}</b>
+          <small>${used ? "Already played" : cur ? "On the TV" : !shown ? "Hidden on TV" : empty ? "No question written yet" : "Click when a team picks this"}</small>
+        </button>`;
       });
-    });
+    } else {
+      B.cats.forEach((c, ci) => {
+        const shown = ci < jp.cats;
+        h += `<div class="jp-h ${shown ? "" : "hidden-tv"}" style="grid-column:${ci + 1};grid-row:1">${esc(c.name || "Category " + (ci + 1))}${shown ? "" : "<small>hidden on TV</small>"}</div>`;
+        c.qs.forEach((q, r) => {
+          const used = isUsed(jp.board, ci, r);
+          const cur = jp.cell && jp.cell.c === ci && jp.cell.r === r;
+          const empty = !filled(q.clue);
+          const mi = typeIcon(q.clue);
+          h += `<button class="jp-cell ${used ? "used" : ""} ${cur ? "current" : ""} ${empty ? "empty" : ""}" style="grid-column:${ci + 1};grid-row:${r + 2}"
+            data-c="${ci}" data-r="${r}" title="${empty ? "No question written yet" : escA(q.clue.text || "(" + (q.clue.type === "image" ? "picture" : "audio/video") + ")")}">${(B.values[r] || 0).toLocaleString()}${mi ? `<span class="mi">${mi}</span>` : ""}</button>`;
+        });
+      });
+    }
     $("jpGrid").innerHTML = h;
     renderPanel();
+  }
+
+  // A short look at one side for the host (what it is, what's on it)
+  function sidePreview(sd, label){
+    let body = "";
+    if (sd.type === "image" && sd.src) body = `<img src="${escA(sd.src)}" alt="">`;
+    else if (sd.type === "media" && sd.src) {
+      const th = ytThumb(sd.src);
+      body = `<div class="jp-pvclip">${th ? `<img src="${escA(th)}" alt="">` : ""}<span>${sd.show ? "\u{1F3AC} Video shown on TV" : "\u{1F3B5} Sound only (video hidden)"}${sd.start ? " &middot; starts " + fmtClock(sd.start) : ""}<br><span class="jp-medialink">${esc(sd.src)}</span></span></div>`;
+    }
+    const txt = sd.text ? `<div class="jp-pvtext">${esc(sd.text)}</div>` : "";
+    return `<div class="jp-pv"><div class="jp-pvlbl">${label}</div>${body}${txt}${!body && !txt ? `<div class="jp-note">(nothing written yet)</div>` : ""}</div>`;
   }
 
   function renderPanel(){
     const P = $("jpPanel");
     if (!jp.cell) { P.hidden = true; clearInterval(timerTick); timerTick = null; return; }
-    const B = board(), cat = B.cats[jp.cell.c], q = cat.qs[jp.cell.r], v = B.values[jp.cell.r] || 0;
+    const B = board(), G = gambleNow(), cat = B.cats[jp.cell.c], q = cat.qs[jp.cell.r], v = G ? 0 : (B.values[jp.cell.r] || 0);
     P.hidden = false;
-    let media = "";
-    if (q.media && q.media.src) {
-      if (q.media.type === "image") media = `<div class="jp-media"><img src="${escA(q.media.src)}" alt=""></div>`;
-      else media = `<div class="jp-row"><span class="jp-medialink">${q.media.type === "audio" ? "\u{1F3B5} Audio" : "\u{1F3AC} Video"}: ${esc(q.media.src)}</span></div>
-        <div class="jp-row">
+    const tvSide = sideOnTV(q);
+    let mediaCtl = "";
+    if (tvSide && tvSide.type === "media" && tvSide.src) {
+      mediaCtl = `<div class="jp-row">
+          <span class="jp-note"><b>${tvSide === q.resp ? "Answer clip" : "Clue clip"}</b> on the TV${tvSide.show ? "" : " (sound only)"}:</span>
           <button class="mbtn primary" data-mc="play">&#9654; Play on TV</button>
           <button class="mbtn" data-mc="pause">&#10074;&#10074; Pause</button>
           <button class="mbtn" data-mc="restart">&#8635; Restart</button>
-          <span class="jp-note">The TV needs one click on its screen first so it's allowed to play sound.</span>
-        </div>`;
+        </div><div class="jp-note">The TV needs one click on its screen first so it's allowed to play sound.</div>`;
     }
     const tl = timeLeft();
+    let stageBtns = "", status = "";
+    if (jp.stage === "pick") {
+      status = `<div class="jp-status">TV shows the category with <b>&ldquo;Place your wagers!&rdquo;</b> Collect each team's wager and enter it on its <b>Bid</b> line on the right.</div>`;
+      stageBtns = `<button class="mbtn primary" id="jpRevealQ">Reveal question on TV</button>` +
+        (typeof showBids !== "undefined" && !showBids ? `<button class="mbtn" id="jpBidsOn">Show Bid lines</button>` : "");
+    } else {
+      status = `<div class="jp-status">${jp.stage === "answer" ? "TV shows the clue <b>and the answer</b>." : "TV shows the clue. The answer stays hidden until you show it."}</div>`;
+      stageBtns = (jp.stage === "answer"
+          ? `<button class="mbtn" id="jpHideAns">Hide answer</button>`
+          : `<button class="mbtn primary" id="jpShowAns">Show answer on TV</button>`) +
+        (jp.timer
+          ? `<button class="mbtn warn" id="jpTimerStop">Stop timer</button><span class="jp-timer ${tl === 0 ? "out" : ""}" id="jpTimerLeft">${Math.ceil(tl)}</span>`
+          : `<button class="mbtn" id="jpTimerStart">Start ${jq.timer}s answer timer</button>`) +
+        (G && jp.stage === "question" ? `<button class="mbtn" id="jpBackPick" title="Hide the question again and go back to the wagers screen">Back to wagers screen</button>` : "");
+    }
     let scoring;
-    if (B.scoring === "award") {
+    if (!G) {
       scoring = `<div class="jp-row"><span class="jp-note">Correct answer &rarr; add ${v.toLocaleString()} to:</span></div><div class="jp-row">` +
         (teams.length ? teams.map(t => {
           const given = awarded[t.id + "@" + jp.board + jp.cell.c + jp.cell.r];
           return `<button class="jp-award ${given ? "given" : ""}" data-award="${t.id}" style="border-top-color:${escA(t.color)}">${given ? "&#10003; " : "+"}${v.toLocaleString()} ${esc(t.name || "Team")}</button>`;
         }).join("") : `<span class="jp-note">Add teams in the panel on the right.</span>`) + `</div>`;
-    } else {
-      scoring = `<div class="jp-row"><span class="jp-note">Gamble round: teams write their answers. Score each team with its <b>Bid</b> line on the right (enter the wager, then Won / Lost).</span></div>`;
-    }
+    } else if (jp.stage !== "pick") {
+      scoring = `<div class="jp-row"><span class="jp-note">Teams write their answers. Score each team on its <b>Bid</b> line on the right (wager, then Won / Lost).</span></div>`;
+    } else scoring = "";
     P.innerHTML = `
-      <div class="jp-meta">${esc(cat.name || "Category " + (jp.cell.c + 1))} &middot; ${v.toLocaleString()}</div>
-      ${q.q ? `<div class="jp-qtext">${esc(q.q)}</div>` : ""}
-      ${media}
-      <div class="jp-ans">${jp.stage === "answer" ? "<small>Showing on TV &mdash;</small> " : "<small>Only you can see this until you show it &mdash;</small> "}Answer: <b>${esc(q.a || "(no answer written)")}</b></div>
-      <div class="jp-row">
-        ${jp.stage === "answer"
-          ? `<button class="mbtn" id="jpHideAns">Hide answer</button>`
-          : `<button class="mbtn primary" id="jpShowAns">Show answer on TV</button>`}
-        ${jp.timer
-          ? `<button class="mbtn warn" id="jpTimerStop">Stop timer</button><span class="jp-timer ${tl === 0 ? "out" : ""}" id="jpTimerLeft">${Math.ceil(tl)}</span>`
-          : `<button class="mbtn" id="jpTimerStart">Start ${jq.timer}s answer timer</button>`}
-      </div>
+      <div class="jp-meta">${esc(cat.name || "Category " + (jp.cell.c + 1))} &middot; ${G ? "Gamble" : v.toLocaleString()}</div>
+      ${status}
+      <div class="jp-pvs">${sidePreview(q.clue, "Clue")}${sidePreview(q.resp, jp.stage === "answer" ? "Correct response &middot; on TV" : "Correct response &middot; only you can see this")}</div>
+      ${mediaCtl}
+      <div class="jp-row">${stageBtns}</div>
       ${scoring}
       <div class="jp-row" style="margin-top:4px">
         <button class="mbtn primary" id="jpDone">Done &mdash; back to board</button>
         <button class="mbtn" id="jpCancel" title="Go back without greying out this question">Back without using it</button>
       </div>`;
     const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
+    on("jpRevealQ", () => { jp.stage = "question"; sendJplay(); });
+    on("jpBackPick", () => { jp.stage = "pick"; sendJplay({ timer: "stop" }); });
+    on("jpBidsOn", () => { const b = $("bidsBtn"); if (b) b.click(); renderJeopardy(); });
     on("jpShowAns", () => { jp.stage = "answer"; sendJplay(); });
     on("jpHideAns", () => { jp.stage = "question"; sendJplay(); });
     on("jpTimerStart", () => sendJplay({ timer: "start" }));
@@ -2358,58 +2460,96 @@ wheel.onclick = spin;
   }
 
   /* ---------- EDIT ---------- */
+  const SIDE_LBL = { clue: "Clue", resp: "Correct response" };
+  function sideEditor(sd, c, r, s){
+    const at = `data-c="${c}" data-r="${r}" data-s="${s}"`;
+    const tabs = [["text", "T", "Text"], ["image", "\u{1F5BC}", "Picture"], ["media", "▶", "Audio / Video"]]
+      .map(([t, ic, l]) => `<button class="jp-tt ${sd.type === t ? "on" : ""}" data-tt="${t}" ${at}><span>${ic}</span> ${l}</button>`).join("");
+    let body = "";
+    if (sd.type === "text") {
+      body = `<textarea data-f="text" ${at} placeholder="${s === "clue" ? "Type the clue" : "Type the correct response"}">${esc(sd.text)}</textarea>`;
+    } else if (sd.type === "image") {
+      body = sd.src
+        ? `<div class="jp-imgrow"><img src="${escA(sd.src)}" alt="">
+             <div class="jp-imgbtns"><label class="mini">Replace<input type="file" accept="image/*" data-f="file" ${at} hidden></label><button class="mini" data-rm ${at}>Remove</button></div></div>
+           ${isUpload(sd.src) ? "" : `<div class="msrc">${esc(sd.src)}</div>`}`
+        : `<div class="jp-drop">Paste a picture here (Ctrl+V / &#8984;V) or drag one on
+             <div class="mrow"><label class="mini">Choose picture<input type="file" accept="image/*" data-f="file" ${at} hidden></label></div>
+             <input class="link" data-f="imglink" ${at} placeholder="&hellip;or paste a link to a picture"></div>`;
+      body += `<input class="cap" data-f="text" ${at} value="${escA(sd.text)}" placeholder="Words to show under the picture (optional)">`;
+    } else {
+      const th = ytThumb(sd.src);
+      body = `<input class="link" data-f="mlink" ${at} value="${escA(sd.src)}" placeholder="YouTube link (or a link to an .mp3 / .mp4)">
+        <div class="mrow">
+          ${th ? `<img class="ytthumb" src="${escA(th)}" alt="">` : ""}
+          <span>Start at <input class="start" data-f="mstart" ${at} value="${sd.start ? fmtClock(sd.start) : ""}" placeholder="0:00"></span>
+          <label class="jp-switch" title="Off = only the sound plays; the screen shows a music animation instead of the video">
+            <input type="checkbox" data-f="show" ${at} ${sd.show ? "checked" : ""}><i></i> Show video on TV</label>
+          <span class="jp-note">${sd.show ? "Clip plays with its video" : "Sound only (video hidden)"}</span>
+        </div>
+        <input class="cap" data-f="text" ${at} value="${escA(sd.text)}" placeholder="Words to show on screen (optional)">`;
+    }
+    return `<div class="jp-side ${s}" ${at}>
+      <div class="jp-sidehd"><span class="jp-sidelbl">${SIDE_LBL[s]}</span><div class="jp-ttabs">${tabs}</div></div>
+      ${body}
+      <div class="err" data-err="${c}-${r}-${s}"></div>
+    </div>`;
+  }
+  function qCard(B, c, r){
+    const q = B.cats[c].qs[r];
+    const tag = B.kind === "gamble" ? "" : `<div class="v">${(B.values[r] || 0).toLocaleString()}</div>`;
+    return `<div class="jp-qcard">${tag}<div class="jp-sides">${sideEditor(q.clue, c, r, "clue")}${sideEditor(q.resp, c, r, "resp")}</div></div>`;
+  }
+  const catCount = cat => cat.qs.filter(q => filled(q.clue)).length;
   function renderEdit(){
-    const B = board(editBoard);
+    const B = board(editBoard), G = B.kind === "gamble";
     if (document.activeElement !== $("jpName")) $("jpName").value = B.name;
-    $("jpScoring").value = B.scoring;
     if (document.activeElement !== $("jpTimer")) $("jpTimer").value = jq.timer;
-    document.querySelectorAll(".jp-val").forEach(inp => { if (document.activeElement !== inp) inp.value = B.values[+inp.dataset.r]; });
-    $("jpCatTabs").innerHTML = B.cats.map((c, i) => {
-      const n = c.qs.filter(q => q.q || (q.media && q.media.src)).length;
-      return `<button class="jp-cattab ${i === editCat ? "active" : ""}" data-ct="${i}">${i + 1} &middot; ${esc(c.name || "Category")} <span class="cnt">${n}/5</span></button>`;
-    }).join("");
+    $("jpValues").hidden = G;
+    if (!G) document.querySelectorAll(".jp-val").forEach(inp => { if (document.activeElement !== inp) inp.value = B.values[+inp.dataset.r]; });
+    $("jpCatTabs").hidden = G;
+    if (G) {
+      $("jpCatEd").innerHTML = `<div class="jp-note">3 categories, one question each, for the whole night. At the midpoint gamble a team picks one; it stays greyed out, so the final gamble picks from the other two.</div>` +
+        B.cats.map((C, c) => `<div class="jp-gedit">
+          <input class="catname" data-f="cat" data-c="${c}" value="${escA(C.name)}" placeholder="Category ${c + 1} name" maxlength="60">
+          ${qCard(B, c, 0)}</div>`).join("");
+      return;
+    }
+    $("jpCatTabs").innerHTML = B.cats.map((c, i) =>
+      `<button class="jp-cattab ${i === editCat ? "active" : ""}" data-ct="${i}">${i + 1} &middot; ${esc(c.name || "Category")} <span class="cnt">${catCount(c)}/5</span></button>`).join("");
     const C = B.cats[editCat];
-    $("jpCatEd").innerHTML = `<input class="catname" data-f="cat" value="${escA(C.name)}" placeholder="Category ${editCat + 1} name" maxlength="60">` +
-      C.qs.map((q, r) => `
-        <div class="jp-qrow" data-r="${r}">
-          <div class="v">${(B.values[r] || 0).toLocaleString()}</div>
-          <textarea data-f="q" data-r="${r}" placeholder="Question (or paste a picture here)">${esc(q.q)}</textarea>
-          <input class="ans" data-f="a" data-r="${r}" value="${escA(q.a)}" placeholder="Answer">
-          <div class="jp-mz" data-r="${r}">${mediaZone(q, r)}</div>
-        </div>`).join("");
+    $("jpCatEd").innerHTML = `<input class="catname" data-f="cat" data-c="${editCat}" value="${escA(C.name)}" placeholder="Category ${editCat + 1} name" maxlength="60">` +
+      C.qs.map((_, r) => qCard(B, editCat, r)).join("");
   }
-  function mediaZone(q, r){
-    if (!q.media || !q.media.src) return `
-      <input class="link" data-f="link" data-r="${r}" placeholder="Paste a picture or a link">
-      <div class="mrow"><label class="mini" style="cursor:pointer">Choose picture<input type="file" accept="image/*" data-f="file" data-r="${r}" hidden></label></div>
-      <div class="err" data-err="${r}"></div>`;
-    const m = q.media, up = m.src.startsWith("/.netlify/");
-    const typeSel = up ? `<span class="mtag">Picture</span>` : `<select data-f="mtype" data-r="${r}">
-        <option value="image" ${m.type === "image" ? "selected" : ""}>Picture</option>
-        <option value="audio" ${m.type === "audio" ? "selected" : ""}>Audio</option>
-        <option value="video" ${m.type === "video" ? "selected" : ""}>Video</option></select>`;
-    return `${m.type === "image" ? `<img src="${escA(m.src)}" alt="">` : ""}
-      <div class="mrow">${typeSel}
-        ${m.type !== "image" ? `start <input class="start" data-f="mstart" data-r="${r}" value="${m.start ? fmtClock(m.start) : ""}" placeholder="0:00">` : ""}
-        <button class="mini" data-rm="${r}">Remove</button></div>
-      ${up ? "" : `<div class="msrc">${esc(m.src)}</div>`}
-      <div class="err" data-err="${r}"></div>`;
+  function refreshTab(){
+    const B = board(editBoard); if (B.kind === "gamble") return;
+    const c = B.cats[editCat], el = document.querySelector(`.jp-cattab[data-ct="${editCat}"]`);
+    if (el) el.innerHTML = `${editCat + 1} &middot; ${esc(c.name || "Category")} <span class="cnt">${catCount(c)}/5</span>`;
   }
+  const sideAt = el => board(editBoard).cats[+el.dataset.c].qs[+el.dataset.r][el.dataset.s];
+  const errAt = (el, msg) => { const e = document.querySelector(`[data-err="${el.dataset.c}-${el.dataset.r}-${el.dataset.s}"]`); if (e) e.textContent = msg; };
+  function setSide(el, patch){ Object.assign(sideAt(el), patch); saveState(); renderEdit(); }
+
   // Work out what a pasted link is
-  function linkType(u){
-    if (parseYouTube(u)) return "video";
+  function linkKind(u){
+    if (parseYouTube(u)) return "media";
     const path = u.split(/[?#]/)[0].toLowerCase();
-    if (/\.(png|jpe?g|gif|webp|avif|svg)$/.test(path)) return "image";
-    if (/\.(mp3|m4a|wav|ogg|oga|aac|flac)$/.test(path)) return "audio";
-    if (/\.(mp4|webm|mov|m4v|ogv)$/.test(path)) return "video";
+    if (/\.(mp3|m4a|wav|ogg|oga|aac|flac|mp4|webm|mov|m4v|ogv)$/.test(path)) return "media";
     return "image";
   }
-  function setMedia(r, media){
-    const q = board(editBoard).cats[editCat].qs[r];
-    if (media) q.media = media; else delete q.media;
-    saveState(); renderEdit();
+  function useLink(el, text, want){
+    const u = String(text || "").trim();
+    if (!u) return;
+    if (!/^https?:\/\/\S+$/i.test(u)) { errAt(el, "That doesn't look like a link (it should start with https://)."); return; }
+    const kind = want || linkKind(u);
+    const patch = { type: kind, src: u };
+    if (kind === "media") {
+      const yt = parseYouTube(u);
+      patch.start = yt ? yt.t : 0;
+      if (/\.(mp3|m4a|wav|ogg|oga|aac|flac)$/i.test(u.split(/[?#]/)[0])) patch.show = false;
+    }
+    setSide(el, patch);
   }
-  function showErr(r, msg){ const el = document.querySelector(`[data-err="${r}"]`); if (el) el.textContent = msg; }
   // Shrink a picture on this laptop before uploading (big phone photos become ~200-500 KB)
   function shrink(file){
     return new Promise((resolve, reject) => {
@@ -2429,78 +2569,83 @@ wheel.onclick = spin;
       img.src = url;
     });
   }
-  async function uploadPicture(r, file){
-    if (!file || !/^image\//.test(file.type)) { showErr(r, "That isn't a picture."); return; }
-    showErr(r, "Uploading picture…");
+  async function uploadPicture(el, file){
+    if (!file || !/^image\//.test(file.type)) { errAt(el, "That isn't a picture."); return; }
+    errAt(el, "Uploading picture…");
     try {
       const data = await shrink(file);
       const res = await fetch(SCORES_API + "?action=media_put", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ data }) });
       const out = await res.json();
       if (!res.ok || out.error) throw new Error(out.error || "upload failed");
-      setMedia(r, { type: "image", src: out.src, start: 0 });
-    } catch(e) { showErr(r, "Couldn't upload that picture: " + e.message); }
-  }
-  function useLink(r, text){
-    const u = String(text || "").trim();
-    if (!u) return;
-    if (!/^https?:\/\/\S+$/i.test(u)) { showErr(r, "That doesn't look like a link (it should start with https://)."); return; }
-    const yt = parseYouTube(u);
-    setMedia(r, { type: linkType(u), src: u, start: yt ? yt.t : 0 });
+      setSide(el, { type: "image", src: out.src, start: 0 });
+    } catch(e) { errAt(el, "Couldn't upload that picture: " + e.message); }
   }
 
   $("jpCatTabs").onclick = e => { const b = e.target.closest("[data-ct]"); if (!b) return; editCat = +b.dataset.ct; renderEdit(); };
-  $("jpName").oninput = () => { board(editBoard).name = $("jpName").value || (editBoard === "r1" ? "Round 1" : "Gamble round"); saveState(); };
+  $("jpName").oninput = () => { board(editBoard).name = $("jpName").value || blankJBoard(editBoard).name; saveState(); };
   $("jpName").onchange = () => renderJeopardy();
-  $("jpScoring").onchange = () => { board(editBoard).scoring = $("jpScoring").value; saveState(); };
   $("jpTimer").onchange = () => { jq.timer = Math.max(5, Math.min(120, Math.round(+$("jpTimer").value) || 30)); $("jpTimer").value = jq.timer; saveState(); };
   document.querySelectorAll(".jp-val").forEach(inp => inp.onchange = () => {
     board(editBoard).values[+inp.dataset.r] = Math.max(0, Math.round(+inp.value) || 0); saveState(); renderEdit();
   });
   $("jpClear").onclick = () => {
-    if (!confirm(`Clear every category, question and answer on "${board(editBoard).name}"?`)) return;
+    if (!confirm(`Clear every category, clue and answer on "${board(editBoard).name}"?`)) return;
     jq.boards[editBoard] = blankJBoard(editBoard); editCat = 0; saveState(); renderEdit();
   };
   const ed = $("jpCatEd");
   ed.addEventListener("input", e => {
-    const t = e.target, C = board(editBoard).cats[editCat];
-    if (t.dataset.f === "cat") { C.name = t.value; saveState(); refreshTab(); }
-    else if (t.dataset.f === "q") { C.qs[+t.dataset.r].q = t.value; saveState(); refreshTab(); }
-    else if (t.dataset.f === "a") { C.qs[+t.dataset.r].a = t.value; saveState(); }
-    else if (t.dataset.f === "mstart") {
-      const v = parseTime(t.value); t.classList.toggle("bad", isNaN(v));
-      if (!isNaN(v)) { C.qs[+t.dataset.r].media.start = v; saveState(); }
+    const t = e.target, f = t.dataset.f;
+    if (f === "cat") { board(editBoard).cats[+t.dataset.c].name = t.value; saveState(); refreshTab(); }
+    else if (f === "text") { sideAt(t).text = t.value; saveState(); refreshTab(); }
+    else if (f === "mstart") {
+      const v = t.value.trim() === "" ? 0 : parseTime(t.value); t.classList.toggle("bad", isNaN(v));
+      if (!isNaN(v)) { sideAt(t).start = v; saveState(); }
     }
   });
   ed.addEventListener("change", e => {
-    const t = e.target, r = +t.dataset.r;
-    if (t.dataset.f === "file" && t.files && t.files[0]) uploadPicture(r, t.files[0]);
-    else if (t.dataset.f === "mtype") { board(editBoard).cats[editCat].qs[r].media.type = t.value; saveState(); renderEdit(); }
-    else if (t.dataset.f === "link") useLink(r, t.value);
+    const t = e.target, f = t.dataset.f;
+    if (f === "file" && t.files && t.files[0]) uploadPicture(t, t.files[0]);
+    else if (f === "imglink") useLink(t, t.value, "image");
+    else if (f === "mlink") { if (t.value.trim()) useLink(t, t.value, "media"); else setSide(t, { src: "" }); }
+    else if (f === "show") setSide(t, { show: t.checked });
   });
-  ed.addEventListener("keydown", e => { if (e.target.dataset.f === "link" && e.key === "Enter") { e.preventDefault(); useLink(+e.target.dataset.r, e.target.value); } });
-  ed.addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (b) setMedia(+b.dataset.rm, null); });
-  // Paste anywhere in a question row: a picture uploads; a link in the link box is used as the media
+  ed.addEventListener("keydown", e => {
+    const f = e.target.dataset.f;
+    if ((f === "imglink" || f === "mlink") && e.key === "Enter") { e.preventDefault(); e.target.blur(); }
+  });
+  ed.addEventListener("click", e => {
+    const tt = e.target.closest("[data-tt]");
+    if (tt) {
+      const sd = sideAt(tt), type = tt.dataset.tt;
+      if (sd.type === type) return;
+      const patch = { type };
+      // a link only carries over if it fits the new type
+      if (type === "media" && (isUpload(sd.src) || (sd.src && linkKind(sd.src) !== "media"))) patch.src = "";
+      if (type === "image" && sd.src && linkKind(sd.src) === "media") patch.src = "";
+      setSide(tt, patch); return;
+    }
+    const rm = e.target.closest("[data-rm]");
+    if (rm) setSide(rm, { src: "" });
+  });
+  // Paste in a clue/answer box: a picture uploads; a link is used for that box
   ed.addEventListener("paste", e => {
-    const row = e.target.closest(".jp-qrow"); if (!row) return;
-    const r = +row.dataset.r, items = [...(e.clipboardData ? e.clipboardData.items : [])];
+    const box = e.target.closest(".jp-side"); if (!box) return;
+    const items = [...(e.clipboardData ? e.clipboardData.items : [])];
     const img = items.find(it => it.kind === "file" && /^image\//.test(it.type));
-    if (img) { e.preventDefault(); uploadPicture(r, img.getAsFile()); return; }
-    if (e.target.dataset.f === "link") { e.preventDefault(); useLink(r, e.clipboardData.getData("text")); }
+    if (img) { e.preventDefault(); uploadPicture(box, img.getAsFile()); return; }
+    const f = e.target.dataset.f;
+    if (f === "imglink" || f === "mlink") { e.preventDefault(); useLink(box, e.clipboardData.getData("text"), f === "mlink" ? "media" : "image"); }
   });
-  // Drag a picture file onto a row
-  ed.addEventListener("dragover", e => { const row = e.target.closest(".jp-qrow"); if (row) { e.preventDefault(); row.classList.add("drop"); } });
-  ed.addEventListener("dragleave", e => { const row = e.target.closest(".jp-qrow"); if (row) row.classList.remove("drop"); });
+  // Drag a picture (or a link) onto a clue/answer box
+  ed.addEventListener("dragover", e => { const box = e.target.closest(".jp-side"); if (box) { e.preventDefault(); box.classList.add("drop"); } });
+  ed.addEventListener("dragleave", e => { const box = e.target.closest(".jp-side"); if (box) box.classList.remove("drop"); });
   ed.addEventListener("drop", e => {
-    const row = e.target.closest(".jp-qrow"); if (!row) return;
-    e.preventDefault(); row.classList.remove("drop");
+    const box = e.target.closest(".jp-side"); if (!box) return;
+    e.preventDefault(); box.classList.remove("drop");
     const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) uploadPicture(+row.dataset.r, f);
-    else { const t = e.dataTransfer.getData("text"); if (t) useLink(+row.dataset.r, t); }
+    if (f) uploadPicture(box, f);
+    else { const t = e.dataTransfer.getData("text"); if (t) useLink(box, t); }
   });
-  function refreshTab(){
-    const B = board(editBoard), c = B.cats[editCat], el = document.querySelector(`.jp-cattab[data-ct="${editCat}"]`);
-    if (el) el.innerHTML = `${editCat + 1} &middot; ${esc(c.name || "Category")} <span class="cnt">${c.qs.filter(q => q.q || (q.media && q.media.src)).length}/5</span>`;
-  }
 
   window.renderJeopardy = function(){
     if (!jeopMode) return;

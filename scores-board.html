@@ -131,7 +131,7 @@
   .jb-top { display:flex; align-items:center; justify-content:center; gap:2vw; margin-bottom:1.6vh; flex:0 0 auto; }
   .jb-top img { height:7vh; filter:drop-shadow(0 .5vh 1vh rgba(0,0,0,.45)); }
   .jb-top .jb-name { font-family:var(--groovy); font-size:4.4vh; }
-  .jb-grid { flex:1 1 auto; display:grid; grid-template-columns:repeat(6, 1fr); grid-template-rows:1.25fr repeat(5, 1fr); gap:1vh; min-height:0; }
+  .jb-grid { flex:1 1 auto; display:grid; grid-template-columns:repeat(5, 1fr); grid-template-rows:1.25fr repeat(5, 1fr); gap:1vh; min-height:0; }
   .jb-t { border:.4vh solid var(--ink); border-radius:1.4vh; box-shadow:.5vh .5vh 0 var(--ink); display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; min-height:0; }
   .jb-head { background:var(--cream); color:var(--ink); font-family:var(--round); font-weight:700; font-size:2.7vh; line-height:1.15; padding:0 1vh; text-transform:uppercase; word-break:break-word; }
   .jb-head.closed { background:var(--jungle-2); }
@@ -139,6 +139,17 @@
   .jb-head.pop { animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
   .jb-val { background:var(--jungle-2); font-family:var(--groovy); font-size:6.6vh; color:var(--orange); -webkit-text-stroke:.3vh var(--ink); paint-order:stroke fill; text-shadow:.5vh .5vh 0 var(--sun); }
   .jb-val.used { background:rgba(0,0,0,.28); border-style:dashed; border-color:rgba(255,243,224,.25); box-shadow:none; color:transparent; -webkit-text-stroke:0; text-shadow:none; }
+  .jb-gamble { flex:1 1 auto; display:grid; grid-template-columns:repeat(3, 1fr); gap:3vw; padding:2vh 4vw 6vh; min-height:0; }
+  .jb-gamble .jb-t { flex-direction:column; gap:2vh; padding:3vh 2vw; }
+  .jb-gamble .jb-head { font-family:var(--groovy); text-transform:none; font-size:6vh; font-weight:400; color:var(--ink); }
+  .jb-gamble .jb-head .n { font-family:var(--round); font-weight:700; font-size:2.6vh; letter-spacing:.3vh; text-transform:uppercase; color:var(--orange); }
+  .jb-gamble .jb-head.closed img { width:85%; }
+  .jb-gamble .jb-head.used { background:rgba(0,0,0,.28); border-style:dashed; border-color:rgba(255,243,224,.25); box-shadow:none; color:rgba(255,243,224,.35); }
+  .jb-gamble .jb-head.used .n { color:rgba(255,243,224,.35); }
+  .jb-sub { text-align:center; font-family:var(--round); font-weight:700; font-size:3vh; color:var(--cream); letter-spacing:.3vh; text-transform:uppercase; margin-top:-.6vh; margin-bottom:1vh; }
+  .jq-wager { font-family:var(--groovy); font-size:11vh; line-height:1.05; color:var(--orange); -webkit-text-stroke:.35vh var(--ink); paint-order:stroke fill; text-shadow:.7vh .7vh 0 var(--sun); }
+  .jq-wager-sub { font-family:var(--round); font-weight:700; font-size:3.4vh; letter-spacing:.3vh; text-transform:uppercase; }
+  .jq-anshead { background:var(--leaf); color:var(--cream); border-bottom:.5vh solid var(--ink); text-align:center; padding:.8vh; font-family:var(--round); font-weight:700; font-size:2.8vh; letter-spacing:.4vh; text-transform:uppercase; }
   .jq-card { flex:1 1 auto; display:flex; flex-direction:column; background:var(--cream); color:var(--ink); border:.6vh solid var(--ink); border-radius:3vh; box-shadow:1.2vh 1.2vh 0 var(--orange), 1.8vh 1.8vh 0 var(--ink); overflow:hidden; min-height:0; margin:0 2vw 2vh; }
   .jq-meta { background:var(--orange); color:var(--cream); border-bottom:.5vh solid var(--ink); display:flex; justify-content:space-between; align-items:center; padding:1.4vh 3vw; font-family:var(--round); font-weight:700; font-size:3.4vh; text-transform:uppercase; letter-spacing:.2vh; }
   .jq-meta .v { font-family:var(--groovy); text-transform:none; font-size:4.4vh; -webkit-text-stroke:.25vh var(--ink); paint-order:stroke fill; }
@@ -626,12 +637,17 @@ function stopJeopardyMedia(){
 function mediaEl(){ return jpRoot.querySelector(".jq-media audio, .jq-media video"); }
 function setEq(on){ const e = jpRoot.querySelector(".jq-audio"); if (e) e.classList.toggle("on", on); }
 // Run a play / pause / restart press from the host (each press once)
+// Which side the TV is showing: the response replaces the clue when it's a picture or a clip
+function respTakesOver(cell){ const r = cell && cell.resp; return !!(r && r.type !== "text" && r.src); }
+function activeSide(cell){ return !cell ? null : (respTakesOver(cell) ? cell.resp : cell.clue); }
+// Run a play / pause / restart press from the host (each press once)
 function runMediaCmd(cell){
   const mc = cell && cell.mediaCmd;
   if (!mc || mc.n === lastMediaN) return;
   if (!(ytPlayerJ && ytPlayerJ.playVideo) && !mediaEl()) return;   // player still loading: try again when it's ready
   lastMediaN = mc.n;
-  const start = (cell.media && cell.media.start) || 0;
+  const side = activeSide(cell);
+  const start = (side && side.start) || 0;
   const fail = () => { soundChip.hidden = false; };
   if (ytPlayerJ && ytPlayerJ.playVideo) {
     if (mc.cmd === "pause") { ytPlayerJ.pauseVideo(); setEq(false); return; }
@@ -645,72 +661,107 @@ function runMediaCmd(cell){
   if (mc.cmd === "restart") m.currentTime = start;
   m.play().then(() => setEq(true)).catch(fail);
 }
+const EQ = `<div class="jq-audio"><i></i><i></i><i></i><i></i><i></i></div>`;
+// Build the body for one side (clue or response): text, a picture, or an audio/video clip
+function sideHTML(sd){
+  if (!sd) return { html: "", media: false };
+  const text = sd.text ? `<div class="jq-text">${escapeHtml(sd.text)}</div>` : "";
+  if (sd.type === "image" && sd.src) return { html: `<div class="jq-media"><img src="${escapeHtml(sd.src)}" alt=""></div>${text}`, media: true };
+  if (sd.type === "media" && sd.src) {
+    const yt = ytIdOf(sd.src), hide = !sd.show;
+    const isAudioFile = /\.(mp3|m4a|wav|ogg|oga|aac|flac)$/i.test(sd.src.split(/[?#]/)[0]);
+    let m;
+    if (yt) m = `<div class="jq-media${hide ? " audio-only" : ""}">${hide ? EQ : ""}<div class="yt"><div id="jqYT"></div></div></div>`;
+    else if (hide || isAudioFile) m = `<div class="jq-media audio-only">${EQ}<audio preload="auto" src="${escapeHtml(sd.src)}"></audio></div>`;
+    else m = `<div class="jq-media"><video preload="auto" playsinline src="${escapeHtml(sd.src)}"></video></div>`;
+    if (yt) loadYT().then(YT => {
+      if (!document.getElementById("jqYT")) return;
+      ytPlayerJ = new YT.Player("jqYT", { videoId: yt, playerVars: { start: sd.start || 0, rel: 0, modestbranding: 1, playsinline: 1, controls: 0 },
+        events: { onReady: () => runMediaCmd(jpData && jpData.cell), onStateChange: e => setEq(e.data === 1) } });
+    });
+    return { html: m + text, media: true, clip: true };
+  }
+  return { html: text, media: false };
+}
 function renderJeopardyTV(jt){
   if (!jt) return;
   jpData = jt;
   const cell = jt.cell;
-  // (the answer isn't part of this: showing it mustn't restart a playing clip)
-  const sig = JSON.stringify([jt.board, jt.name, jt.values, jt.cats, jt.used, cell && [cell.c, cell.r, cell.q, cell.media, cell.cat, cell.value]]);
+  const gamble = jt.kind === "gamble";
+  // A plain-text answer is a banner added without a rebuild, so showing it doesn't restart a playing clip.
+  const side = activeSide(cell);
+  const sig = JSON.stringify([jt.board, jt.kind, jt.name, jt.values, jt.cats, jt.used,
+    cell && [cell.c, cell.r, cell.cat, cell.value, cell.stage === "pick", respTakesOver(cell), side]]);
   if (sig !== lastJpSig) {
     lastJpSig = sig;
     stopJeopardyMedia();
     // presses made before this question appeared (or before a TV refresh) don't replay
     lastMediaN = cell && cell.mediaCmd ? cell.mediaCmd.n : 0;
-    if (!cell) {
-      let h = `<div class="jb-top"><img src="assets/mandarin-logo.png" alt=""><div class="jb-name retro">${escapeHtml(jt.name || "")}</div></div><div class="jb-grid">`;
+    const top = `<div class="jb-top"><img src="assets/mandarin-logo.png" alt=""><div class="jb-name retro">${escapeHtml(jt.name || "")}</div></div>`;
+    if (!cell && gamble) {
+      let h = top + `<div class="jb-sub">Pick a category &middot; then place your wagers</div><div class="jb-gamble">`;
+      jt.cats.forEach((name, i) => {
+        const pop = name !== null && i >= lastJpCats ? " pop" : "";
+        const used = jt.used[i];
+        h += name === null
+          ? `<div class="jb-t jb-head closed"><img src="assets/mandarin-logo.png" alt=""></div>`
+          : `<div class="jb-t jb-head${pop}${used ? " used" : ""}"><span class="n">Category ${i + 1}</span>${escapeHtml(name || "Category " + (i + 1))}</div>`;
+      });
+      jpRoot.innerHTML = h + `</div>`;
+      soundChip.hidden = true;
+    } else if (!cell) {
+      let h = top + `<div class="jb-grid">`;
       jt.cats.forEach((name, i) => {
         const pop = name !== null && i >= lastJpCats ? " pop" : "";
         h += name === null
           ? `<div class="jb-t jb-head closed"><img src="assets/mandarin-logo.png" alt=""></div>`
           : `<div class="jb-t jb-head${pop}">${escapeHtml(name || "Category " + (i + 1))}</div>`;
       });
-      for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) {
-        const used = jt.used[r * 6 + c];
-        h += `<div class="jb-t jb-val${used ? " used" : ""}">${used ? "" : (jt.values[r] || 0).toLocaleString()}</div>`;
+      const nc = jt.cats.length;
+      for (let r = 0; r < 5; r++) for (let c = 0; c < nc; c++) {
+        const used = jt.used[r * nc + c];
+        h += `<div class="jb-t jb-val${used ? " used" : ""}">${used ? "" : ((jt.values || [])[r] || 0).toLocaleString()}</div>`;
       }
       jpRoot.innerHTML = h + `</div>`;
+      soundChip.hidden = true;
     } else {
-      const m = cell.media;
-      let media = "";
-      if (m && m.src) {
-        const yt = (m.type !== "image") ? ytIdOf(m.src) : null;
-        if (m.type === "image") media = `<div class="jq-media"><img src="${escapeHtml(m.src)}" alt=""></div>`;
-        else if (yt) media = `<div class="jq-media${m.type === "audio" ? " audio-only" : ""}">${m.type === "audio" ? `<div class="jq-audio"><i></i><i></i><i></i><i></i><i></i></div>` : ""}<div class="yt"><div id="jqYT"></div></div></div>`;
-        else if (m.type === "audio") media = `<div class="jq-media audio-only"><div class="jq-audio"><i></i><i></i><i></i><i></i><i></i></div><audio preload="auto" src="${escapeHtml(m.src)}"></audio></div>`;
-        else media = `<div class="jq-media"><video preload="auto" playsinline src="${escapeHtml(m.src)}"></video></div>`;
-        if (yt) loadYT().then(YT => {
-          if (!document.getElementById("jqYT")) return;
-          ytPlayerJ = new YT.Player("jqYT", { videoId: yt, playerVars: { start: m.start || 0, rel: 0, modestbranding: 1, playsinline: 1, controls: 0 },
-            events: { onReady: () => runMediaCmd(jpData && jpData.cell), onStateChange: e => setEq(e.data === 1) } });
-        });
+      const meta = `<div class="jq-meta"><span>${escapeHtml(cell.cat || "")}</span><span class="v">${gamble ? "Gamble" : (cell.value || 0).toLocaleString()}</span></div>`;
+      let body, clip = false, head = "";
+      if (cell.stage === "pick") {
+        body = `<div class="jq-body"><div class="jq-wager">Place your wagers!</div><div class="jq-wager-sub">Hand your wager to the host</div></div>`;
+      } else {
+        const sh = sideHTML(side); clip = !!sh.clip;
+        if (respTakesOver(cell)) head = `<div class="jq-anshead">Answer</div>`;
+        body = `<div class="jq-body${sh.media ? " has-media" : ""}">${sh.html}</div>`;
       }
       jpRoot.innerHTML = `
         <div class="jq-card">
-          <div class="jq-meta"><span>${escapeHtml(cell.cat || "")}</span><span class="v">${(cell.value || 0).toLocaleString()}</span></div>
-          <div class="jq-body${media ? " has-media" : ""}">${media}${cell.q ? `<div class="jq-text">${escapeHtml(cell.q)}</div>` : ""}</div>
+          ${meta}${head}${body}
           <div class="jq-timer" hidden><div class="bar"><div class="fill"></div></div><div class="num"></div></div>
         </div>`;
       const me = mediaEl();
       if (me) {
-        if (m.start) me.addEventListener("loadedmetadata", () => { me.currentTime = m.start; }, { once: true });
+        if (side && side.start) me.addEventListener("loadedmetadata", () => { me.currentTime = side.start; }, { once: true });
         me.addEventListener("ended", () => setEq(false));
       }
-      // show the sound prompt only for audio/video questions, and only until someone clicks
-      soundChip.hidden = soundUnlocked || !(m && m.src && m.type !== "image");
+      // show the sound prompt only for audio/video, and only until someone clicks
+      soundChip.hidden = soundUnlocked || !clip;
     }
     lastJpCats = jt.cats.filter(x => x !== null).length;
   }
   if (cell) {
     runMediaCmd(cell);
-    // answer banner comes and goes without rebuilding the card
+    // a text answer is a banner that comes and goes without rebuilding the card
     const card = jpRoot.querySelector(".jq-card"), ans = card && card.querySelector(".jq-ans");
-    if (card && cell.a && (!ans || ans.dataset.a !== cell.a)) {
+    const txt = cell.resp && !respTakesOver(cell) ? (cell.resp.text || "") : "";
+    const want = cell.stage === "answer" && cell.resp && !respTakesOver(cell);
+    if (card && want && (!ans || ans.dataset.a !== txt)) {
       if (ans) ans.remove();
-      const d = document.createElement("div"); d.className = "jq-ans"; d.dataset.a = cell.a;
-      d.innerHTML = `<small>Answer</small>${escapeHtml(cell.a)}`;
+      const d = document.createElement("div"); d.className = "jq-ans"; d.dataset.a = txt;
+      d.innerHTML = `<small>Answer</small>${escapeHtml(txt || "—")}`;
       card.insertBefore(d, card.querySelector(".jq-timer"));
-    } else if (card && !cell.a && ans) ans.remove();
-  } else soundChip.hidden = true;
+    } else if (card && !want && ans) ans.remove();
+  }
   // answer timer (uses the server's clock so the laptop and TV agree)
   const tEl = jpRoot.querySelector(".jq-timer");
   if (tEl) {

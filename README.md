@@ -131,31 +131,53 @@ to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
   seconds, then ducks back into his corner.
 - The scores page (laptop) uses its original teal colors.
 
-## Jeopardy (Jeopardy tool) — phase 1: board, scoring, gamble round
+## Jeopardy (Jeopardy tool) — board, scoring, gamble round
 Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
 
-**Edit questions**
-- Two boards: **Round 1** (buzz-in) and **Gamble round** (wagers). Pick one with the
-  Board switch, then fill 6 categories x 5 questions (category tabs show 3/5 etc.).
-- Board name, scoring (Buzz-in: award the value / Gamble: wagers on the Bid line),
-  the five values, and the answer timer (seconds) are all editable.
-- **Pictures:** paste a picture straight into a question (Ctrl+V / ⌘V), drag one onto
-  it, or use **Choose picture**. It's shrunk on the laptop and stored on this site.
-- **Audio / video:** paste a link into "Paste a picture or a link". YouTube links
-  become video (switch to Audio to hide the video); .mp3/.m4a/.wav = audio;
-  .mp4/.webm = video. A YouTube link with &t=42 starts at 0:42 (editable).
-- Everything saves automatically.
+**Boards** (Board switch, top right of the tool)
+- **Round 1** — 5 categories x 5 questions, buzz-in.
+- **Gamble round** — 3 categories, one question each, wagers. It's one board for the whole
+  night: the category played at the midpoint gamble stays greyed out, so the final
+  gamble picks from the other two. **Reset board** clears it for next week.
 
-**Play**
+**Edit questions**
+- Every question has a **Clue** and a **Correct response**. Each one has its own type:
+  **Text · Picture · Audio / Video** (like Buzzinga).
+  - **Text:** type it.
+  - **Picture:** paste a picture straight in (Ctrl+V / ⌘V), drag one on, **Choose
+    picture**, or paste a picture link. Optional words under the picture.
+    Pictures are shrunk on the laptop and stored on this site.
+  - **Audio / Video:** paste a YouTube link (or an .mp3 / .mp4 link). **Start at**
+    fills in from a link with &t=42 (editable). **Show video on TV** on = the clip
+    plays with its video; off = sound only (the TV shows music bars instead).
+    .mp3 links start as sound only. Optional words on screen.
+- Round 1: board name, the five values and the answer timer are editable;
+  category tabs show 3/5 etc.
+- Gamble round: all 3 categories on one page.
+- Everything saves automatically. Questions saved before this update carry over
+  (Round 1 keeps its first 5 categories; the old full-grid gamble board isn't used).
+
+**Play — Round 1**
 - **Reveal 1st category … Reveal all / Hide all** — categories appear on the TV one
   at a time (hidden ones show the logo).
-- Click a value: the question goes on the TV. Only you see the answer until you
-  press **Show answer on TV**.
+- Click a value: the clue goes on the TV. Only you see the response until you press
+  **Show answer on TV**. A text answer appears as a green banner (a playing clip keeps
+  going); a picture or clip answer replaces the clue, labelled "Answer".
 - **Start answer timer** puts a countdown on the TV ("Time!" + buzz at zero).
-- Audio/video: **Play on TV / Pause / Restart**. Click the TV screen once at the
-  start of the night so it's allowed to play sound (it shows a reminder).
-- Round 1: **+400 Team** buttons add the value to that team (history + undo).
-  Gamble round: score with each team's Bid line (Won / Lost).
+- Clips: **Play on TV / Pause / Restart** control whichever clip is on the TV (clue
+  clip, or the answer clip once shown). Click the TV screen once at the start of the
+  night so it's allowed to play sound (it shows a reminder).
+- **+400 Team** buttons add the value to that team (history + undo).
 - **Done — back to board** greys the question out; **Back without using it** doesn't.
-  **Reset board** makes everything unused again.
-- The public status the TV reads never includes answers or unrevealed categories.
+
+**Play — Gamble round (midpoint and final)**
+1. Reveal the 3 categories.
+2. The team you pick chooses one: click that category. The TV shows the category
+   and **"Place your wagers!"** — the question stays hidden.
+3. Collect wagers and enter each on the team's **Bid** line.
+4. **Reveal question on TV** → **Show answer on TV** → score with Won / Lost on the
+   Bid line. (**Back to wagers screen** hides the question again.)
+5. **Done** greys that category out.
+6. For the final gamble, pick **Gamble round** again and reveal: the midpoint's category
+   shows greyed out, so only the other two can be chosen.
+

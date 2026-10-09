@@ -114,15 +114,54 @@ function cleanFeud(f) {
 }
 
 // ---------- Jeopardy ----------
-// Content (host-edited): { timer, boards:{ r1, r2 } }, each board:
-//   { name, scoring:"award"|"wager", values:[5], cats:[6 x { name, qs:[5 x { q, a }] }] }
-const JBOARDS = ["r1", "r2"];
+// Content (host-edited): { timer, boards:{ r1, g1 } }
+//   r1 = the main grid: { name, kind:"grid", values:[5], cats:[5 x { name, qs:[5 x { clue, resp }] }] }
+//   g1 = the gamble board: { name, kind:"gamble", cats:[3 x { name, qs:[1 x { clue, resp }] }] }
+//        One board for the whole night: a category played at the midpoint gamble stays used for the final one.
+// clue and resp are "sides": { type:"text"|"image"|"media", text, src, start, show }
+//   image: src is an uploaded picture or a link; text is an optional caption
+//   media: a YouTube (or other) audio/video link; show=true puts the video on screen, false = sound only
+const JBOARDS = ["r1", "g1"];
+const isGamble = id => id === "g1";
+const MEDIA_PATH = "/.netlify/functions/scores?action=media&id=";
+const GRID_CATS = 5, GRID_ROWS = 5, GAMBLE_CATS = 3;
+const blankSide = () => ({ type: "text", text: "", src: "", start: 0, show: true });
+const blankQ = () => ({ clue: blankSide(), resp: blankSide() });
 function blankBoard(id) {
+  if (isGamble(id)) return {
+    name: "Gamble round", kind: "gamble", values: null,
+    cats: Array.from({ length: GAMBLE_CATS }, () => ({ name: "", qs: [blankQ()] }))
+  };
   return {
-    name: id === "r1" ? "Round 1" : "Gamble round",
-    scoring: id === "r1" ? "award" : "wager",
-    values: [200, 400, 600, 800, 1000],
-    cats: Array.from({ length: 6 }, () => ({ name: "", qs: Array.from({ length: 5 }, () => ({ q: "", a: "" })) }))
+    name: "Round 1", kind: "grid", values: [200, 400, 600, 800, 1000],
+    cats: Array.from({ length: GRID_CATS }, () => ({ name: "", qs: Array.from({ length: GRID_ROWS }, blankQ) }))
+  };
+}
+function okSrc(src) {
+  return /^https?:\/\/[^\s"'<>]+$/i.test(src) || (src.startsWith(MEDIA_PATH) && /^[A-Za-z0-9_-]+$/.test(src.slice(MEDIA_PATH.length)));
+}
+function cleanSide(sd) {
+  const out = blankSide();
+  if (!sd || typeof sd !== "object") return out;
+  let type = sd.type;
+  if (type === "audio") { type = "media"; out.show = false; }
+  else if (type === "video") { type = "media"; out.show = true; }
+  if (sd.show === false) out.show = false; else if (sd.show === true) out.show = true;
+  out.type = ["text", "image", "media"].includes(type) ? type : "text";
+  out.text = (sd.text == null ? "" : String(sd.text)).slice(0, 500);
+  const src = (sd.src == null ? "" : String(sd.src)).trim().slice(0, 600);
+  out.src = okSrc(src) ? src : "";
+  out.start = Math.max(0, Math.min(36000, Math.round(Number(sd.start) || 0)));
+  return out;
+}
+function cleanQ(q) {
+  if (!q || typeof q !== "object") return blankQ();
+  if (q.clue || q.resp) return { clue: cleanSide(q.clue), resp: cleanSide(q.resp) };
+  // older saves: { q, a, media }
+  const m = q.media || {};
+  return {
+    clue: cleanSide({ type: m.type || "text", text: q.q, src: m.src, start: m.start }),
+    resp: cleanSide({ type: "text", text: q.a })
   };
 }
 function cleanJeopardy(j) {
@@ -130,58 +169,44 @@ function cleanJeopardy(j) {
   const str = (v, n) => (v == null ? "" : String(v)).slice(0, n);
   const boards = {};
   for (const id of JBOARDS) {
-    const b = (j.boards && j.boards[id]) || {};
+    let b = (j.boards && j.boards[id]) || {};
+    if (id === "g1" && !(j.boards && j.boards.g1) && j.boards && j.boards.r2) b = {}; // old full-grid gamble board isn't carried over
     const base = blankBoard(id);
     boards[id] = {
-      name: str(b.name, 40) || base.name,
-      scoring: b.scoring === "wager" ? "wager" : (b.scoring === "award" ? "award" : base.scoring),
-      values: base.values.map((v, i) => Math.max(0, Math.min(100000, Math.round(Number(b.values && b.values[i]) || v)))),
+      name: str(b.name, 40) || base.name, kind: base.kind,
+      values: base.values ? base.values.map((v, i) => Math.max(0, Math.min(100000, Math.round(Number(b.values && b.values[i]) || v)))) : null,
       cats: base.cats.map((c, ci) => {
         const src = (Array.isArray(b.cats) && b.cats[ci]) || {};
-        return {
-          name: str(src.name, 60),
-          qs: c.qs.map((_, qi) => {
-            const q = (Array.isArray(src.qs) && src.qs[qi]) || {};
-            const out = { q: str(q.q, 500), a: str(q.a, 200) };
-            const m = cleanMedia(q.media);
-            if (m) out.media = m;
-            return out;
-          })
-        };
+        return { name: str(src.name, 60), qs: c.qs.map((_, qi) => cleanQ(Array.isArray(src.qs) ? src.qs[qi] : null)) };
       })
     };
   }
   return { timer: Math.max(5, Math.min(120, Math.round(Number(j.timer) || 30))), boards };
 }
-// A question can show a picture, play audio or play video instead of (or as well as) text.
-// src is either an uploaded picture on this site or an http(s) link (YouTube works for audio/video).
-const MEDIA_PATH = "/.netlify/functions/scores?action=media&id=";
-function cleanMedia(m) {
-  if (!m || typeof m !== "object") return null;
-  const type = ["image", "audio", "video"].includes(m.type) ? m.type : null;
-  const src = (m.src == null ? "" : String(m.src)).trim().slice(0, 600);
-  const ok = /^https?:\/\/[^\s"'<>]+$/i.test(src) || (src.startsWith(MEDIA_PATH) && /^[A-Za-z0-9_-]+$/.test(src.slice(MEDIA_PATH.length)));
-  if (!type || !ok) return null;
-  return { type, src, start: Math.max(0, Math.min(36000, Math.round(Number(m.start) || 0))) };
-}
 const mediaStore = () => getStore({ name: "trivia-media", consistency: "strong" });
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const cellCount = id => isGamble(id) ? GAMBLE_CATS : GRID_CATS * GRID_ROWS;
 
-function blankJplay() { return { board: "r1", cats: 0, used: { r1: [], r2: [] }, cell: null, stage: "question", timer: null }; }
-// What the TV may see: category names only once revealed, and the answer only once shown.
+function blankJplay() { return { board: "r1", cats: 0, used: { r1: [], g1: [] }, cell: null, stage: "question", timer: null, media: null }; }
+// What the TV may see: category names only once revealed, the clue only once revealed, the response only once shown.
 function jeopardyTV(s) {
-  const j = s.jeopardy || cleanJeopardy({});
+  const j = (s.jeopardy && s.jeopardy.boards && s.jeopardy.boards.g1) ? s.jeopardy : cleanJeopardy(s.jeopardy || {});
   const p = s.jplay || blankJplay();
-  const b = j.boards[p.board] || j.boards.r1;
+  const board = JBOARDS.includes(p.board) ? p.board : "r1";
+  const b = j.boards[board];
   const out = {
-    board: p.board, name: b.name, values: b.values, catsShown: p.cats,
+    board, kind: b.kind, name: b.name, values: b.values, catsShown: p.cats,
     cats: b.cats.map((c, i) => (i < p.cats ? c.name : null)),
-    used: (p.used && p.used[p.board]) || [], cell: null, timer: p.timer || null
+    used: (p.used && p.used[board]) || [], cell: null, timer: p.timer || null
   };
   if (p.cell) {
     const c = b.cats[p.cell.c], q = c && c.qs[p.cell.r];
-    if (q) out.cell = { c: p.cell.c, r: p.cell.r, cat: c.name, value: b.values[p.cell.r], q: q.q, media: q.media || null,
-      a: p.stage === "answer" ? q.a : null, stage: p.stage, mediaCmd: p.media || null };
+    if (q) out.cell = {
+      c: p.cell.c, r: p.cell.r, cat: c.name, value: b.values ? b.values[p.cell.r] : null, stage: p.stage,
+      clue: p.stage === "pick" ? null : q.clue,
+      resp: p.stage === "answer" ? q.resp : null,
+      mediaCmd: p.media || null
+    };
   }
   return out;
 }
@@ -206,7 +231,7 @@ export default async (req) => {
         qr: s.qr || null, title: s.title || null, reveal: s.reveal || null, links: s.links || null, feud: s.feud || null,
         jeopardyTV: jeopardyTV(s), now: Date.now(), updated: s.updated || 0 };
       // the host page asks for the full question set (with answers); the TV never does
-      if (url.searchParams.get("host") === "1") { out.jeopardy = s.jeopardy || cleanJeopardy({}); out.jplay = s.jplay || blankJplay(); }
+      if (url.searchParams.get("host") === "1") { out.jeopardy = (s.jeopardy && s.jeopardy.boards && s.jeopardy.boards.g1) ? s.jeopardy : cleanJeopardy(s.jeopardy || {}); out.jplay = s.jplay || blankJplay(); }
       return json(out);
     }
 
@@ -325,15 +350,18 @@ export default async (req) => {
 
       case "jplay": {
         // Host-driven Jeopardy play state. Sent right away (not debounced) so the TV keeps up.
-        // { board, cats, used:{r1:[],r2:[]}, cell:{c,r}|null, stage, timer:"start"|"stop"|undefined }
+        // { board:"r1"|"g1", cats, used:{r1:[],g1:[]}, cell:{c,r}|null, stage:"pick"|"question"|"answer",
+        //   timer:"start"|"stop"|undefined, media:{cmd,n} }
         const prev = state.jplay || blankJplay();
-        const board = JBOARDS.includes(body.board) ? body.board : prev.board;
-        const usedIn = (body.used && typeof body.used === "object") ? body.used : prev.used;
+        const board = JBOARDS.includes(body.board) ? body.board : (JBOARDS.includes(prev.board) ? prev.board : "r1");
+        const gamble = isGamble(board);
+        const usedIn = (body.used && typeof body.used === "object") ? body.used : (prev.used || {});
         const used = {};
-        for (const id of JBOARDS) used[id] = Array.from({ length: 30 }, (_, i) => !!(Array.isArray(usedIn[id]) && usedIn[id][i]));
+        for (const id of JBOARDS) used[id] = Array.from({ length: cellCount(id) }, (_, i) => !!(Array.isArray(usedIn[id]) && usedIn[id][i]));
         let cell = null;
         if (body.cell && Number.isInteger(body.cell.c) && Number.isInteger(body.cell.r) &&
-            body.cell.c >= 0 && body.cell.c < 6 && body.cell.r >= 0 && body.cell.r < 5) cell = { c: body.cell.c, r: body.cell.r };
+            body.cell.c >= 0 && body.cell.c < (gamble ? GAMBLE_CATS : GRID_CATS) &&
+            body.cell.r >= 0 && body.cell.r < (gamble ? 1 : GRID_ROWS)) cell = { c: body.cell.c, r: body.cell.r };
         const sameCell = cell && prev.cell && cell.c === prev.cell.c && cell.r === prev.cell.r && board === prev.board;
         let timer = sameCell ? (prev.timer || null) : null;
         if (body.timer === "start" && cell) {
@@ -342,9 +370,9 @@ export default async (req) => {
         } else if (body.timer === "stop") timer = null;
         state.jplay = {
           board, cell, timer, used,
-          cats: Math.max(0, Math.min(6, Math.round(Number(body.cats != null ? body.cats : prev.cats) || 0))),
-          stage: body.stage === "answer" ? "answer" : "question",
-          // play / pause / restart for audio & video questions; n bumps so the TV runs each press once
+          cats: Math.max(0, Math.min(gamble ? GAMBLE_CATS : GRID_CATS, Math.round(Number(body.cats != null ? body.cats : prev.cats) || 0))),
+          stage: ["pick", "question", "answer"].includes(body.stage) ? body.stage : "question",
+          // play / pause / restart for audio & video; n bumps so the TV runs each press once
           media: (body.media && ["play", "pause", "restart"].includes(body.media.cmd))
             ? { cmd: body.media.cmd, n: Math.round(Number(body.media.n) || 0) } : (sameCell ? (prev.media || null) : null)
         };
