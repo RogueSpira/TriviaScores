@@ -47,7 +47,7 @@
   }
   .wheel-holder {
     position: relative;
-    width: min(calc(100vh - 270px), 90%);
+    width: min(calc(100vh - 300px), 90%);
     aspect-ratio: 1;
   }
   .pointer {
@@ -371,18 +371,22 @@
   /* ---- Header: what THIS screen shows (tabs) + what the TV shows (bar) ---- */
   #topBar {
     grid-column: 1; grid-row: 1; z-index: 5;
-    display: flex; flex-direction: column; gap: 10px;
-    padding: 14px 24px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px 20px 10px;
     border-bottom: 1px solid var(--line);
     background: var(--bg);
   }
-  .hdr-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .hdr-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .hdr-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); min-width: 46px; }
-  #tvBar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  #tvBar { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; }
+  .tvcol { display: flex; flex-direction: column; gap: 3px; }
+  .tvcap { font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); padding-left: 5px; }
+  .hdr-row.tv-row { flex-wrap: nowrap; align-items: flex-end; }
+  .hdr-row.tv-row > .hdr-lbl { padding-bottom: 10px; flex: 0 0 auto; }
   .tvgrp { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
   .tvgrp button {
     background: transparent; border: none; color: var(--ink);
-    padding: 7px 9px; border-radius: 7px; cursor: pointer;
+    padding: 7px 8px; border-radius: 7px; cursor: pointer;
     font: 700 12px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; white-space: nowrap;
     transition: background .12s ease, color .12s ease;
   }
@@ -652,31 +656,50 @@
 
   <header id="topBar">
     <div class="hdr-row">
-      <nav id="viewSwitch" aria-label="What this screen shows">
+      <span class="hdr-lbl" title="What this laptop shows. Doesn't change the TV.">Tools</span>
+      <nav id="viewSwitch" aria-label="Tools on this laptop">
         <button data-view="wheel" class="on">Wheel</button>
         <button data-view="music">Music</button>
         <button data-view="feud">Feud</button>
       </nav>
     </div>
-    <div class="hdr-row">
-      <span class="hdr-lbl">On TV</span>
+    <div class="hdr-row tv-row">
+      <span class="hdr-lbl" title="What the TV in the room shows">On TV</span>
       <div id="tvBar" role="group" aria-label="What the TV shows">
-        <div class="tvgrp">
-          <button data-tv="title:soon">Starting Soon</button>
-          <button data-tv="title:night">Trivia Night</button>
+        <!-- left to right in the order a night runs -->
+        <div class="tvcol">
+          <span class="tvcap">Start</span>
+          <div class="tvgrp">
+            <button data-tv="title:soon" title="Before trivia starts, while people arrive">Starting Soon</button>
+            <button data-tv="title:night" title="Title screen for between rounds or breaks">Trivia Night</button>
+          </div>
         </div>
-        <div class="tvgrp">
-          <button data-tv="leaderboard" class="on">Leaderboard</button>
-          <button data-tv="reveal" title="Leaderboard reveal: every team starts hidden, then you reveal last place up to 1st">Reveal</button>
-          <button data-tv="wheel">Wheel</button>
+        <div class="tvcol">
+          <span class="tvcap">Scores</span>
+          <div class="tvgrp">
+            <button data-tv="leaderboard" class="on" title="Current standings — use any time">Leaderboard</button>
+            <button data-tv="wheel" title="The team wheel (spinning also puts it on the TV)">Wheel</button>
+          </div>
         </div>
-        <div class="tvgrp">
-          <button data-tv="song" title="The &ldquo;Song N&rdquo; card (playing a clip puts it up automatically)">Song 1</button>
-          <button data-tv="feud" title="The Feud board, or the survey screen when no board is loaded">Feud board</button>
+        <div class="tvcol">
+          <span class="tvcap">Music</span>
+          <div class="tvgrp">
+            <button data-tv="song" title="The &ldquo;Song N&rdquo; card (playing a clip in Music puts it up automatically)">Song 1</button>
+          </div>
         </div>
-        <div class="tvgrp">
-          <button data-tv="qr:survey" title="Full-screen QR for the Feud survey">Survey QR</button>
-          <button data-tv="qr:buzz" title="Full-screen QR for joining the Buzzinga buzzers">Buzzer QR</button>
+        <div class="tvcol">
+          <span class="tvcap">Feud</span>
+          <div class="tvgrp">
+            <button data-tv="qr:survey" title="Step 1: QR for the Feud survey on phones">Survey QR</button>
+            <button data-tv="qr:buzz" title="Step 2: QR to join the Buzzinga buzzers">Buzzer QR</button>
+            <button data-tv="feud" title="Step 3: the Feud board (Load to TV in Feud &rarr; Play also puts it up)">Feud board</button>
+          </div>
+        </div>
+        <div class="tvcol">
+          <span class="tvcap">Finale</span>
+          <div class="tvgrp">
+            <button data-tv="reveal" title="End of the night: every team starts hidden, then reveal last place up to 1st">Reveal</button>
+          </div>
         </div>
       </div>
     </div>

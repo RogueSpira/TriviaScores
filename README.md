@@ -94,14 +94,17 @@ to the Feud site's backend, so surveys and boards live there as before, and
 The Feud site needs its own small update deployed first (it now allows this site
 to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
 
-## Header + On TV bar (Oct 2026)
-- Tabs for this laptop: **Wheel · Music · Feud** (the local leaderboard view is gone —
-  the team panel is already sorted by points).
-- **On TV** bar, always visible: Starting Soon · Trivia Night · Leaderboard · Reveal ·
-  Wheel · Song N · Feud board · Survey QR · Buzzer QR. The highlighted button is what the TV
-  is showing right now.
-- **Title screens:** "Trivia Starting Soon" and "Trivia Night", for before the first
-  round and between rounds.
+## Header (laptop)
+- **Tools** — what this laptop shows: **Wheel · Music · Feud**. Switching tools never
+  changes the TV.
+- **On TV** — what the TV shows, grouped left to right in the order a night runs:
+  - **Start:** Starting Soon · Trivia Night
+  - **Scores:** Leaderboard · Wheel (any time)
+  - **Music:** Song N (playing a clip puts it up automatically)
+  - **Feud:** Survey QR → Buzzer QR → Feud board
+  - **Finale:** Reveal
+  The highlighted button is what the TV is showing right now. Hover any button for a
+  one-line hint on when to use it.
 
 ## Points
 - Each team has three lines: name + total, then points (type an amount and +/−, or
