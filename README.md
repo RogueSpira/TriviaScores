@@ -82,8 +82,8 @@ to the Feud site's backend, so surveys and boards live there as before, and
 - **On TV bar** (header, every screen) has the Feud buttons:
   - **Survey QR** — full-screen "Scan to take the survey" card.
   - **Buzzer QR** — full-screen "Scan to join the buzzers" card for Buzzinga.
-  - **Feud board** — the board, strikes, big X and buzzer sound (same look as
-    feud-screen.html). With no board loaded it shows the survey screen.
+  - **Feud board** — the board, strikes, big X and buzzer sound, in Mandarin
+    branding (feud-screen.html on the Feud site keeps the old look as a backup). With no board loaded it shows the survey screen.
 - **Load to TV** puts the board on this TV page automatically.
 - **Teams & scoring** uses the teams on this page: +1 / −1 correct, then
   **Add N to score** puts the points straight on the scoreboard (logged as "feud"
@@ -120,6 +120,9 @@ to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
 ## TV look
 - Mandarin branding: jungle green and sunset orange over the Mandarin pattern, the
   Kava & Co. Mandarin logo, Shrikhand / Fredoka / DM Sans per the brand guide.
-  The Feud board keeps its own game-show look.
+  The Feud board uses the same branding (cream answer cards, orange number tabs,
+  green counts, cream strikes bar, red big X).
 - Manny hides in the bottom-right corner and pops up for a wiggle every ~48 seconds.
+  When you reveal 1st place he jumps out, bounces, does a spin and cheers for a few
+  seconds, then ducks back into his corner.
 - The scores page (laptop) uses its original teal colors.

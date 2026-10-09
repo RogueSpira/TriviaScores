@@ -127,7 +127,7 @@
 
   /* ---------- Manny, hiding in the corner ---------- */
   #manny {
-    position:fixed; right:2.6vw; bottom:-12vh; height:24vh; width:auto; z-index:6; pointer-events:none;
+    position:fixed; right:2.6vw; bottom:-12vh; height:24vh; width:auto; z-index:12; pointer-events:none;
     transform:rotate(-7deg); transform-origin:50% 100%;
     filter:drop-shadow(0 .6vh 1vh rgba(0,0,0,.45));
     animation: mannypeek 48s ease-in-out infinite;
@@ -139,53 +139,74 @@
     91% { transform:rotate(6deg); } 93% { transform:rotate(-8deg); } 95% { bottom:-1vh; transform:rotate(4deg); }
     98% { bottom:-12vh; transform:rotate(-7deg); }
   }
-  @media (prefers-reduced-motion: reduce) { #manny { animation:none; } }
-
-  /* ---------- Feud board (same look as feud-screen.html, scoped to #feudView) ---------- */
-  #feudView {
-    --fbg:#07101f; --fpanel:#0f2246; --fline:#1e3a6b; --fmuted:#9fb2d4;
-    --blue:#2f6bff; --blue-bright:#4d8bff; --blue-deep:#12245a;
-    --orange:#FF7A45; --orange-bright:#ff9560; --orange-deep:#c9531f; --fred:#b5484e;
-    position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; padding:3vh 3vw;
-    background:radial-gradient(circle at 50% 0%, #123a7a 0%, var(--fbg) 70%);
+  /* 1st place revealed: Manny jumps up, bounces and spins, then ducks back into his corner */
+  #manny.party { animation: mannyparty 6.5s cubic-bezier(.3,.7,.4,1) 1; }
+  @keyframes mannyparty {
+    0%   { bottom:-12vh; transform:rotate(-7deg) scale(1); }
+    10%  { bottom:30vh;  transform:rotate(8deg) scale(1.35); }
+    18%  { bottom:6vh;   transform:rotate(-6deg) scale(1.3, 1.22); }
+    26%  { bottom:26vh;  transform:rotate(180deg) scale(1.3); }
+    34%  { bottom:6vh;   transform:rotate(360deg) scale(1.3, 1.22); }
+    42%  { bottom:20vh;  transform:rotate(368deg) scale(1.3); }
+    50%  { bottom:6vh;   transform:rotate(352deg) scale(1.3); }
+    56%  { transform:rotate(372deg) scale(1.3); } 62% { transform:rotate(348deg) scale(1.3); }
+    68%  { transform:rotate(372deg) scale(1.3); } 74% { bottom:6vh; transform:rotate(355deg) scale(1.3); }
+    90%  { bottom:6vh;   transform:rotate(353deg) scale(1.3); }
+    100% { bottom:-12vh; transform:rotate(353deg) scale(1); }
   }
-  #feudView .idle { margin:auto; text-align:center; }
-  #feudView .idle .logo { font-family:"Bungee",sans-serif; font-size:9vh; color:var(--blue-bright); line-height:1.05; }
-  #feudView .idle .logo .co { color:var(--cream); display:block; font-size:6vh; }
-  #feudView .idle .tag { margin-top:3vh; font-size:2.4vh; color:var(--fmuted); text-transform:uppercase; letter-spacing:.4vh; }
-  #feudView .idle .qr-wrap { background:#fff; border-radius:2vh; padding:2vh; width:34vh; height:34vh; margin:4vh auto 0; display:flex; align-items:center; justify-content:center; box-shadow:0 2vh 5vh rgba(0,0,0,.5); }
+  @media (prefers-reduced-motion: reduce) { #manny { animation:none; } #manny.party { animation:none; bottom:4vh; } }
+
+  /* ---------- Feud board — Mandarin branding (scoped to #feudView) ---------- */
+  #feudView {
+    position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; padding:3vh 3vw;
+    background:
+      radial-gradient(ellipse 75% 70% at 50% 45%, rgba(14,44,24,.74) 0%, rgba(10,32,17,.86) 65%, rgba(6,22,11,.94) 100%),
+      url("assets/mandarin-pattern.jpg") center / cover no-repeat;
+    background-color:var(--jungle);
+  }
+  #feudView .idle { margin:auto; text-align:center; display:flex; flex-direction:column; align-items:center; }
+  #feudView .idle .flogo { width:min(56vw, 86vh); height:auto; filter:drop-shadow(0 .8vh 1.6vh rgba(0,0,0,.45)); }
+  #feudView .idle .tag { margin-top:3vh; font-family:var(--groovy); font-size:6vh; }
+  #feudView .idle .qr-wrap { background:#fff; border-radius:2vh; padding:2vh; width:34vh; height:34vh; margin:3vh auto 0; display:flex; align-items:center; justify-content:center; border:.5vh solid var(--ink); box-shadow:1vh 1vh 0 var(--orange), 1.5vh 1.5vh 0 var(--ink); }
   #feudView .idle .qr-wrap img, #feudView .idle .qr-wrap canvas { width:100% !important; height:100% !important; display:block; }
-  #feudView .idle .scan-cta { margin-top:2.4vh; font-size:3.4vh; font-weight:800; color:var(--orange); }
-  #feudView .idle .scan-sub { margin-top:1vh; font-size:2vh; color:var(--fmuted); }
-  #feudView .fheader { text-align:center; flex:0 0 auto; margin-bottom:2vh; }
-  #feudView .kicker { font-family:"Bungee",sans-serif; color:var(--orange); font-size:2.4vh; letter-spacing:.4vh; }
-  #feudView .question { font-size:4vh; font-weight:800; margin-top:1vh; line-height:1.15; }
-  #feudView .fboard { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:1.4vh; max-width:1100px; width:100%; margin:0 auto; }
-  #feudView .slot { display:flex; align-items:center; height:8.5vh; border-radius:1.4vh; overflow:hidden; position:relative; transition:background .35s ease, border-color .35s ease, box-shadow .35s ease; }
-  #feudView .slot:not(.covered) { background:linear-gradient(180deg,var(--orange),var(--orange-deep)); border:2px solid var(--orange-bright); box-shadow:0 0 3.5vh rgba(255,122,69,.45); }
-  #feudView .slot .num { flex:0 0 auto; width:8.5vh; height:100%; display:flex; align-items:center; justify-content:center; font-family:"Bungee",sans-serif; font-size:4vh; color:#fff; background:linear-gradient(180deg,var(--orange-deep),#a8410f); }
-  #feudView .slot.covered { justify-content:center; background:linear-gradient(180deg,var(--fpanel),var(--blue-deep)); border:2px solid var(--fline); }
+  #feudView .idle .scan-cta { margin-top:3vh; font-family:var(--groovy); font-size:5vh; }
+  #feudView .idle .scan-sub { margin-top:2.6vh; font-family:var(--round); font-size:2.4vh; color:var(--muted); }
+  #feudView .fheader { text-align:center; flex:0 0 auto; margin-bottom:2.4vh; }
+  #feudView .kicker { font-family:var(--groovy); font-size:5vh; line-height:1.1; }
+  #feudView .question { font-family:var(--round); font-weight:600; font-size:4vh; margin-top:1.2vh; line-height:1.2; color:var(--cream); }
+  #feudView .fboard { flex:1 1 auto; display:flex; flex-direction:column; justify-content:center; gap:1.5vh; max-width:1100px; width:100%; margin:0 auto; perspective:120vh; }
+  #feudView .slot {
+    display:flex; align-items:center; height:8.4vh; border-radius:1.8vh; overflow:hidden; position:relative;
+    border:.45vh solid var(--ink); transition:background .35s ease;
+  }
+  /* face-up answer: cream card, orange number tab, green count */
+  #feudView .slot:not(.covered) { background:var(--cream); color:var(--ink); box-shadow:.7vh .7vh 0 var(--ink); }
+  #feudView .slot .num { flex:0 0 auto; width:8.4vh; height:100%; display:flex; align-items:center; justify-content:center; font-family:var(--round); font-weight:700; font-size:4vh; color:var(--cream); background:var(--orange); border-right:.45vh solid var(--ink); }
+  /* face-down: jungle green with an orange number badge */
+  #feudView .slot.covered { justify-content:center; background:var(--jungle-2); box-shadow:.7vh .7vh 0 rgba(0,0,0,.55); }
   #feudView .slot.covered .content, #feudView .slot.covered .num { display:none; }
-  #feudView .slot.covered .num-chip { font-family:"Bungee",sans-serif; font-size:4.4vh; color:var(--blue-bright); width:6vh; height:6vh; border-radius:50%; border:.4vh solid var(--blue-bright); display:flex; align-items:center; justify-content:center; box-shadow:0 0 3vh rgba(77,139,255,.5); }
+  #feudView .slot.covered .num-chip { font-family:var(--round); font-weight:700; font-size:3.6vh; color:var(--cream); width:6.2vh; height:6.2vh; border-radius:50%; background:var(--orange); border:.4vh solid var(--ink); display:flex; align-items:center; justify-content:center; }
   #feudView .slot:not(.covered) .num-chip { display:none; }
-  #feudView .slot .content { flex:1 1 auto; display:flex; align-items:center; justify-content:space-between; padding:0 3vh; }
-  #feudView .slot .answer { font-size:3.6vh; font-weight:800; text-transform:uppercase; letter-spacing:.1vh; color:#fff; }
-  #feudView .slot .count { font-family:"Bungee",sans-serif; font-size:3.6vh; color:#fff; min-width:8vh; height:5.6vh; padding:0 2vh; border-radius:1vh; background:rgba(0,0,0,.28); display:flex; align-items:center; justify-content:center; }
-  #feudView .slot.reveal-anim { animation:fpop .4s cubic-bezier(.2,1.3,.4,1); }
-  @keyframes fpop { 0%{transform:scale(.9);opacity:.4;} 100%{transform:scale(1);opacity:1;} }
-  #feudView .teams-strip { flex:0 0 auto; display:flex; justify-content:center; margin-top:2.5vh; }
-  #feudView .active-team { background:linear-gradient(180deg,var(--fpanel),var(--blue-deep)); border:2px solid var(--blue-bright); border-radius:1.6vh; padding:1.8vh 5vw; min-width:40vw; display:flex; align-items:center; justify-content:center; gap:2vw; box-shadow:0 0 3.5vh rgba(77,139,255,.4); }
-  #feudView .ts-name { font-size:3.6vh; font-weight:800; color:var(--fmuted); text-transform:uppercase; letter-spacing:.2vh; }
+  #feudView .slot .content { flex:1 1 auto; display:flex; align-items:center; justify-content:space-between; padding:0 2.4vh 0 3vh; }
+  #feudView .slot .answer { font-family:var(--round); font-size:3.8vh; font-weight:700; text-transform:uppercase; letter-spacing:.1vh; color:var(--ink); }
+  #feudView .slot .count { font-family:var(--round); font-weight:700; font-size:3.6vh; color:var(--cream); min-width:9vh; height:5.8vh; padding:0 2vh; border-radius:1.2vh; background:var(--leaf); border:.4vh solid var(--ink); display:flex; align-items:center; justify-content:center; }
+  #feudView .slot.reveal-anim { animation:fflip .55s cubic-bezier(.2,1.2,.4,1); }
+  @keyframes fflip { 0%{transform:rotateX(90deg);} 100%{transform:rotateX(0);} }
+  #feudView .teams-strip { flex:0 0 auto; display:flex; justify-content:center; margin-top:2.6vh; }
+  #feudView .active-team { background:var(--cream); border:.45vh solid var(--ink); border-radius:2vh; padding:1.4vh 4vw; min-width:36vw; display:flex; align-items:center; justify-content:center; gap:2vw; box-shadow:.7vh .7vh 0 var(--orange), 1.1vh 1.1vh 0 var(--ink); }
+  #feudView .ts-name { font-family:var(--groovy); font-size:4vh; color:var(--ink); }
   #feudView .ts-xs { display:flex; gap:1.4vh; }
-  #feudView .team-x { font-family:"Bungee",sans-serif; font-size:4.4vh; color:var(--fred); opacity:.15; transition:opacity .2s, text-shadow .2s; }
-  #feudView .team-x.on { opacity:1; color:#ff3b3b; text-shadow:0 0 2vh rgba(255,59,59,.8); }
-  #feudView .offline-note { margin:auto; color:var(--fmuted); font-size:3vh; text-align:center; }
-  #bigX { position:fixed; inset:0; margin:auto; width:40vh; height:40vh; display:flex; align-items:center; justify-content:center;
-    font-family:"Bungee",sans-serif; font-size:34vh; color:#ff2b2b; text-shadow:0 0 6vh rgba(255,43,43,.9);
+  #feudView .team-x { font-family:var(--round); font-weight:700; font-size:5vh; line-height:1; color:#c9c1b2; transition:color .2s; }
+  #feudView .team-x.on { color:#e5241b; -webkit-text-stroke:.25vh var(--ink); }
+  #feudView .offline-note { margin:auto; color:var(--muted); font-family:var(--round); font-size:3vh; text-align:center; }
+  #bigX { position:fixed; inset:0; margin:auto; width:46vh; height:46vh; display:flex; align-items:center; justify-content:center;
+    font-family:var(--round); font-weight:700; font-size:40vh; line-height:1; color:#e5241b;
+    -webkit-text-stroke:1.2vh var(--ink); paint-order:stroke fill; text-shadow:1.4vh 1.4vh 0 var(--ink);
     opacity:0; pointer-events:none; z-index:40; transform:scale(.4); }
   #bigX.show { animation:xflash 1s ease-out; }
-  @keyframes xflash { 0%{opacity:0;transform:scale(.4);} 15%{opacity:1;transform:scale(1.1);} 40%{opacity:1;transform:scale(1);} 100%{opacity:0;transform:scale(1);} }
-  #muteBtn { position:fixed; top:1.5vh; left:2vw; z-index:45; background:#0f2246; color:var(--ink); border:1px solid #1e3a6b; border-radius:999px; padding:1vh 2vh; font-size:1.8vh; font-weight:700; cursor:pointer; }
+  @keyframes xflash { 0%{opacity:0;transform:scale(.4) rotate(-12deg);} 15%{opacity:1;transform:scale(1.1) rotate(4deg);} 40%{opacity:1;transform:scale(1) rotate(0);} 100%{opacity:0;transform:scale(1);} }
+  #muteBtn { position:fixed; top:1.5vh; left:2vw; z-index:45; background:var(--cream); color:var(--ink); border:.3vh solid var(--ink); border-radius:999px; padding:.9vh 2vh; font-family:var(--round); font-size:1.8vh; font-weight:700; cursor:pointer; box-shadow:.4vh .4vh 0 var(--ink); }
+  @media (prefers-reduced-motion: reduce) { #feudView .slot.reveal-anim { animation:none; } }
 
   /* ---------- Title screens: "Trivia Starting Soon" / "Trivia Night" ---------- */
   .title-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
@@ -399,7 +420,14 @@ function renderLeaderboard(teams, reveal){
   lbRoot.innerHTML = `
     <div class="lb-head">${LOGO}<div class="lb-title retro">${title}</div></div>
     <div class="board">${rows}</div>`;
-  if (reveal && shown === n && before < n) confetti();
+  if (reveal && shown === n && before < n) { confetti(); mannyParty(); }
+}
+
+/* Manny celebrates the winner, then goes back to peeking */
+function mannyParty(){
+  const m = document.getElementById("manny");
+  m.classList.remove("party"); void m.offsetWidth; m.classList.add("party");
+  clearTimeout(m._t); m._t = setTimeout(() => m.classList.remove("party"), 6700);
 }
 
 /* ---------- Confetti for the winner reveal ---------- */
@@ -601,14 +629,14 @@ async function feudTick(){
     lastFeudSig = sig; prevRevealed = {};
     if (live) {
       feudRoot.innerHTML = `<div class="idle">
-          <div class="logo">Kava &amp;<span class="co">Company</span></div>
-          <div class="scan-cta">&#128241; Scan to take the survey</div>
+          <img class="flogo" src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin">
+          <div class="scan-cta retro">Scan to take the survey</div>
           <div class="qr-wrap" id="feudQr"></div>
           <div class="scan-sub">${escapeHtml(phone.title || "")} — answer on your phone!</div>
         </div>`;
       drawQR(document.getElementById("feudQr"), feudBase + "/feud-survey.html", 300);
     } else {
-      feudRoot.innerHTML = `<div class="idle"><div class="logo">Kava &amp;<span class="co">Company</span></div><div class="tag">Feud — get ready to play</div></div>`;
+      feudRoot.innerHTML = `<div class="idle"><img class="flogo" src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin"><div class="tag retro">Feud &mdash; get ready to play!</div></div>`;
     }
     return;
   }
@@ -625,7 +653,7 @@ async function feudTick(){
     </div>`).join("");
   const xs = [1,2,3].map(n => `<span class="team-x ${n <= strikes ? "on":""}">\u2715</span>`).join("");
   feudRoot.innerHTML = `
-    <div class="fheader"><div class="kicker">Survey Says&hellip;</div><div class="question">${escapeHtml(s.question || "")}</div></div>
+    <div class="fheader"><div class="kicker retro">Survey Says&hellip;</div><div class="question">${escapeHtml(s.question || "")}</div></div>
     <div class="fboard">${slotsHtml}</div>
     <div class="teams-strip"><div class="active-team"><div class="ts-name">Strikes</div><div class="ts-xs">${xs}</div></div></div>`;
   s.board.slots.forEach((sl, i) => {
