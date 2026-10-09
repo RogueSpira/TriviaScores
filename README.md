@@ -95,10 +95,11 @@ The Feud site needs its own small update deployed first (it now allows this site
 to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
 
 ## Header (laptop)
-- **Tools** — what this laptop shows: **Wheel · Music · Feud**. Switching tools never
+- **Tools** — what this laptop shows: **Wheel · Jeopardy · Music · Feud**. Switching tools never
   changes the TV.
 - **On TV** — what the TV shows, grouped left to right in the order a night runs:
   - **Start:** Starting Soon · Trivia Night
+  - **Jeopardy:** Board
   - **Scores:** Leaderboard · Wheel (any time)
   - **Music:** Song N (playing a clip puts it up automatically)
   - **Feud:** Survey QR → Buzzer QR → Feud board
@@ -129,3 +130,32 @@ to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
   When you reveal 1st place he jumps out, bounces, does a spin and cheers for a few
   seconds, then ducks back into his corner.
 - The scores page (laptop) uses its original teal colors.
+
+## Jeopardy (Jeopardy tool) — phase 1: board, scoring, gamble round
+Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
+
+**Edit questions**
+- Two boards: **Round 1** (buzz-in) and **Gamble round** (wagers). Pick one with the
+  Board switch, then fill 6 categories x 5 questions (category tabs show 3/5 etc.).
+- Board name, scoring (Buzz-in: award the value / Gamble: wagers on the Bid line),
+  the five values, and the answer timer (seconds) are all editable.
+- **Pictures:** paste a picture straight into a question (Ctrl+V / ⌘V), drag one onto
+  it, or use **Choose picture**. It's shrunk on the laptop and stored on this site.
+- **Audio / video:** paste a link into "Paste a picture or a link". YouTube links
+  become video (switch to Audio to hide the video); .mp3/.m4a/.wav = audio;
+  .mp4/.webm = video. A YouTube link with &t=42 starts at 0:42 (editable).
+- Everything saves automatically.
+
+**Play**
+- **Reveal 1st category … Reveal all / Hide all** — categories appear on the TV one
+  at a time (hidden ones show the logo).
+- Click a value: the question goes on the TV. Only you see the answer until you
+  press **Show answer on TV**.
+- **Start answer timer** puts a countdown on the TV ("Time!" + buzz at zero).
+- Audio/video: **Play on TV / Pause / Restart**. Click the TV screen once at the
+  start of the night so it's allowed to play sound (it shows a reminder).
+- Round 1: **+400 Team** buttons add the value to that team (history + undo).
+  Gamble round: score with each team's Bid line (Won / Lost).
+- **Done — back to board** greys the question out; **Back without using it** doesn't.
+  **Reset board** makes everything unused again.
+- The public status the TV reads never includes answers or unrevealed categories.

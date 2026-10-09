@@ -125,6 +125,45 @@
   .qr-view .qr-box img, .qr-view .qr-box canvas { width:100% !important; height:100% !important; display:block; }
   .qr-view .qr-url { font-family:var(--round); font-size:2.6vh; color:var(--muted); word-break:break-all; max-width:80vw; }
 
+  /* ---------- Jeopardy ---------- */
+  .jp-view { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
+  #jpRoot { flex:1 1 auto; display:flex; flex-direction:column; min-height:0; }
+  .jb-top { display:flex; align-items:center; justify-content:center; gap:2vw; margin-bottom:1.6vh; flex:0 0 auto; }
+  .jb-top img { height:7vh; filter:drop-shadow(0 .5vh 1vh rgba(0,0,0,.45)); }
+  .jb-top .jb-name { font-family:var(--groovy); font-size:4.4vh; }
+  .jb-grid { flex:1 1 auto; display:grid; grid-template-columns:repeat(6, 1fr); grid-template-rows:1.25fr repeat(5, 1fr); gap:1vh; min-height:0; }
+  .jb-t { border:.4vh solid var(--ink); border-radius:1.4vh; box-shadow:.5vh .5vh 0 var(--ink); display:flex; align-items:center; justify-content:center; text-align:center; overflow:hidden; min-height:0; }
+  .jb-head { background:var(--cream); color:var(--ink); font-family:var(--round); font-weight:700; font-size:2.7vh; line-height:1.15; padding:0 1vh; text-transform:uppercase; word-break:break-word; }
+  .jb-head.closed { background:var(--jungle-2); }
+  .jb-head.closed img { width:80%; height:auto; opacity:.95; }
+  .jb-head.pop { animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
+  .jb-val { background:var(--jungle-2); font-family:var(--groovy); font-size:6.6vh; color:var(--orange); -webkit-text-stroke:.3vh var(--ink); paint-order:stroke fill; text-shadow:.5vh .5vh 0 var(--sun); }
+  .jb-val.used { background:rgba(0,0,0,.28); border-style:dashed; border-color:rgba(255,243,224,.25); box-shadow:none; color:transparent; -webkit-text-stroke:0; text-shadow:none; }
+  .jq-card { flex:1 1 auto; display:flex; flex-direction:column; background:var(--cream); color:var(--ink); border:.6vh solid var(--ink); border-radius:3vh; box-shadow:1.2vh 1.2vh 0 var(--orange), 1.8vh 1.8vh 0 var(--ink); overflow:hidden; min-height:0; margin:0 2vw 2vh; }
+  .jq-meta { background:var(--orange); color:var(--cream); border-bottom:.5vh solid var(--ink); display:flex; justify-content:space-between; align-items:center; padding:1.4vh 3vw; font-family:var(--round); font-weight:700; font-size:3.4vh; text-transform:uppercase; letter-spacing:.2vh; }
+  .jq-meta .v { font-family:var(--groovy); text-transform:none; font-size:4.4vh; -webkit-text-stroke:.25vh var(--ink); paint-order:stroke fill; }
+  .jq-body { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.4vh; padding:2.4vh 4vw; min-height:0; text-align:center; }
+  .jq-text { font-family:var(--round); font-weight:600; font-size:6.4vh; line-height:1.18; }
+  .jq-body.has-media .jq-text { font-size:4.2vh; }
+  .jq-media { flex:1 1 auto; min-height:0; width:100%; display:flex; align-items:center; justify-content:center; }
+  .jq-media img, .jq-media video { max-width:100%; max-height:100%; border:.5vh solid var(--ink); border-radius:1.6vh; background:#000; object-fit:contain; }
+  .jq-media .yt { width:min(100%, calc((100vh - 46vh) * 16 / 9)); aspect-ratio:16/9; max-height:100%; border:.5vh solid var(--ink); border-radius:1.6vh; overflow:hidden; background:#000; }
+  .jq-media .yt iframe, .jq-media .yt > div { width:100%; height:100%; display:block; border:0; }
+  .jq-media.audio-only .yt, .jq-media.audio-only audio { position:absolute; width:2px; height:2px; opacity:0; pointer-events:none; }
+  .jq-audio { display:flex; align-items:flex-end; gap:1.4vh; height:16vh; }
+  .jq-audio i { display:block; width:2.6vh; height:100%; border:.4vh solid var(--ink); border-radius:.8vh; background:var(--orange); transform-origin:bottom; transform:scaleY(.3); }
+  .jq-audio.on i { animation: eq 1s ease-in-out infinite; }
+  .jq-audio i:nth-child(2){ background:var(--sun); animation-delay:-.6s; } .jq-audio i:nth-child(3){ background:var(--leaf); animation-delay:-.2s; }
+  .jq-audio i:nth-child(4){ background:var(--sun); animation-delay:-.8s; } .jq-audio i:nth-child(5){ animation-delay:-.4s; }
+  .jq-ans { background:var(--leaf); color:var(--cream); border-top:.5vh solid var(--ink); padding:1.8vh 3vw; text-align:center; font-family:var(--groovy); font-size:5.4vh; -webkit-text-stroke:.25vh var(--ink); paint-order:stroke fill; animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
+  .jq-ans small { font-family:var(--round); font-weight:700; font-size:2.6vh; -webkit-text-stroke:0; display:block; opacity:.9; letter-spacing:.3vh; text-transform:uppercase; }
+  .jq-timer { display:flex; align-items:center; gap:2vw; padding:1.4vh 3vw; border-top:.5vh solid var(--ink); background:var(--jungle-2); }
+  .jq-timer .bar { flex:1 1 auto; height:2.4vh; border:.35vh solid var(--ink); border-radius:2vh; background:var(--cream); overflow:hidden; }
+  .jq-timer .fill { height:100%; background:var(--orange); transform-origin:left; }
+  .jq-timer .num { font-family:var(--groovy); font-size:5vh; color:var(--cream); min-width:9vh; text-align:right; -webkit-text-stroke:.25vh var(--ink); paint-order:stroke fill; }
+  .jq-timer.out .num { color:#e5241b; }
+  #soundChip { position:fixed; top:1.5vh; left:50%; transform:translateX(-50%); z-index:50; background:var(--cream); color:var(--ink); border:.35vh solid var(--ink); border-radius:999px; padding:1vh 2.4vh; font-family:var(--round); font-weight:700; font-size:2.2vh; box-shadow:.5vh .5vh 0 var(--orange); cursor:pointer; }
+
   /* ---------- Manny, hiding in the corner ---------- */
   #manny {
     position:fixed; right:2.6vw; bottom:-12vh; height:24vh; width:auto; z-index:12; pointer-events:none;
@@ -133,11 +172,16 @@
     animation: mannypeek 48s ease-in-out infinite;
   }
   /* mostly tucked below the edge; every so often he pops up and wiggles, then ducks back down */
+  /* --mrest / --mpeak: how far he hides and pops up (lower on the Jeopardy board so he doesn't cover a tile) */
+  body { --mrest:-12vh; --mpeak:-1vh; }
+  body.jp-mode { --mrest:-19vh; --mpeak:-11vh; }
+  body.jp-mode #jpRoot { padding-bottom:3vh; }
+  #manny { bottom:var(--mrest); }
   @keyframes mannypeek {
-    0%, 86%, 100% { bottom:-12vh; transform:rotate(-7deg); }
-    89% { bottom:-1vh; transform:rotate(-7deg); }
-    91% { transform:rotate(6deg); } 93% { transform:rotate(-8deg); } 95% { bottom:-1vh; transform:rotate(4deg); }
-    98% { bottom:-12vh; transform:rotate(-7deg); }
+    0%, 86%, 100% { bottom:var(--mrest); transform:rotate(-7deg); }
+    89% { bottom:var(--mpeak); transform:rotate(-7deg); }
+    91% { transform:rotate(6deg); } 93% { transform:rotate(-8deg); } 95% { bottom:var(--mpeak); transform:rotate(4deg); }
+    98% { bottom:var(--mrest); transform:rotate(-7deg); }
   }
   /* 1st place revealed: Manny jumps up, bounces and spins, then ducks back into his corner */
   #manny.party { animation: mannyparty 6.5s cubic-bezier(.3,.7,.4,1) 1; }
@@ -228,7 +272,7 @@
 
   .live-dot { position:fixed; top:1.5vh; right:2vw; width:1.2vh; height:1.2vh; border-radius:50%; background:var(--lime); opacity:.4; transition:opacity .3s; }
   .live-dot.ping { opacity:1; }
-  .hidden { display:none !important; }
+  .hidden, [hidden] { display:none !important; }
 </style>
 </head>
 <body>
@@ -262,6 +306,10 @@
 
   <!-- TITLE SCREEN VIEW -->
   <div id="titleView" class="title-view hidden"></div>
+
+  <!-- JEOPARDY VIEW -->
+  <div id="jeopView" class="jp-view hidden"><div id="jpRoot"></div></div>
+  <button id="soundChip" hidden>&#128264; Click here once so the TV can play sound</button>
 
   <!-- QR CARD VIEW -->
   <div id="qrView" class="qr-view hidden">
@@ -481,6 +529,10 @@ function showView(display){
   songView.classList.toggle("hidden", display !== "song");
   qrView.classList.toggle("hidden", display !== "qr");
   titleView.classList.toggle("hidden", display !== "title");
+  jeopView.classList.toggle("hidden", display !== "jeopardy");
+  document.body.classList.toggle("jp-mode", display === "jeopardy");
+  if (display !== "jeopardy") stopJeopardyMedia();
+  lastJpSig = "";
   lastTitleSig = "";
   feudView.classList.toggle("hidden", display !== "feud");
   lastSongSig = ""; lastQrSig = ""; lastFeudSig = ""; lastStrikeEvent = null; prevRevealed = {};
@@ -506,7 +558,8 @@ async function tick(){
   }
 
   // display switch from host
-  showView(["wheel", "song", "qr", "feud", "title", "reveal"].includes(data.display) ? data.display : "leaderboard");
+  showView(["wheel", "song", "qr", "feud", "title", "reveal", "jeopardy"].includes(data.display) ? data.display : "leaderboard");
+  if (typeof data.now === "number") serverOffset = data.now - Date.now();
   if (data.links && data.links.feud) feudBase = data.links.feud.replace(/\/+$/, "");
 
   if (currentDisplay === "leaderboard") {
@@ -519,6 +572,8 @@ async function tick(){
     renderQrCard(data.qr);
   } else if (currentDisplay === "title") {
     renderTitle(data.title);
+  } else if (currentDisplay === "jeopardy") {
+    renderJeopardyTV(data.jeopardyTV);
   } else if (currentDisplay === "feud") {
     await feudTick();
   } else {
@@ -528,6 +583,149 @@ async function tick(){
     if (sig !== lastWheelSig && Date.now() > spinEndsAt) {
       lastWheelSig = sig;
       drawTVWheel(active);
+    }
+  }
+}
+
+/* ---------- Jeopardy ---------- */
+const jeopView = document.getElementById("jeopView");
+const jpRoot = document.getElementById("jpRoot");
+let lastJpSig = "", lastJpCats = 0, serverOffset = 0, jpData = null, lastMediaN = null;
+let soundUnlocked = false, ytApi = null, ytPlayerJ = null, timerLoop = null, timeUpBeeped = false;
+const soundChip = document.getElementById("soundChip");
+// Browsers only let a page play sound after someone has clicked it once.
+function unlockSound(){
+  soundUnlocked = true; soundChip.hidden = true;
+  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === "suspended") audioCtx.resume(); } catch(e) {}
+}
+document.addEventListener("pointerdown", unlockSound, { once: false });
+soundChip.onclick = unlockSound;
+
+function ytIdOf(u){
+  try {
+    const x = new URL(u); const h = x.hostname.replace(/^(www|m|music)\./, "");
+    if (h === "youtu.be") return x.pathname.slice(1, 12);
+    if (/(^|\.)youtube(-nocookie)?\.com$/.test(h)) return x.searchParams.get("v") || ((x.pathname.match(/^\/(?:embed|shorts|live)\/([A-Za-z0-9_-]{11})/) || [])[1]) || null;
+  } catch(e) {}
+  return null;
+}
+function loadYT(){
+  if (ytApi) return ytApi;
+  ytApi = new Promise(res => {
+    window.onYouTubeIframeAPIReady = () => res(window.YT);
+    const sc = document.createElement("script"); sc.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(sc);
+  });
+  return ytApi;
+}
+function stopJeopardyMedia(){
+  try { if (ytPlayerJ) ytPlayerJ.destroy(); } catch(e) {}
+  ytPlayerJ = null;
+  jpRoot.querySelectorAll("audio,video").forEach(m => { try { m.pause(); } catch(e) {} });
+  clearInterval(timerLoop); timerLoop = null;
+}
+function mediaEl(){ return jpRoot.querySelector(".jq-media audio, .jq-media video"); }
+function setEq(on){ const e = jpRoot.querySelector(".jq-audio"); if (e) e.classList.toggle("on", on); }
+// Run a play / pause / restart press from the host (each press once)
+function runMediaCmd(cell){
+  const mc = cell && cell.mediaCmd;
+  if (!mc || mc.n === lastMediaN) return;
+  if (!(ytPlayerJ && ytPlayerJ.playVideo) && !mediaEl()) return;   // player still loading: try again when it's ready
+  lastMediaN = mc.n;
+  const start = (cell.media && cell.media.start) || 0;
+  const fail = () => { soundChip.hidden = false; };
+  if (ytPlayerJ && ytPlayerJ.playVideo) {
+    if (mc.cmd === "pause") { ytPlayerJ.pauseVideo(); setEq(false); return; }
+    if (mc.cmd === "restart") ytPlayerJ.seekTo(start, true);
+    ytPlayerJ.playVideo(); setEq(true);
+    if (!soundUnlocked) fail();
+    return;
+  }
+  const m = mediaEl(); if (!m) return;
+  if (mc.cmd === "pause") { m.pause(); setEq(false); return; }
+  if (mc.cmd === "restart") m.currentTime = start;
+  m.play().then(() => setEq(true)).catch(fail);
+}
+function renderJeopardyTV(jt){
+  if (!jt) return;
+  jpData = jt;
+  const cell = jt.cell;
+  // (the answer isn't part of this: showing it mustn't restart a playing clip)
+  const sig = JSON.stringify([jt.board, jt.name, jt.values, jt.cats, jt.used, cell && [cell.c, cell.r, cell.q, cell.media, cell.cat, cell.value]]);
+  if (sig !== lastJpSig) {
+    lastJpSig = sig;
+    stopJeopardyMedia();
+    // presses made before this question appeared (or before a TV refresh) don't replay
+    lastMediaN = cell && cell.mediaCmd ? cell.mediaCmd.n : 0;
+    if (!cell) {
+      let h = `<div class="jb-top"><img src="assets/mandarin-logo.png" alt=""><div class="jb-name retro">${escapeHtml(jt.name || "")}</div></div><div class="jb-grid">`;
+      jt.cats.forEach((name, i) => {
+        const pop = name !== null && i >= lastJpCats ? " pop" : "";
+        h += name === null
+          ? `<div class="jb-t jb-head closed"><img src="assets/mandarin-logo.png" alt=""></div>`
+          : `<div class="jb-t jb-head${pop}">${escapeHtml(name || "Category " + (i + 1))}</div>`;
+      });
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) {
+        const used = jt.used[r * 6 + c];
+        h += `<div class="jb-t jb-val${used ? " used" : ""}">${used ? "" : (jt.values[r] || 0).toLocaleString()}</div>`;
+      }
+      jpRoot.innerHTML = h + `</div>`;
+    } else {
+      const m = cell.media;
+      let media = "";
+      if (m && m.src) {
+        const yt = (m.type !== "image") ? ytIdOf(m.src) : null;
+        if (m.type === "image") media = `<div class="jq-media"><img src="${escapeHtml(m.src)}" alt=""></div>`;
+        else if (yt) media = `<div class="jq-media${m.type === "audio" ? " audio-only" : ""}">${m.type === "audio" ? `<div class="jq-audio"><i></i><i></i><i></i><i></i><i></i></div>` : ""}<div class="yt"><div id="jqYT"></div></div></div>`;
+        else if (m.type === "audio") media = `<div class="jq-media audio-only"><div class="jq-audio"><i></i><i></i><i></i><i></i><i></i></div><audio preload="auto" src="${escapeHtml(m.src)}"></audio></div>`;
+        else media = `<div class="jq-media"><video preload="auto" playsinline src="${escapeHtml(m.src)}"></video></div>`;
+        if (yt) loadYT().then(YT => {
+          if (!document.getElementById("jqYT")) return;
+          ytPlayerJ = new YT.Player("jqYT", { videoId: yt, playerVars: { start: m.start || 0, rel: 0, modestbranding: 1, playsinline: 1, controls: 0 },
+            events: { onReady: () => runMediaCmd(jpData && jpData.cell), onStateChange: e => setEq(e.data === 1) } });
+        });
+      }
+      jpRoot.innerHTML = `
+        <div class="jq-card">
+          <div class="jq-meta"><span>${escapeHtml(cell.cat || "")}</span><span class="v">${(cell.value || 0).toLocaleString()}</span></div>
+          <div class="jq-body${media ? " has-media" : ""}">${media}${cell.q ? `<div class="jq-text">${escapeHtml(cell.q)}</div>` : ""}</div>
+          <div class="jq-timer" hidden><div class="bar"><div class="fill"></div></div><div class="num"></div></div>
+        </div>`;
+      const me = mediaEl();
+      if (me) {
+        if (m.start) me.addEventListener("loadedmetadata", () => { me.currentTime = m.start; }, { once: true });
+        me.addEventListener("ended", () => setEq(false));
+      }
+      // show the sound prompt only for audio/video questions, and only until someone clicks
+      soundChip.hidden = soundUnlocked || !(m && m.src && m.type !== "image");
+    }
+    lastJpCats = jt.cats.filter(x => x !== null).length;
+  }
+  if (cell) {
+    runMediaCmd(cell);
+    // answer banner comes and goes without rebuilding the card
+    const card = jpRoot.querySelector(".jq-card"), ans = card && card.querySelector(".jq-ans");
+    if (card && cell.a && (!ans || ans.dataset.a !== cell.a)) {
+      if (ans) ans.remove();
+      const d = document.createElement("div"); d.className = "jq-ans"; d.dataset.a = cell.a;
+      d.innerHTML = `<small>Answer</small>${escapeHtml(cell.a)}`;
+      card.insertBefore(d, card.querySelector(".jq-timer"));
+    } else if (card && !cell.a && ans) ans.remove();
+  } else soundChip.hidden = true;
+  // answer timer (uses the server's clock so the laptop and TV agree)
+  const tEl = jpRoot.querySelector(".jq-timer");
+  if (tEl) {
+    if (!jt.timer) { tEl.hidden = true; clearInterval(timerLoop); timerLoop = null; timeUpBeeped = false; }
+    else if (!timerLoop) {
+      tEl.hidden = false; timeUpBeeped = false;
+      const tick = () => {
+        const t = jpData && jpData.timer; if (!t) return;
+        const left = Math.max(0, (t.endsAt - (Date.now() + serverOffset)) / 1000);
+        tEl.querySelector(".fill").style.transform = `scaleX(${left / t.secs})`;
+        tEl.querySelector(".num").textContent = left > 0 ? Math.ceil(left) : "Time!";
+        tEl.classList.toggle("out", left <= 0);
+        if (left <= 0 && !timeUpBeeped) { timeUpBeeped = true; if (soundUnlocked) buzzer(); }
+      };
+      tick(); timerLoop = setInterval(tick, 100);
     }
   }
 }

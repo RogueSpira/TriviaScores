@@ -113,6 +113,79 @@ function cleanFeud(f) {
   return { correct };
 }
 
+// ---------- Jeopardy ----------
+// Content (host-edited): { timer, boards:{ r1, r2 } }, each board:
+//   { name, scoring:"award"|"wager", values:[5], cats:[6 x { name, qs:[5 x { q, a }] }] }
+const JBOARDS = ["r1", "r2"];
+function blankBoard(id) {
+  return {
+    name: id === "r1" ? "Round 1" : "Gamble round",
+    scoring: id === "r1" ? "award" : "wager",
+    values: [200, 400, 600, 800, 1000],
+    cats: Array.from({ length: 6 }, () => ({ name: "", qs: Array.from({ length: 5 }, () => ({ q: "", a: "" })) }))
+  };
+}
+function cleanJeopardy(j) {
+  if (!j || typeof j !== "object") return null;
+  const str = (v, n) => (v == null ? "" : String(v)).slice(0, n);
+  const boards = {};
+  for (const id of JBOARDS) {
+    const b = (j.boards && j.boards[id]) || {};
+    const base = blankBoard(id);
+    boards[id] = {
+      name: str(b.name, 40) || base.name,
+      scoring: b.scoring === "wager" ? "wager" : (b.scoring === "award" ? "award" : base.scoring),
+      values: base.values.map((v, i) => Math.max(0, Math.min(100000, Math.round(Number(b.values && b.values[i]) || v)))),
+      cats: base.cats.map((c, ci) => {
+        const src = (Array.isArray(b.cats) && b.cats[ci]) || {};
+        return {
+          name: str(src.name, 60),
+          qs: c.qs.map((_, qi) => {
+            const q = (Array.isArray(src.qs) && src.qs[qi]) || {};
+            const out = { q: str(q.q, 500), a: str(q.a, 200) };
+            const m = cleanMedia(q.media);
+            if (m) out.media = m;
+            return out;
+          })
+        };
+      })
+    };
+  }
+  return { timer: Math.max(5, Math.min(120, Math.round(Number(j.timer) || 30))), boards };
+}
+// A question can show a picture, play audio or play video instead of (or as well as) text.
+// src is either an uploaded picture on this site or an http(s) link (YouTube works for audio/video).
+const MEDIA_PATH = "/.netlify/functions/scores?action=media&id=";
+function cleanMedia(m) {
+  if (!m || typeof m !== "object") return null;
+  const type = ["image", "audio", "video"].includes(m.type) ? m.type : null;
+  const src = (m.src == null ? "" : String(m.src)).trim().slice(0, 600);
+  const ok = /^https?:\/\/[^\s"'<>]+$/i.test(src) || (src.startsWith(MEDIA_PATH) && /^[A-Za-z0-9_-]+$/.test(src.slice(MEDIA_PATH.length)));
+  if (!type || !ok) return null;
+  return { type, src, start: Math.max(0, Math.min(36000, Math.round(Number(m.start) || 0))) };
+}
+const mediaStore = () => getStore({ name: "trivia-media", consistency: "strong" });
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+function blankJplay() { return { board: "r1", cats: 0, used: { r1: [], r2: [] }, cell: null, stage: "question", timer: null }; }
+// What the TV may see: category names only once revealed, and the answer only once shown.
+function jeopardyTV(s) {
+  const j = s.jeopardy || cleanJeopardy({});
+  const p = s.jplay || blankJplay();
+  const b = j.boards[p.board] || j.boards.r1;
+  const out = {
+    board: p.board, name: b.name, values: b.values, catsShown: p.cats,
+    cats: b.cats.map((c, i) => (i < p.cats ? c.name : null)),
+    used: (p.used && p.used[p.board]) || [], cell: null, timer: p.timer || null
+  };
+  if (p.cell) {
+    const c = b.cats[p.cell.c], q = c && c.qs[p.cell.r];
+    if (q) out.cell = { c: p.cell.c, r: p.cell.r, cat: c.name, value: b.values[p.cell.r], q: q.q, media: q.media || null,
+      a: p.stage === "answer" ? q.a : null, stage: p.stage, mediaCmd: p.media || null };
+  }
+  return out;
+}
+
 export default async (req) => {
   const url = new URL(req.url);
   const action = url.searchParams.get("action") || "status";
@@ -129,8 +202,22 @@ export default async (req) => {
   try {
     if (action === "status") {
       const s = await load();
-      return json({ teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null,
-        qr: s.qr || null, title: s.title || null, reveal: s.reveal || null, links: s.links || null, feud: s.feud || null, updated: s.updated || 0 });
+      const out = { teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null,
+        qr: s.qr || null, title: s.title || null, reveal: s.reveal || null, links: s.links || null, feud: s.feud || null,
+        jeopardyTV: jeopardyTV(s), now: Date.now(), updated: s.updated || 0 };
+      // the host page asks for the full question set (with answers); the TV never does
+      if (url.searchParams.get("host") === "1") { out.jeopardy = s.jeopardy || cleanJeopardy({}); out.jplay = s.jplay || blankJplay(); }
+      return json(out);
+    }
+
+    if (action === "media") {
+      // Serve an uploaded picture. Ids are random and never reused, so it can be cached forever.
+      const id = (url.searchParams.get("id") || "").replace(/[^A-Za-z0-9_-]/g, "");
+      if (!id) return json({ error: "id required" }, 400);
+      const hit = await mediaStore().getWithMetadata(id, { type: "arrayBuffer" });
+      if (!hit || !hit.data) return json({ error: "Not found" }, 404);
+      const type = (hit.metadata && IMAGE_TYPES.includes(hit.metadata.type)) ? hit.metadata.type : "application/octet-stream";
+      return new Response(hit.data, { status: 200, headers: { "content-type": type, "cache-control": "public, max-age=31536000, immutable", "access-control-allow-origin": "*" } });
     }
 
     if (req.method !== "POST") return json({ error: "Use POST" }, 405);
@@ -151,6 +238,7 @@ export default async (req) => {
         }
         if (body.links) { const l = cleanLinks(body.links); if (l) state.links = l; }
         if (body.feud) { const f = cleanFeud(body.feud); if (f) state.feud = f; }
+        if (body.jeopardy) { const jq = cleanJeopardy(body.jeopardy); if (jq) state.jeopardy = jq; }
         await save(state);
         return json({ ok: true, updated: state.updated });
       }
@@ -159,7 +247,7 @@ export default async (req) => {
         // "feud" (the Feud board), or "qr" (a full-screen scan card)
         // "title" = title screen: body.title "soon" (Trivia Starting Soon) or "night" (Trivia Night)
         // "reveal" = leaderboard reveal: body.reveal { order:[team ids, 1st place first], shown:n }
-        let d = ["wheel", "song", "feud", "qr", "title", "reveal"].includes(body.display) ? body.display : "leaderboard";
+        let d = ["wheel", "song", "feud", "qr", "title", "reveal", "jeopardy"].includes(body.display) ? body.display : "leaderboard";
         if (d === "reveal") {
           const rv = body.reveal || {};
           const order = (Array.isArray(rv.order) ? rv.order : []).slice(0, 40).map(safeKey).filter(Boolean);
@@ -222,6 +310,46 @@ export default async (req) => {
         if (state.audit.length > 200) state.audit.length = 200;
         await save(state);
         return json({ ok: true, score: team.score });
+      }
+
+      case "media_put": {
+        // Upload a picture for a question: { data: "data:image/jpeg;base64,..." } (the laptop shrinks it first)
+        const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(String(body.data || ""));
+        if (!m) return json({ error: "Send a JPEG, PNG, WebP or GIF picture" }, 400);
+        const bytes = Buffer.from(m[2], "base64");
+        if (bytes.length > 4 * 1024 * 1024) return json({ error: "Picture is too big (max 4 MB)" }, 413);
+        const id = "m_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        await mediaStore().set(id, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length), { metadata: { type: m[1] } });
+        return json({ ok: true, src: MEDIA_PATH + id, bytes: bytes.length });
+      }
+
+      case "jplay": {
+        // Host-driven Jeopardy play state. Sent right away (not debounced) so the TV keeps up.
+        // { board, cats, used:{r1:[],r2:[]}, cell:{c,r}|null, stage, timer:"start"|"stop"|undefined }
+        const prev = state.jplay || blankJplay();
+        const board = JBOARDS.includes(body.board) ? body.board : prev.board;
+        const usedIn = (body.used && typeof body.used === "object") ? body.used : prev.used;
+        const used = {};
+        for (const id of JBOARDS) used[id] = Array.from({ length: 30 }, (_, i) => !!(Array.isArray(usedIn[id]) && usedIn[id][i]));
+        let cell = null;
+        if (body.cell && Number.isInteger(body.cell.c) && Number.isInteger(body.cell.r) &&
+            body.cell.c >= 0 && body.cell.c < 6 && body.cell.r >= 0 && body.cell.r < 5) cell = { c: body.cell.c, r: body.cell.r };
+        const sameCell = cell && prev.cell && cell.c === prev.cell.c && cell.r === prev.cell.r && board === prev.board;
+        let timer = sameCell ? (prev.timer || null) : null;
+        if (body.timer === "start" && cell) {
+          const secs = (state.jeopardy && state.jeopardy.timer) || 30;
+          timer = { endsAt: Date.now() + secs * 1000, secs };
+        } else if (body.timer === "stop") timer = null;
+        state.jplay = {
+          board, cell, timer, used,
+          cats: Math.max(0, Math.min(6, Math.round(Number(body.cats != null ? body.cats : prev.cats) || 0))),
+          stage: body.stage === "answer" ? "answer" : "question",
+          // play / pause / restart for audio & video questions; n bumps so the TV runs each press once
+          media: (body.media && ["play", "pause", "restart"].includes(body.media.cmd))
+            ? { cmd: body.media.cmd, n: Math.round(Number(body.media.n) || 0) } : (sameCell ? (prev.media || null) : null)
+        };
+        await save(state);
+        return json({ ok: true, jplay: state.jplay, now: Date.now() });
       }
 
       case "reset": {
