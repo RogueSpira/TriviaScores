@@ -9,6 +9,10 @@
         ".validate": "newData.val() === 'CHANGE-THIS-HOST-PIN'"
       }
     },
+    "hostonly": {
+      ".read": "auth != null && root.child('hosts').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('hosts').child(auth.uid).exists()"
+    },
     "game": {
       ".read": "auth != null",
       ".write": "auth != null && root.child('hosts').child(auth.uid).exists()",

@@ -261,3 +261,27 @@ on the TV Feud board → Reset for the next face-off.
 
 The Buzzinga Buzzer QR is gone from the On TV bar (the Join QR replaces it).
 Firebase free plan: 100 phones connected at once, far more than a trivia night needs.
+
+## Phone remote (remote.html)
+Run the night from your phone while the laptop stays open (scores page, buzzers connected with the PIN).
+Open **Phone remote** from the laptop's Buzzers bar, or go to `/remote.html` on your phone, and enter the
+same host PIN. Bookmark it. The header shows "Laptop connected" when the laptop is listening.
+
+The phone presses buttons; the laptop does the work, so points, history and the TV stay in one place
+(the laptop switches to whatever tool the phone is using). Scoring and building boards stay on the laptop.
+- **TV:** the On TV buttons (Starting Soon, Trivia Night, Join QR, Board, Leaderboard, Wheel, Song card,
+  Survey QR, Feud board). The lit one is on the TV now.
+- **Jeopardy:** Round 1 / Gamble, reveal categories, tap a value to open it. You see the clue and the
+  correct response. Open buzzers → Nobody knows; who buzzed with the countdown (Pause / Resume / Restart);
+  Correct (adds the points on the laptop) / Wrong; Reset; clip Play / Pause / Restart; Done / Back. Gamble:
+  tap the category → Reveal question → Show answer (timer, Back to wagers).
+- **Music:** ▶ / ■ for each song (plays wherever the laptop's Play on is set; TV by default).
+- **Feud:** pick a survey and question → Load to TV, Reveal answers, **Strike**, Reset strikes, Re-hide,
+  Clear board.
+
+Questions and answers reach the phone through a PIN-only spot in Firebase (`hostonly`), so players' phones
+can't read them. **Firebase rules changed for this:** re-paste `firebase-rules.json` (with your PIN).
+
+## Angry Manny
+On a Jeopardy **Wrong** or a Feud **strike**, Manny swaps to his X-sign picture (assets/manny-no.png),
+pops up from his corner, grows and shakes, then goes back to normal.

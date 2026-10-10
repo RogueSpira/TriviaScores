@@ -654,6 +654,8 @@
   .bz-nobody { background: #f3f4f6 !important; color: #c0262d !important; border-color: #f3f4f6 !important; }
   .bz-nobody:hover { background: #fff !important; }
   .bz-done { border-color: #3cb44b; }
+  .bz-remote { color: var(--accent); font-size: 13px; font-weight: 700; text-decoration: none; padding: 6px 8px; border-radius: 8px; }
+  .bz-remote:hover { background: var(--panel-2); }
   .bz-big { font-size: 22px !important; font-weight: 800 !important; padding: 18px 24px !important; width: 100%; border-radius: 12px !important; letter-spacing: .5px; }
   .bz-dot.on { background: #3cdc5a; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(60,220,90,.7); }
   .bz-dot[hidden] { display: none; }
@@ -1186,6 +1188,7 @@
 </aside>
 
 <script type="module" src="buzz-host.js"></script>
+<script type="module" src="remote-host.js"></script>
 <script>
 // Distinct default colors, one per team
 const TEAM_COLORS = [
@@ -1666,6 +1669,43 @@ function syncScores() {
   saveState();
 }
 
+/* ---------- Phone remote (remote.html → remote-host.js → here) ----------
+   The phone presses buttons; this laptop does the work, so points, history and the TV stay in one place. */
+window.remoteView = function(){
+  const v = { tool: musicMode ? "music" : feudMode ? "feud" : jeopMode ? "jeopardy" : "wheel",
+    tv: { display: tvDisplay, title: tvTitle, qr: tvQrKind, song: tvSong },
+    feudBase: (links.feud || "https://kavafeud.netlify.app").replace(/\/+$/, ""),
+    teams: teams.map(t => ({ id: t.id, name: t.name, color: t.color })) };
+  v.jeop = window.jeopRemoteView ? window.jeopRemoteView() : null;
+  const pl = typeof playing !== "undefined" && playing;
+  let left = null;
+  if (pl) left = pl.tv ? music.clip - Math.max(0, (Date.now() - pl.startedAt) / 1000) : null;
+  v.music = { clip: music.clip, on: typeof musicOn !== "undefined" ? musicOn : "tv",
+    songs: music.songs.map((s, i) => ({ n: i + 1, title: s.title || "", artist: s.artist || "", year: s.year || "", link: !!parseYouTube(s.yt) })),
+    playing: pl ? { n: music.songs.findIndex(s => s.id === pl.songId) + 1, left: left === null ? null : Math.max(0, Math.round(left)) } : null };
+  return v;
+};
+window.remoteRun = function(cmd){
+  if (!cmd || typeof cmd !== "object") return;
+  const args = Array.isArray(cmd.args) ? cmd.args : [];
+  if (cmd.a === "tv") {
+    const b = tvBar.querySelector(`button[data-tv="${String(cmd.key || "").replace(/[^a-z:]/g, "")}"]`);
+    if (b) b.click();
+  } else if (cmd.a === "j" && window.JRemote && typeof JRemote[cmd.fn] === "function") {
+    if (!jeopMode) setView("jeopardy");
+    JRemote[cmd.fn](...args);
+  } else if (cmd.a === "m") {
+    if (!musicMode) setView("music");
+    if (cmd.fn === "play") { const s = music.songs[Number(args[0]) - 1]; if (s) playSong(s); }
+    else if (cmd.fn === "stop") { if (playing) stopClip(); }
+  } else if (cmd.a === "f") {
+    // the phone already told the Feud site; show it here too
+    if (!feudMode) setView("feud");
+    if (typeof window.feudOpened === "function") window.feudOpened();
+    if (cmd.fn === "loaded") setTVDisplay("feud");
+  }
+};
+
 /* ---------- Phone buzzers (see buzz-host.js) ---------- */
 // green / grey dot next to teams that joined on a phone
 function paintBuzzDots(){
@@ -1693,6 +1733,7 @@ function renderBuzzBars(){
       const fbTeams = teams.filter(t => B.isFb(t.id)), online = fbTeams.filter(t => B.online(t.id)).length;
       h += `<span class="bz-count"><span class="bz-dot ${online ? "on" : ""}"></span>${fbTeams.length ? `${online} of ${fbTeams.length} team${fbTeams.length === 1 ? "" : "s"} connected` : "No teams have joined yet"}</span>
         <span class="bz-sp"></span>
+        <a class="bz-remote" href="remote.html" target="_blank" title="Open this on your phone (same PIN) to run Jeopardy, music and Feud while you walk around">&#128241; Phone remote</a>
         <button class="mbtn" data-bz="joinqr">Join QR on TV</button>` +
         (B.state.test ? `<button class="mbtn primary" data-bz="endtest">Done testing</button>` : `<button class="mbtn" data-bz="test" title="Every team taps BUZZ on its phone; you see a check for each one that works">Test buzzers</button>`);
       if (B.state.test) {
@@ -2585,7 +2626,9 @@ wheel.onclick = spin;
   };
   $("jpGrid").onclick = e => {
     const b = e.target.closest("[data-c]"); if (!b) return;
-    const c = +b.dataset.c, r = +b.dataset.r;
+    openCell(+b.dataset.c, +b.dataset.r);
+  };
+  function openCell(c, r){
     jp.cell = { c, r };
     // Gamble: the chosen category goes up with "Place your wagers!"; the question comes after the wagers are in
     jp.stage = gambleNow() ? "pick" : "question";
@@ -2593,7 +2636,7 @@ wheel.onclick = spin;
     if (BZ()) { if (gambleNow()) buzzIdle(); else Buzz.newQuestion(!!(jq.buzz && jq.buzz.auto)); }
     markPlayed();
     onTV(); sendJplay({ timer: "stop" });
-  };
+  }
   function finishCell(markUsed){
     if (!jp.cell) return;
     if (markUsed) {
@@ -2809,15 +2852,18 @@ wheel.onclick = spin;
     on("bzOpen", () => Buzz.open());
     on("bzClose", () => Buzz.close());
     on("bzReset", () => Buzz.reset());
-    on("bzWrong", () => { const f = Buzz.order[0]; if (f) Buzz.wrong(f.team); });
-    on("bzNobody", () => { Buzz.close(); revealAnswer({ nobody: true }); });
-    on("bzRight", () => {
-      const f = Buzz.order[0]; if (!f) return;
-      if (!teams.find(t => t.id === f.team)) { toast("That team isn't on the scoreboard"); return; }
-      award(f.team); Buzz.markRight(f.team, (board().values || [])[jp.cell.r] || 0);
-      revealAnswer({ team: f.team });
-    });
+    on("bzWrong", doWrong);
+    on("bzNobody", doNobody);
+    on("bzRight", doCorrect);
   }
+  function doNobody(){ if (!jp.cell || gambleNow()) return; if (window.Buzz && Buzz.isOn()) Buzz.close(); revealAnswer({ nobody: true }); }
+  function doCorrect(){
+    const f = window.Buzz && Buzz.order[0]; if (!f || !jp.cell || jp.stage === "answer") return;
+    if (!teams.find(t => t.id === f.team)) { toast("That team isn't on the scoreboard"); return; }
+    award(f.team); Buzz.markRight(f.team, (board().values || [])[jp.cell.r] || 0);
+    revealAnswer({ team: f.team });
+  }
+  function doWrong(){ const f = window.Buzz && Buzz.order[0]; if (f && jp.stage !== "answer") Buzz.wrong(f.team); }
   window.renderJeopardyBuzz = renderJeopardyBuzz;
 
   /* ---------- EDIT ---------- */
@@ -3186,6 +3232,44 @@ wheel.onclick = spin;
   $("jlNewBtn").onclick = () => newBoard($("jlNewName").value);
   $("jlNewName").onkeydown = e => { if (e.key === "Enter") newBoard($("jlNewName").value); };
   $("jlSearch").oninput = renderLibList;
+
+  /* ---------- phone remote (remote.html via remote-host.js) ---------- */
+  // What the phone needs to draw the Jeopardy screen (host-only data: it goes to a PIN-protected spot)
+  function sideSum(sd){ return { type: sd.type, text: sd.text || "", src: sd.type === "image" ? sd.src : "", show: sd.show !== false, start: sd.start || 0 }; }
+  window.jeopRemoteView = function(){
+    const v = { board: jp.board, cats: jp.cats, used: jp.used, stage: jp.stage, timer: jp.timer || null,
+      game: jq.game ? jq.game.name : null, boards: {} };
+    ["r1", "g1"].forEach(id => { const B = jq.boards[id]; v.boards[id] = { name: B.name, kind: B.kind, values: B.values, cats: B.cats.map(c => c.name || "") }; });
+    if (jp.cell) {
+      const B = board(), q = B.cats[jp.cell.c].qs[jp.cell.r], tvSide = sideOnTV(q);
+      v.cell = { c: jp.cell.c, r: jp.cell.r, cat: B.cats[jp.cell.c].name || "", value: B.values ? B.values[jp.cell.r] : null,
+        clue: sideSum(q.clue), resp: sideSum(q.resp), result: results[cellKey()] || null,
+        clip: tvSide && tvSide.type === "media" && tvSide.src ? { who: tvSide === q.resp ? "answer" : "clue", show: tvSide.show !== false } : null,
+        mediaCmd: jp.media ? jp.media.cmd : null };
+    }
+    return v;
+  };
+  const ensurePlayTab = () => { if (tab !== "play") { tab = "play"; } };
+  window.JRemote = {
+    board(id){ if (!["r1", "g1"].includes(id) || id === jp.board) return; ensurePlayTab(); jp.board = id; jp.cell = null; jp.cats = 0; jp.stage = "question"; buzzIdle(); sendJplay({ timer: "stop" }); },
+    revealNext(){ if (jp.cats < nCats()) { jp.cats++; onTV(); sendJplay(); } },
+    revealAll(){ jp.cats = nCats(); onTV(); sendJplay(); },
+    open(c, r){ c = +c; r = +r; const B = board(); if (!(c >= 0 && c < B.cats.length && r >= 0 && r < B.cats[c].qs.length)) return; ensurePlayTab(); openCell(c, r); },
+    revealQ(){ if (jp.cell) { jp.stage = "question"; sendJplay(); } },
+    backPick(){ if (jp.cell && gambleNow()) { jp.stage = "pick"; sendJplay({ timer: "stop" }); } },
+    showAnswer(){ if (jp.cell) { jp.stage = "answer"; sendJplay(); } },
+    hideAnswer(){ if (jp.cell) { jp.stage = "question"; sendJplay(); } },
+    timerStart(){ if (jp.cell) sendJplay({ timer: "start" }); },
+    timerStop(){ if (jp.cell) sendJplay({ timer: "stop" }); },
+    media(cmd){ if (jp.cell && ["play", "pause", "restart"].includes(cmd)) sendJplay({ media: { cmd, n: ++mediaN + Date.now() } }); },
+    done(){ finishCell(true); },
+    cancel(){ finishCell(false); },
+    buzzOpen(){ if (window.Buzz && Buzz.isOn()) Buzz.open(); },
+    buzzClose(){ if (window.Buzz && Buzz.isOn()) Buzz.close(); },
+    buzzReset(){ if (window.Buzz && Buzz.isOn()) Buzz.reset(); },
+    nobody: () => doNobody(), correct: () => doCorrect(), wrong: () => doWrong(),
+    tpause(){ if (window.Buzz) Buzz.pauseTimer(); }, tresume(){ if (window.Buzz) Buzz.resumeTimer(); }, trestart(){ if (window.Buzz) Buzz.restartTimer(); }
+  };
 
   window.renderJeopardy = function(){
     if (!jeopMode) return;

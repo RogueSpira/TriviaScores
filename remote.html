@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#07141a">
+<title>Kava Host Remote</title>
+<style>
+  :root {
+    --bg:#07141a; --panel:#0f2830; --panel-2:#143540; --line:#1f4a52; --accent:#45DBE0; --on-accent:#000;
+    --ink:#eaf6f7; --muted:#8fb3b8; --field:#000; --good:#3cb44b; --bad:#d9736f; --warn:#f0bf17;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { min-height:100dvh; padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
+  [hidden] { display:none !important; }
+  header { position:sticky; top:0; z-index:5; background:rgba(7,20,26,.96); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);
+    padding:max(10px, env(safe-area-inset-top)) 14px 10px; display:flex; align-items:center; gap:10px; }
+  header h1 { font-size:16px; margin:0; letter-spacing:.5px; }
+  .conn { margin-left:auto; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+  .dot { width:10px; height:10px; border-radius:50%; background:#5b6b70; }
+  .dot.on { background:#3cdc5a; box-shadow:0 0 8px rgba(60,220,90,.7); }
+  nav { position:fixed; left:0; right:0; bottom:0; z-index:6; display:grid; grid-template-columns:repeat(4, 1fr); background:var(--panel);
+    border-top:1px solid var(--line); padding:6px 6px calc(6px + env(safe-area-inset-bottom)); gap:6px; }
+  nav button { background:transparent; border:0; color:var(--muted); font-weight:700; font-size:13px; padding:10px 4px; border-radius:10px; }
+  nav button.on { background:var(--accent); color:var(--on-accent); }
+  main { padding:12px 14px; display:flex; flex-direction:column; gap:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; display:flex; flex-direction:column; gap:10px; }
+  .lbl { font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .row > .grow { flex:1 1 0; }
+  button.b { font:inherit; font-weight:700; font-size:15px; min-height:46px; padding:10px 14px; border-radius:12px; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--ink); }
+  button.b:active { transform:scale(.97); }
+  button.b:disabled { opacity:.45; }
+  .b.primary { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .b.big { font-size:20px; font-weight:800; min-height:64px; width:100%; }
+  .b.ok { background:var(--good); border-color:var(--good); color:#04210b; }
+  .b.bad { border-color:var(--bad); color:#f0a08f; }
+  .b.nobody { background:#f3f4f6; color:#c0262d; border-color:#f3f4f6; }
+  .b.on { background:var(--accent); color:var(--on-accent); border-color:var(--accent); }
+  .b.lit-play { background:var(--good); border-color:var(--good); color:#04210b; }
+  .b.lit-pause { background:var(--warn); border-color:var(--warn); color:#2a1d00; }
+  .b.strike { background:#d8352a; border-color:#d8352a; color:#fff; font-size:22px; }
+  .note { font-size:13px; color:var(--muted); }
+  .err { color:#f0a08f; font-weight:700; font-size:14px; }
+  input, select { font:inherit; font-size:16px; background:var(--field); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:12px; width:100%; }
+  /* TV */
+  .tvgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tvgrid .cap { grid-column:1 / -1; font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted); margin-top:6px; }
+  /* Jeopardy */
+  .seg { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .jgrid { display:grid; grid-template-columns:repeat(5, minmax(0, 1fr)); gap:5px; }
+  .jh { font-size:10.5px; font-weight:800; text-transform:uppercase; text-align:center; color:var(--ink); background:var(--panel-2); border-radius:8px;
+    padding:6px 3px; min-height:44px; display:flex; align-items:center; justify-content:center; line-height:1.15; word-break:break-word; }
+  .jh.hid { color:var(--muted); border:1px dashed var(--line); background:transparent; }
+  .jc { font:inherit; font-weight:800; font-size:15px; min-height:46px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--accent); padding:0; }
+  .jc.used { color:var(--muted); background:transparent; text-decoration:line-through; opacity:.5; }
+  .gcats { display:flex; flex-direction:column; gap:8px; }
+  .gcat { font:inherit; text-align:left; padding:14px; border-radius:12px; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); }
+  .gcat b { display:block; font-size:18px; }
+  .gcat small { color:var(--muted); font-weight:700; }
+  .gcat.used { opacity:.5; }
+  .meta { font-size:12px; font-weight:800; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+  .side { background:var(--panel-2); border-radius:10px; padding:10px; }
+  .side .t { font-size:17px; font-weight:700; line-height:1.3; }
+  .side img { max-width:100%; max-height:160px; border-radius:8px; display:block; margin-top:6px; }
+  .state { display:inline-block; font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; padding:3px 9px; border-radius:999px; background:#3a4a50; color:#c9d6d9; }
+  .state.open { background:#3cdc5a; color:#04210b; }
+  .state.buzzed { background:var(--accent); color:var(--on-accent); }
+  .first { font-size:22px; font-weight:800; display:flex; align-items:center; gap:10px; }
+  .first i, .chip i { width:14px; height:14px; border-radius:50%; display:inline-block; }
+  .timer { display:flex; align-items:center; gap:10px; }
+  .timer .num { font-size:38px; font-weight:800; font-variant-numeric:tabular-nums; min-width:70px; }
+  .timer.low .num { color:var(--warn); } .timer.done .num { color:var(--bad); } .timer.paused .num { color:var(--muted); }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:var(--panel-2); font-size:13px; font-weight:700; }
+  /* Music */
+  .song { display:flex; align-items:center; gap:10px; padding:8px; border-radius:12px; background:var(--panel-2); }
+  .song .pb { min-width:64px; }
+  .song .tt { flex:1 1 auto; min-width:0; }
+  .song .tt b { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .song .tt span { font-size:13px; color:var(--muted); }
+  /* Feud */
+  .qchips { display:flex; flex-wrap:wrap; gap:6px; }
+  .qchips button { font:inherit; font-size:13px; font-weight:700; padding:9px 11px; border-radius:999px; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); }
+  .qchips button.on { background:var(--accent); color:var(--on-accent); }
+  .slot { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; background:var(--panel-2); }
+  .slot .n { font-weight:800; color:var(--muted); width:18px; }
+  .slot .a { flex:1 1 auto; font-weight:700; }
+  .slot .c { font-weight:800; color:var(--accent); min-width:28px; text-align:right; }
+  .slot.rev { opacity:.55; }
+  .xs { display:flex; gap:8px; font-size:30px; font-weight:900; color:#3a4a50; }
+  .xs .on { color:#e5241b; }
+  .flash { position:fixed; left:50%; top:70px; transform:translateX(-50%); background:var(--accent); color:var(--on-accent); font-weight:800; padding:8px 14px; border-radius:999px; z-index:9; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Host Remote</h1>
+  <span class="conn"><span class="dot" id="lapDot"></span><span id="lapTxt">Connecting&hellip;</span></span>
+</header>
+
+<main id="pinView" hidden>
+  <div class="card">
+    <div class="lbl">Host PIN</div>
+    <div class="note">Use the same PIN as the laptop's Buzzers bar. The laptop has to be open with the scores page connected.</div>
+    <input type="password" id="pin" placeholder="Host PIN" autocomplete="current-password">
+    <button class="b primary big" id="pinBtn">Connect</button>
+    <div class="err" id="pinErr"></div>
+  </div>
+</main>
+
+<main id="app" hidden>
+  <section id="tab-tv"></section>
+  <section id="tab-jeop" hidden></section>
+  <section id="tab-music" hidden></section>
+  <section id="tab-feud" hidden></section>
+</main>
+
+<nav id="nav" hidden>
+  <button data-tab="tv">TV</button>
+  <button data-tab="jeop" class="on">Jeopardy</button>
+  <button data-tab="music">Music</button>
+  <button data-tab="feud">Feud</button>
+</nav>
+<div class="flash" id="flash" hidden></div>
+
+<script type="module">
+import { connectBuzz, buzzOrder, answerClock, newRoundId } from "./kava-buzz.js";
+const $ = id => document.getElementById(id);
+const esc = s => { const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
+
+let fb = null, view = null, alive = 0, offset = 0, buzz = {}, order = [], fbTeams = {}, roundUnsub = null, watched = null;
+let tab = store.get("kavaRemoteTab") || "jeop";
+let feud = null, feudSel = { sid: null, qid: null }, feudTimer = null;
+
+/* ---------- connect ---------- */
+async function connect(pin){
+  $("pinErr").textContent = "";
+  try { fb = fb || await connectBuzz(); }
+  catch(e) { $("pinErr").textContent = "Couldn't reach the buzzer service (" + (e.code || e.message) + ")."; showPin(); return; }
+  try { await fb.set("hosts/" + fb.uid, pin); }
+  catch(e) { $("pinErr").textContent = "That PIN didn't work."; showPin(); return; }
+  store.set("kavaHostPin", pin);
+  $("pinView").hidden = true; $("app").hidden = false; $("nav").hidden = false;
+  fb.serverOffset(o => { offset = o; });
+  fb.watch("hostonly/view", v => { view = v; renderAll(); });
+  fb.watch("hostonly/alive", v => { alive = Number(v) || 0; paintConn(); });
+  fb.watch("game/teams", v => { fbTeams = v || {}; renderAll(); });
+  fb.watch("game/buzz", v => {
+    buzz = v || {};
+    if (buzz.round !== watched) {
+      if (roundUnsub) roundUnsub();
+      watched = buzz.round || null; order = [];
+      roundUnsub = watched ? fb.watch("game/buzzes/" + watched, b => { order = buzzOrder(b); renderAll(); }) : null;
+    }
+    renderAll();
+  });
+  setTab(tab);
+}
+function showPin(){ $("pinView").hidden = false; $("app").hidden = true; $("nav").hidden = true; }
+$("pinBtn").onclick = () => connect($("pin").value.trim());
+$("pin").onkeydown = e => { if (e.key === "Enter") connect($("pin").value.trim()); };
+const savedPin = store.get("kavaHostPin");
+if (savedPin) connect(savedPin); else showPin();
+
+const serverNow = () => Date.now() + offset;
+function laptopOn(){ return alive && serverNow() - alive < 12000; }
+function paintConn(){
+  const on = laptopOn();
+  $("lapDot").classList.toggle("on", on);
+  $("lapTxt").textContent = on ? "Laptop connected" : "Laptop not connected";
+}
+setInterval(paintConn, 2000);
+
+/* ---------- send a button press to the laptop ---------- */
+function flash(msg){ const f = $("flash"); f.textContent = msg; f.hidden = false; clearTimeout(f._t); f._t = setTimeout(() => f.hidden = true, 1200); }
+function send(cmd){
+  if (!fb) return;
+  if (!laptopOn()) flash("Laptop isn't connected");
+  try { navigator.vibrate && navigator.vibrate(15); } catch(e) {}
+  fb.set("hostonly/cmd/" + newRoundId("c"), Object.assign({ at: fb.ts() }, cmd)).catch(() => flash("Didn't go through"));
+}
+const J = (fn, ...args) => send({ a: "j", fn, args });
+
+/* ---------- tabs ---------- */
+function setTab(t){
+  tab = t; store.set("kavaRemoteTab", t);
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  ["tv", "jeop", "music", "feud"].forEach(x => $("tab-" + x).hidden = x !== t);
+  clearInterval(feudTimer); feudTimer = null;
+  if (t === "feud") { loadFeud(); feudTimer = setInterval(loadFeud, 2500); }
+  renderAll();
+}
+$("nav").onclick = e => { const b = e.target.closest("[data-tab]"); if (b) setTab(b.dataset.tab); };
+
+// redraw a section only when its HTML changes, so a tap is never lost mid-redraw
+function paint(id, html){ const el = $(id); if (el._h === html) return; el._h = html; el.innerHTML = html; tick(); }
+function renderAll(){
+  paintConn();
+  if (!view) { paint("tab-" + tab, `<div class="card"><div class="note">Waiting for the laptop&hellip; open the scores page on the laptop and connect the buzzers with the PIN.</div></div>`); return; }
+  if (tab === "tv") renderTV();
+  else if (tab === "jeop") renderJeop();
+  else if (tab === "music") renderMusic();
+  else if (tab === "feud") renderFeud();
+}
+
+/* ---------- TV ---------- */
+const TV_BTNS = [["Start"], ["title:soon", "Starting Soon"], ["title:night", "Trivia Night"],
+  ["Jeopardy"], ["qr:join", "Join QR"], ["jeopardy", "Board"],
+  ["Scores"], ["leaderboard", "Leaderboard"], ["wheel", "Wheel"],
+  ["Music &amp; Feud"], ["song", "Song card"], ["qr:survey", "Survey QR"], ["feud", "Feud board"]];
+function renderTV(){
+  const tv = view.tv || {};
+  const key = tv.display === "title" ? "title:" + tv.title : tv.display === "qr" ? "qr:" + tv.qr : tv.display;
+  paint("tab-tv", `<div class="card"><div class="lbl">On TV</div><div class="tvgrid">` +
+    TV_BTNS.map(b => b.length === 1 ? `<div class="cap">${b[0]}</div>`
+      : `<button class="b ${key === b[0] ? "on" : ""}" data-tv="${b[0]}">${b[1]}</button>`).join("") +
+    `</div><div class="note">The leaderboard reveal and scoring stay on the laptop.</div></div>`);
+}
+$("tab-tv").onclick = e => { const b = e.target.closest("[data-tv]"); if (b) send({ a: "tv", key: b.dataset.tv }); };
+
+/* ---------- Jeopardy ---------- */
+const teamOf = id => {
+  const t = (view && view.teams || []).find(x => x.id === id);
+  return t || { name: (fbTeams[id] && fbTeams[id].name) || "A team", color: (fbTeams[id] && fbTeams[id].color) || "#888" };
+};
+function sideHTML(sd, label){
+  if (!sd) return "";
+  let body = "";
+  if (sd.type === "image" && sd.src) body = `<img src="${esc(sd.src)}" alt="">`;
+  else if (sd.type === "media") body = `<div class="note">${sd.show ? "\u{1F3AC} Video clip" : "\u{1F3B5} Sound clip"}</div>`;
+  return `<div class="side"><div class="lbl">${label}</div>${sd.text ? `<div class="t">${esc(sd.text)}</div>` : ""}${body}${!sd.text && !body ? `<div class="note">(nothing written)</div>` : ""}</div>`;
+}
+function renderJeop(){
+  const j = view.jeop;
+  if (!j) { paint("tab-jeop", `<div class="card"><div class="note">Jeopardy isn't ready on the laptop.</div></div>`); return; }
+  const B = j.boards[j.board], G = B.kind === "gamble";
+  let h = "";
+  if (!j.cell) {
+    const n = B.cats.length;
+    h += `<div class="card">
+      ${j.game ? `<div class="note">Board: <b>${esc(j.game)}</b></div>` : ""}
+      <div class="seg"><button class="b ${j.board === "r1" ? "on" : ""}" data-j="board" data-arg="r1">${esc(j.boards.r1.name)}</button>
+        <button class="b ${j.board === "g1" ? "on" : ""}" data-j="board" data-arg="g1">${esc(j.boards.g1.name)}</button></div>
+      <div class="row"><span class="note grow">${j.cats} of ${n} categories showing</span>
+        <button class="b primary" data-j="revealNext" ${j.cats >= n ? "disabled" : ""}>Reveal next</button>
+        <button class="b" data-j="revealAll" ${j.cats >= n ? "disabled" : ""}>All</button></div></div>`;
+    const used = (j.used && j.used[j.board]) || [];
+    if (G) {
+      h += `<div class="card"><div class="lbl">Tap the category the team picks</div><div class="gcats">` + B.cats.map((c, i) =>
+        `<button class="gcat ${used[i] ? "used" : ""}" data-j="open" data-c="${i}" data-r="0"><small>Category ${i + 1}${i < j.cats ? "" : " · hidden on TV"}</small><b>${esc(c || "Category " + (i + 1))}</b>${used[i] ? "<small>Already played</small>" : ""}</button>`).join("") + `</div></div>`;
+    } else {
+      let g = "";
+      B.cats.forEach((c, i) => { g += `<div class="jh ${i < j.cats ? "" : "hid"}" style="grid-column:${i + 1};grid-row:1">${esc(c || "Cat " + (i + 1))}</div>`; });
+      B.cats.forEach((c, ci) => (B.values || []).forEach((v, r) => {
+        const u = used[r * 5 + ci];
+        g += `<button class="jc ${u ? "used" : ""}" style="grid-column:${ci + 1};grid-row:${r + 2}" data-j="open" data-c="${ci}" data-r="${r}">${v >= 1000 ? (v / 1000) + "k" : v}</button>`;
+      }));
+      h += `<div class="card"><div class="jgrid">${g}</div></div>`;
+    }
+  } else {
+    const c = j.cell;
+    h += `<div class="card"><div class="meta">${esc(c.cat || "Category")} &middot; ${G ? "Gamble" : (c.value || 0).toLocaleString()}</div>`;
+    if (G) {
+      if (j.stage === "pick") h += `<div class="note">TV shows <b>&ldquo;Place your wagers!&rdquo;</b> Collect wagers (enter them on the laptop's Bid lines).</div>
+        <button class="b primary big" data-j="revealQ">Reveal question</button>`;
+      h += sideHTML(c.clue, "Clue") + sideHTML(c.resp, j.stage === "answer" ? "Correct response · on TV" : "Correct response · only you see this");
+      if (j.stage === "question") h += `<button class="b primary big" data-j="showAnswer">Show answer on TV</button>
+        <div class="row">${j.timer ? `<button class="b grow" data-j="timerStop">Stop timer <span data-gtimer></span></button>` : `<button class="b grow" data-j="timerStart">Start answer timer</button>`}
+        <button class="b grow" data-j="backPick">Back to wagers</button></div>`;
+      if (j.stage === "answer") h += `<button class="b" data-j="hideAnswer">Hide answer</button>`;
+    } else {
+      h += buzzHTML(j, c) + sideHTML(c.clue, "Clue") + sideHTML(c.resp, j.stage === "answer" ? "Correct response · on TV" : "Correct response · only you see this");
+    }
+    if (c.clip) {
+      const pl = c.mediaCmd === "play" || c.mediaCmd === "restart", pa = c.mediaCmd === "pause";
+      h += `<div class="lbl">${c.clip.who === "answer" ? "Answer clip" : "Clue clip"} on the TV</div><div class="row">
+        <button class="b grow ${pl ? "lit-play" : "primary"}" data-j="media" data-arg="play">${pl ? "&#9654; Playing" : pa ? "&#9654; Resume" : "&#9654; Play"}</button>
+        <button class="b grow ${pa ? "lit-pause" : ""}" data-j="media" data-arg="pause">&#10074;&#10074; ${pa ? "Paused" : "Pause"}</button>
+        <button class="b" data-j="media" data-arg="restart">&#8635;</button></div>`;
+    }
+    h += `<button class="b ${j.stage === "answer" ? "primary big" : ""}" data-j="done">Done &mdash; back to board</button>
+      <button class="b" data-j="cancel">Back without using it</button></div>`;
+  }
+  paint("tab-jeop", h);
+}
+function buzzHTML(j, c){
+  if (j.stage === "answer") {
+    const r = c.result, t = r && r.team ? teamOf(r.team) : null;
+    return `<div class="side"><span class="state buzzed">Answer on TV</span>
+      <div class="first" style="margin-top:6px">${t ? `<i style="background:${esc(t.color)}"></i>${esc(t.name)} got it &mdash; +${(c.value || 0).toLocaleString()}` : (r && r.nobody ? "Nobody knew it" : "The answer is showing")}</div></div>
+      <button class="b" data-j="hideAnswer">Hide answer</button>`;
+  }
+  if (buzz.test) return `<div class="note">The laptop is testing buzzers. Press Done testing there first.</div>`;
+  const first = order[0];
+  if (first) {
+    const t = teamOf(first.team);
+    return `<div class="side"><span class="state buzzed">Buzzed</span>
+      <div class="first" style="margin-top:6px"><i style="background:${esc(t.color)}"></i>${esc(t.name)}</div>
+      <div class="timer" data-btimer><span class="num"></span><span class="note" data-btlbl></span></div>
+      <div class="row" data-btbtns></div></div>
+      <button class="b ok big" data-j="correct">&#10003; Correct &mdash; +${(c.value || 0).toLocaleString()}</button>
+      <button class="b bad big" data-j="wrong">&#10007; Wrong &mdash; reopen</button>
+      ${order.length > 1 ? `<div class="chips">${order.map((o, i) => { const tt = teamOf(o.team); return `<span class="chip"><i style="background:${esc(tt.color)}"></i>${i + 1} ${esc(tt.name)}${i ? ` +${((o.at - order[0].at) / 1000).toFixed(2)}s` : ""}</span>`; }).join("")}</div>` : ""}
+      <button class="b" data-j="buzzReset">Reset buzzers</button>`;
+  }
+  if (buzz.open) return `<div class="row"><span class="state open">Open</span><span class="note grow">Waiting for a buzz&hellip;</span><button class="b" data-j="buzzClose">Close</button></div>
+    <button class="b nobody big" data-j="nobody">Nobody knows &mdash; show the answer</button>`;
+  return `<div class="row"><span class="state">Closed</span><span class="note grow">Read the clue, then open.</span><button class="b" data-j="nobody">Skip &mdash; show answer</button></div>
+    <button class="b primary big" data-j="buzzOpen">Open buzzers</button>`;
+}
+$("tab-jeop").onclick = e => {
+  const b = e.target.closest("[data-j]"); if (!b || b.disabled) return;
+  const fn = b.dataset.j;
+  if (fn === "open") J("open", +b.dataset.c, +b.dataset.r);
+  else if (b.dataset.arg) J(fn, b.dataset.arg);
+  else J(fn);
+};
+
+/* timers tick without redrawing (buzz-in timer + gamble timer + music countdown) */
+function tick(){
+  const el = document.querySelector("[data-btimer]");
+  if (el) {
+    const c = answerClock(buzz, order, serverNow());
+    const btns = document.querySelector("[data-btbtns]");
+    if (!c || c.stopped) { el.querySelector(".num").textContent = ""; el.querySelector("[data-btlbl]").textContent = c ? "Timer stopped" : ""; }
+    else {
+      const s = Math.ceil(c.left / 1000);
+      el.querySelector(".num").textContent = c.done ? "Time!" : s + "s";
+      el.querySelector("[data-btlbl]").textContent = c.paused ? "Paused" : "to answer";
+      el.classList.toggle("done", c.done); el.classList.toggle("low", !c.done && s <= 3); el.classList.toggle("paused", c.paused);
+    }
+    const want = !c ? "" : (c.paused || c.stopped) ? `<button class="b grow lit-pause" data-j="tresume">&#9654; Resume</button><button class="b" data-j="trestart">&#8635; Restart</button>`
+      : `<button class="b grow" data-j="tpause">&#10074;&#10074; Pause</button><button class="b" data-j="trestart">&#8635; Restart</button>`;
+    if (btns && btns._h !== want) { btns._h = want; btns.innerHTML = want; }
+  }
+  const gt = document.querySelector("[data-gtimer]");
+  if (gt && view && view.jeop && view.jeop.timer) { const left = Math.max(0, (view.jeop.timer.endsAt - serverNow()) / 1000); gt.textContent = left > 0 ? "(" + Math.ceil(left) + ")" : "(Time!)"; }
+}
+setInterval(tick, 200);
+
+/* ---------- Music ---------- */
+function renderMusic(){
+  const m = view.music;
+  if (!m) return;
+  const pl = m.playing;
+  paint("tab-music", `<div class="card"><div class="lbl">Music round</div>
+    <div class="note">Clips play ${m.clip} seconds on ${m.on === "tv" ? "<b>the TV</b>" : "<b>the laptop</b>"} (switch that on the laptop). Tap again to stop.</div>
+    ${m.songs.map(s => {
+      const on = pl && pl.n === s.n;
+      return `<div class="song"><button class="b pb ${on ? "lit-play" : "primary"}" data-m="${on ? "stop" : "play"}" data-n="${s.n}" ${s.link ? "" : "disabled"}>${on ? "&#9632; " + (pl.left != null ? pl.left : "") : "&#9654; " + s.n}</button>
+        <div class="tt"><b>${esc(s.title || "Song " + s.n)}</b><span>${esc([s.artist, s.year].filter(Boolean).join(" · ") || (s.link ? "" : "No link yet"))}</span></div></div>`;
+    }).join("")}</div>`);
+}
+$("tab-music").onclick = e => { const b = e.target.closest("[data-m]"); if (!b || b.disabled) return; send({ a: "m", fn: b.dataset.m, args: [+b.dataset.n] }); };
+
+/* ---------- Feud (talks to the Feud site directly, then tells the laptop to catch up) ---------- */
+const feudApi = () => ((view && view.feudBase) || "https://kavafeud.netlify.app") + "/.netlify/functions/feud";
+async function loadFeud(){
+  try { const r = await fetch(feudApi() + "?action=status", { cache: "no-store" }); feud = await r.json(); }
+  catch(e) { feud = feud || { error: true }; }
+  if (tab === "feud") renderFeud();
+}
+async function feudDo(action, body, after){
+  try {
+    const r = await fetch(feudApi() + "?action=" + action, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) });
+    const d = await r.json();
+    if (d.error) { flash(d.error); return; }
+  } catch(e) { flash("Couldn't reach the Feud site"); return; }
+  try { navigator.vibrate && navigator.vibrate(15); } catch(e) {}
+  send({ a: "f", fn: after || "refresh" });
+  loadFeud();
+}
+function renderFeud(){
+  if (!feud) { paint("tab-feud", `<div class="card"><div class="note">Loading Feud&hellip;</div></div>`); return; }
+  if (feud.error) { paint("tab-feud", `<div class="card"><div class="err">Couldn't reach the Feud site.</div></div>`); return; }
+  const surveys = feud.surveys || {}, play = feud.play || {};
+  const ids = Object.keys(surveys).filter(id => Array.isArray(surveys[id].questions));
+  if (!feudSel.sid && play.surveyId && surveys[play.surveyId]) feudSel.sid = play.surveyId;
+  const S = feudSel.sid && surveys[feudSel.sid];
+  let h = `<div class="card"><div class="lbl">Load a board</div>
+    <select id="fSurvey"><option value="">&mdash; pick a survey &mdash;</option>${ids.map(id => `<option value="${esc(id)}" ${id === feudSel.sid ? "selected" : ""}>${esc(surveys[id].title)}</option>`).join("")}</select>`;
+  if (S) {
+    const qs = S.questions.map((q, i) => ({ q, i })).filter(x => x.q.board && x.q.board.locked);
+    h += qs.length ? `<div class="qchips">${qs.map(({ q, i }) => {
+        const onTV = play.surveyId === feudSel.sid && play.qid === q.qid;
+        return `<button class="${feudSel.qid === q.qid ? "on" : ""}" data-fq="${esc(q.qid)}">Q${i + 1}${onTV ? " \u{1F4FA}" : ""}: ${esc(q.text.slice(0, 26))}${q.text.length > 26 ? "&hellip;" : ""}</button>`; }).join("")}</div>
+      <button class="b primary" data-f="load" ${feudSel.qid ? "" : "disabled"}>Load to TV</button>`
+      : `<div class="note">No locked boards in this survey yet (lock them on the laptop).</div>`;
+  }
+  h += `</div>`;
+  const PS = play.surveyId && surveys[play.surveyId], PQ = PS && PS.questions.find(q => q.qid === play.qid);
+  if (PQ && PQ.board) {
+    const strikes = play.strikes || 0;
+    h += `<div class="card"><div class="lbl">On the TV</div><div class="t" style="font-weight:800;font-size:17px">${esc(PQ.text)}</div>
+      ${PQ.board.slots.map((sl, i) => `<div class="slot ${sl.revealed ? "rev" : ""}"><span class="n">${i + 1}</span><span class="a">${esc(sl.text)}</span><span class="c">${sl.count}</span>
+        <button class="b ${sl.revealed ? "" : "primary"}" data-f="reveal" data-i="${i}" ${sl.revealed ? "disabled" : ""}>${sl.revealed ? "Shown" : "Reveal"}</button></div>`).join("")}
+      <div class="row"><div class="xs grow">${[1, 2, 3].map(n => `<span class="${n <= strikes ? "on" : ""}">&#10005;</span>`).join("")}</div>
+        <button class="b" data-f="clearStrikes">Reset strikes</button></div>
+      <button class="b strike big" data-f="strike">&#10005; Strike</button>
+      <div class="row"><button class="b grow" data-f="hideAll">Re-hide all</button><button class="b grow" data-f="clear">Clear board</button></div></div>`;
+  }
+  paint("tab-feud", h);
+  const sel = $("fSurvey"); if (sel) sel.onchange = () => { feudSel = { sid: sel.value || null, qid: null }; renderFeud(); };
+}
+$("tab-feud").onclick = e => {
+  const q = e.target.closest("[data-fq]"); if (q) { feudSel.qid = q.dataset.fq; renderFeud(); return; }
+  const b = e.target.closest("[data-f]"); if (!b || b.disabled) return;
+  const f = b.dataset.f;
+  if (f === "load") feudDo("play_load", { surveyId: feudSel.sid, qid: feudSel.qid }, "loaded");
+  else if (f === "reveal") feudDo("reveal", { index: +b.dataset.i });
+  else if (f === "strike") feudDo("strike", { mode: "add" });
+  else if (f === "clearStrikes") feudDo("strike", { mode: "clear" });
+  else if (f === "hideAll") feudDo("hide_all");
+  else if (f === "clear") { if (confirm("Clear the board? The TV goes back to the survey screen.")) feudDo("play_reset", {}, "loaded"); }
+};
+</script>
+</body>
+</html>

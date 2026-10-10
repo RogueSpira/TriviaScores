@@ -243,7 +243,20 @@
     90%  { bottom:6vh;   transform:rotate(353deg) scale(1.3); }
     100% { bottom:-12vh; transform:rotate(353deg) scale(1); }
   }
-  @media (prefers-reduced-motion: reduce) { #manny { animation:none; } #manny.party { animation:none; bottom:4vh; } }
+  /* Wrong answer / Feud strike: grumpy Manny with his X sign pops up, swells and shakes, then ducks back down */
+  #manny.angry { animation: mannyangry 3.2s cubic-bezier(.3,.7,.4,1) 1; z-index:90; right:4vw; transform-origin:85% 100%; }
+  @keyframes mannyangry {
+    0%   { bottom:var(--mrest); transform:rotate(0deg) scale(1); }
+    12%  { bottom:5vh; transform:rotate(0deg) scale(1.55); }
+    16%  { transform:rotate(-9deg) scale(1.6); } 20% { transform:rotate(9deg) scale(1.6); }
+    24%  { transform:rotate(-9deg) scale(1.6); } 28% { transform:rotate(9deg) scale(1.6); }
+    32%  { transform:rotate(-7deg) scale(1.6); } 36% { transform:rotate(7deg) scale(1.6); }
+    40%  { transform:rotate(-5deg) scale(1.58); } 44% { transform:rotate(5deg) scale(1.58); }
+    48%  { transform:rotate(0deg) scale(1.55); }
+    78%  { bottom:5vh; transform:rotate(0deg) scale(1.55); }
+    100% { bottom:var(--mrest); transform:rotate(-7deg) scale(1); }
+  }
+  @media (prefers-reduced-motion: reduce) { #manny { animation:none; } #manny.party { animation:none; bottom:4vh; } #manny.angry { animation:none; bottom:4vh; } }
 
   /* ---------- Feud board — Mandarin branding (scoped to #feudView) ---------- */
   #feudView {
@@ -520,10 +533,18 @@ function renderLeaderboard(teams, reveal){
   if (reveal && shown === n && before < n) { confetti(); mannyParty(); }
 }
 
+/* Wrong answer / Feud strike: Manny swaps to his X-sign picture, pops up and shakes angrily */
+const MANNY_NO = new Image(); MANNY_NO.src = "assets/manny-no.png";   // preload so the swap is instant
+function mannyNo(){
+  const m = document.getElementById("manny");
+  m.classList.remove("party", "angry"); void m.offsetWidth;
+  m.src = "assets/manny-no.png"; m.classList.add("angry");
+  clearTimeout(m._t); m._t = setTimeout(() => { m.classList.remove("angry"); m.src = "assets/manny.png"; }, 3300);
+}
 /* Manny celebrates the winner, then goes back to peeking */
 function mannyParty(){
   const m = document.getElementById("manny");
-  m.classList.remove("party"); void m.offsetWidth; m.classList.add("party");
+  m.classList.remove("party", "angry"); m.src = "assets/manny.png"; void m.offsetWidth; m.classList.add("party");
   clearTimeout(m._t); m._t = setTimeout(() => m.classList.remove("party"), 6700);
 }
 
@@ -581,7 +602,7 @@ function runMusic(play){
   if (first) {
     const elapsed = (Date.now() + serverOffset - (play.at || 0)) / 1000;
     if (elapsed > play.end - play.start - 1) return;
-    if (elapsed > 1) start = Math.floor(play.start + elapsed);
+    if (elapsed > 3) start = Math.floor(play.start + elapsed);   // under ~3 s is just the normal pick-up delay
   }
   if (!soundUnlocked) soundChip.hidden = false;
   if (!musicPlayerReady) musicPlayerReady = loadYT().then(YT => new Promise(res => {
@@ -892,7 +913,7 @@ function showVerdict(v){
   el.querySelector(".vcard").innerHTML = `<div class="vicon">${right ? "&#10003;" : "&#10007;"}</div><div class="vword">${right ? "Correct!" : "Wrong!"}</div>
     <div class="vteam"><i style="background:${escapeHtml(t.color || "#F36F03")}"></i>${escapeHtml(t.name)}</div>${right && v.points ? `<div class="vpts">+${Number(v.points).toLocaleString()}</div>` : ""}`;
   el.hidden = false;
-  if (right) chime(); else buzzer();
+  if (right) chime(); else { buzzer(); mannyNo(); }
   clearTimeout(verdictTimer); verdictTimer = setTimeout(() => { el.hidden = true; }, 2600);
 }
 
@@ -1038,7 +1059,7 @@ async function feudTick(){
   // buzzer + big X when a new strike lands (ignore the count we found on arrival)
   if (typeof s.strikeEvent === "number") {
     if (lastStrikeEvent === null) lastStrikeEvent = s.strikeEvent;
-    else if (s.strikeEvent > lastStrikeEvent) { lastStrikeEvent = s.strikeEvent; buzzer(); flashBigX(); }
+    else if (s.strikeEvent > lastStrikeEvent) { lastStrikeEvent = s.strikeEvent; buzzer(); flashBigX(); mannyNo(); }
   }
 
   if (!s.board || !s.board.slots || !s.board.slots.length) {
