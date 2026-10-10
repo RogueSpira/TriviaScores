@@ -185,12 +185,27 @@ function cleanJeopardy(j) {
   // locked out for buzzing before the buzzers open
   const bz = (j.buzz && typeof j.buzz === "object") ? j.buzz : {};
   const lockout = Number(bz.lockout);
-  return { timer: Math.max(5, Math.min(120, Math.round(Number(j.timer) || 30))), boards,
+  // which saved board (in the library) this is, if any
+  const g = j.game && typeof j.game === "object" ? j.game : null;
+  const game = g && /^jg_[A-Za-z0-9]{4,30}$/.test(String(g.id || "")) ? { id: String(g.id), name: str(g.name, 60) || "Untitled board" } : null;
+  return { timer: Math.max(5, Math.min(120, Math.round(Number(j.timer) || 30))), boards, game,
     buzz: { auto: bz.auto === true, lockout: Number.isFinite(lockout) ? Math.max(0, Math.min(5, Math.round(lockout * 4) / 4)) : 0.5,
       // seconds a team gets to answer after buzzing in (0 = no buzz-in timer)
       answer: Number.isFinite(Number(bz.answer)) && bz.answer !== null && bz.answer !== "" ? Math.max(0, Math.min(60, Math.round(Number(bz.answer)))) : 10 } };
 }
 const mediaStore = () => getStore({ name: "trivia-media", consistency: "strong" });
+// Saved Jeopardy boards (library): key "index" = [{ id, name, created, updated, lastPlayed, r1:[cat names], g1:[cat names], clues }],
+// key <id> = { id, name, boards:{ r1, g1 } }
+const libStore = () => getStore({ name: "trivia-jlib", consistency: "strong" });
+const LIB_MAX = 300;
+const libId = v => { const id = String(v || ""); return /^jg_[A-Za-z0-9]{4,30}$/.test(id) ? id : null; };
+async function libIndex(){ const v = await libStore().get("index", { type: "json" }); return Array.isArray(v) ? v : []; }
+function libSummary(boards){
+  const names = id => boards[id].cats.map(c => c.name || "");
+  let clues = 0;
+  for (const id of JBOARDS) boards[id].cats.forEach(c => c.qs.forEach(q => { if (q.clue.text || q.clue.src) clues++; }));
+  return { r1: names("r1"), g1: names("g1"), clues };
+}
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const cellCount = id => isGamble(id) ? GAMBLE_CATS : GRID_CATS * GRID_ROWS;
 
@@ -240,6 +255,17 @@ export default async (req) => {
       // the host page asks for the full question set (with answers); the TV never does
       if (url.searchParams.get("host") === "1") { out.jeopardy = (s.jeopardy && s.jeopardy.boards && s.jeopardy.boards.g1) ? s.jeopardy : cleanJeopardy(s.jeopardy || {}); out.jplay = s.jplay || blankJplay(); }
       return json(out);
+    }
+
+    if (action === "jlib_list") {
+      const idx = await libIndex();
+      return json({ boards: idx.sort((a, b) => (b.updated || 0) - (a.updated || 0)) });
+    }
+    if (action === "jlib_get") {
+      const id = libId(url.searchParams.get("id"));
+      const g = id && await libStore().get(id, { type: "json" });
+      if (!g) return json({ error: "Not found" }, 404);
+      return json({ board: g });
     }
 
     if (action === "media") {
@@ -385,6 +411,50 @@ export default async (req) => {
         };
         await save(state);
         return json({ ok: true, jplay: state.jplay, now: Date.now() });
+      }
+
+      case "jlib_save": {
+        // Save a board to the library: { id? (omit to create), name, boards:{ r1, g1 } }
+        const clean = cleanJeopardy({ boards: body.boards || {} });
+        const name = (body.name == null ? "" : String(body.name)).trim().slice(0, 60) || "Untitled board";
+        const idx = await libIndex();
+        let id = libId(body.id);
+        let entry = id && idx.find(e => e.id === id);
+        if (!entry) {
+          if (idx.length >= LIB_MAX) return json({ error: "The library is full (" + LIB_MAX + " boards). Delete some old ones first." }, 400);
+          id = "jg_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+          entry = { id, created: Date.now(), lastPlayed: null };
+          idx.push(entry);
+        }
+        Object.assign(entry, { name, updated: Date.now() }, libSummary(clean.boards));
+        await libStore().setJSON(id, { id, name, boards: clean.boards });
+        await libStore().setJSON("index", idx);
+        return json({ ok: true, entry });
+      }
+      case "jlib_rename": {
+        const id = libId(body.id), idx = await libIndex(), entry = id && idx.find(e => e.id === id);
+        if (!entry) return json({ error: "Not found" }, 404);
+        entry.name = (body.name == null ? "" : String(body.name)).trim().slice(0, 60) || entry.name;
+        const g = await libStore().get(id, { type: "json" });
+        if (g) { g.name = entry.name; await libStore().setJSON(id, g); }
+        await libStore().setJSON("index", idx);
+        if (state.jeopardy && state.jeopardy.game && state.jeopardy.game.id === id) { state.jeopardy.game.name = entry.name; await save(state); }
+        return json({ ok: true, entry });
+      }
+      case "jlib_played": {
+        // the loaded board was played tonight
+        const id = libId(body.id), idx = await libIndex(), entry = id && idx.find(e => e.id === id);
+        if (!entry) return json({ error: "Not found" }, 404);
+        entry.lastPlayed = Date.now();
+        await libStore().setJSON("index", idx);
+        return json({ ok: true, entry });
+      }
+      case "jlib_delete": {
+        const id = libId(body.id), idx = await libIndex();
+        if (!id || !idx.some(e => e.id === id)) return json({ error: "Not found" }, 404);
+        await libStore().setJSON("index", idx.filter(e => e.id !== id));
+        await libStore().delete(id);
+        return json({ ok: true });
       }
 
       case "reset": {

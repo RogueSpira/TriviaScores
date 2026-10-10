@@ -23,7 +23,7 @@ const B = window.Buzz = {
   clock(){ return answerClock(this.state, this.order, Date.now() + this.offset); },
   lockoutMs(){ const s = (typeof jq !== "undefined" && jq.buzz) ? Number(jq.buzz.lockout) : 0.5; return Math.round((Number.isFinite(s) ? s : 0.5) * 1000); },
   isReleased(id){ return !!(this.teams[id] && this.teams[id].owner === "released"); },
-  pauseTimer, resumeTimer, restartTimer, stopTimer,
+  pauseTimer, resumeTimer, restartTimer, stopTimer, markRight,
   connect, open, close, newQuestion, idle, wrong, reset, test, removeTeam, release, clearAll, setLockout, teamEdited
 };
 
@@ -104,7 +104,20 @@ function idle(){ if (!api) return; write(api.set("game/buzz", round({ open: fals
 function open(){ if (!B.isOn()) return; write(api.update("game/buzz", { open: true, openedAt: api.ts() })); }
 function close(){ if (!B.isOn()) return; write(api.update("game/buzz", { open: false })); }
 // Wrong answer: lock that team out of this question and reopen for everyone else.
-function wrong(team){ if (!B.isOn()) return; write(api.update("game/buzz", { ["locked/" + team]: true, round: newRoundId(), open: true, openedAt: api.ts(), timer: null })); }
+// Wrong answer: lock that team out of this clue, reopen for everyone else, and flash "Wrong" on the TV and phones.
+function wrong(team){
+  if (!B.isOn()) return;
+  write(api.update("game/buzz", { ["locked/" + team]: true, round: newRoundId(), open: true, openedAt: api.ts(), timer: null,
+    verdict: { id: newRoundId("v"), team, kind: "wrong", at: api.ts() } }));
+}
+// Correct answer: stop the timer, close the buzzers, and flash "Correct" (with the points) on the TV and phones.
+function markRight(team, points){
+  if (!B.isOn()) return;
+  const c = B.clock();
+  const patch = { open: false, verdict: { id: newRoundId("v"), team, kind: "right", points: Math.round(Number(points) || 0), at: api.ts() } };
+  if (c && c.team === team) patch.timer = { team, stopped: true, leftMs: Math.round(c.left) };
+  write(api.update("game/buzz", patch));
+}
 // Clear the buzzes and any lockouts; buzzers closed until you open them.
 function reset(){ if (!B.isOn()) return; write(api.update("game/buzz", { round: newRoundId(), open: false, locked: null, timer: null })); }
 // Buzz-in timer controls (the timer itself starts on its own when a team buzzes)

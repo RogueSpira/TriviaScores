@@ -79,3 +79,10 @@ export function answerClock(state, order, now){
   const left = Math.max(0, ms - (now - anchor));
   return { team: first.team, total, left, paused: false, stopped: false, done: left <= 0 };
 }
+
+// Correct / Wrong flash: the host's latest verdict, if it's recent (so a refresh doesn't replay an old one).
+export function freshVerdict(state, now, ms = 3200){
+  const v = state && state.verdict;
+  if (!v || !v.id || !v.at) return null;
+  return (now - Number(v.at)) < ms ? v : null;
+}

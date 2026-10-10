@@ -169,6 +169,20 @@
   .qr-view .qr-teams { display:flex; flex-wrap:wrap; justify-content:center; gap:1.2vh 1.2vw; max-width:86vw; }
   .qr-view .qr-teams span { display:inline-flex; align-items:center; gap:.8vw; background:var(--cream); color:var(--ink); border:.35vh solid var(--ink); border-radius:999px; padding:.6vh 1.6vw; font-family:var(--round); font-weight:700; font-size:2.8vh; animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
   .qr-view .qr-teams i { width:2.2vh; height:2.2vh; border-radius:50%; border:.3vh solid var(--ink); }
+  /* Correct / Wrong flash */
+  #verdict { position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; pointer-events:none; background:rgba(11,8,0,.78); }
+  #verdict[hidden] { display:none; }
+  #verdict .vcard { display:flex; flex-direction:column; align-items:center; gap:1.4vh; padding:5vh 9vw 5.4vh; min-width:44vw; border:.8vh solid var(--ink); border-radius:4vh;
+    box-shadow:1.4vh 1.4vh 0 var(--ink); animation: vpop .55s cubic-bezier(.2,1.6,.4,1); text-align:center; }
+  #verdict.right .vcard { background:var(--leaf); color:var(--cream); }
+  #verdict.wrong .vcard { background:#d8352a; color:var(--cream); animation: vpop .4s cubic-bezier(.2,1.6,.4,1), vshake .5s .4s ease-in-out; }
+  #verdict .vicon { font-family:var(--round); font-weight:700; font-size:22vh; line-height:.9; -webkit-text-stroke:.6vh var(--ink); paint-order:stroke fill; }
+  #verdict .vword { font-family:var(--groovy); font-size:11vh; line-height:1; -webkit-text-stroke:.35vh var(--ink); paint-order:stroke fill; text-shadow:.7vh .7vh 0 var(--ink); }
+  #verdict .vteam { display:flex; align-items:center; gap:1.4vw; font-family:var(--round); font-weight:700; font-size:5vh; text-transform:uppercase; letter-spacing:.3vh; }
+  #verdict .vteam i { width:4.4vh; height:4.4vh; border-radius:50%; border:.45vh solid var(--ink); }
+  #verdict .vpts { font-family:var(--groovy); font-size:8vh; color:var(--sun); -webkit-text-stroke:.3vh var(--ink); paint-order:stroke fill; }
+  @keyframes vpop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes vshake { 0%,100% { transform:translateX(0); } 20%,60% { transform:translateX(-2.4vw); } 40%,80% { transform:translateX(2.4vw); } }
   .jq-card { flex:1 1 auto; display:flex; flex-direction:column; background:var(--cream); color:var(--ink); border:.6vh solid var(--ink); border-radius:3vh; box-shadow:1.2vh 1.2vh 0 var(--orange), 1.8vh 1.8vh 0 var(--ink); overflow:hidden; min-height:0; margin:0 2vw 2vh; }
   .jq-meta { background:var(--orange); color:var(--cream); border-bottom:.5vh solid var(--ink); display:flex; justify-content:space-between; align-items:center; padding:1.4vh 3vw; font-family:var(--round); font-weight:700; font-size:3.4vh; text-transform:uppercase; letter-spacing:.2vh; }
   .jq-meta .v { font-family:var(--groovy); text-transform:none; font-size:4.4vh; -webkit-text-stroke:.25vh var(--ink); paint-order:stroke fill; }
@@ -349,6 +363,7 @@
     <div class="qr-teams" id="qrTeams"></div>
   </div>
   <div id="feudBuzz" hidden></div>
+  <div id="verdict" hidden><div class="vcard"></div></div>
 
   <!-- FEUD VIEW -->
   <div id="feudView" class="hidden">
@@ -820,6 +835,36 @@ function ding(){
     });
   } catch(e) {}
 }
+// Correct / Wrong flash from the host (new verdicts only; shows ~2.6 s)
+let lastVerdictId = null, verdictTimer = null;
+function chime(){
+  if (muted || !soundUnlocked) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    [[784, 0], [988, 0.12], [1319, 0.24]].forEach(([f, t]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "triangle"; o.frequency.setValueAtTime(f, now + t);
+      g.gain.setValueAtTime(0.0001, now + t); g.gain.exponentialRampToValueAtTime(0.45, now + t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.5);
+      o.connect(g); g.connect(audioCtx.destination); o.start(now + t); o.stop(now + t + 0.52);
+    });
+  } catch(e) {}
+}
+function showVerdict(v){
+  const T = window.TVBuzz, el = document.getElementById("verdict");
+  if (!v || v.id === lastVerdictId) return;
+  lastVerdictId = v.id;
+  if (!(currentDisplay === "jeopardy" || currentDisplay === "feud")) return;
+  const t = T.teams[v.team] || { name: "A team" };
+  const right = v.kind === "right";
+  el.className = right ? "right" : "wrong";
+  el.querySelector(".vcard").innerHTML = `<div class="vicon">${right ? "&#10003;" : "&#10007;"}</div><div class="vword">${right ? "Correct!" : "Wrong!"}</div>
+    <div class="vteam"><i style="background:${escapeHtml(t.color || "#F36F03")}"></i>${escapeHtml(t.name)}</div>${right && v.points ? `<div class="vpts">+${Number(v.points).toLocaleString()}</div>` : ""}`;
+  el.hidden = false;
+  if (right) chime(); else buzzer();
+  clearTimeout(verdictTimer); verdictTimer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+
 // buzz-in countdown next to the team name (updated several times a second)
 let lastTimeUpKey = "";
 function tickTVBuzzTimer(){
@@ -1015,7 +1060,7 @@ setInterval(tick, 1200);
 </script>
 <script type="module">
 // Phone buzzers: the TV only reads (who joined, buzzers open, who buzzed first).
-import { connectBuzz, buzzOrder, answerClock } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, answerClock, freshVerdict } from "./kava-buzz.js";
 const T = window.TVBuzz;
 T.offset = 0;
 T.clock = () => answerClock(T.state, T.order, Date.now() + T.offset);
@@ -1032,6 +1077,8 @@ try {
       unsub = watched ? fb.watch("game/buzzes/" + watched, b => { T.order = buzzOrder(b); paintTVBuzz(); }) : null;
     }
     paintTVBuzz();
+    const vd = freshVerdict(T.state, Date.now() + T.offset);
+    if (vd) showVerdict(vd); else if (T.state.verdict) lastVerdictId = T.state.verdict.id;   // old one (e.g. after a refresh): don't replay
   });
 } catch (e) { console.warn("Buzzers not available on the TV:", e && e.message); }
 </script>

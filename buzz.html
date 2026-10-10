@@ -102,13 +102,13 @@
   </main>
 
 <script type="module">
-import { connectBuzz, buzzOrder, answerClock } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, answerClock, freshVerdict } from "./kava-buzz.js";
 const $ = id => document.getElementById(id);
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }, del(k){ try { localStorage.removeItem(k); } catch(e) {} } };
 
 let fb, myTeam = store.get("kavaBuzzTeam"), teams = {}, buzz = {}, roundBuzzes = {}, isConnected = false;
 let roundUnsub = null, watchedRound = null, earlyUntil = 0, earlyTimer = null, pressedRound = null, presenceFor = null;
-let lastFirstKey = "";
+let lastFirstKey = "", lastVerdictSeen = null;
 // Tapping again while still locked from an early tap = spamming: this phone is locked for 5 seconds.
 // (Kept in storage so refreshing the page doesn't get around it.)
 const SPAM_MS = 5000;
@@ -268,7 +268,12 @@ function render(){
   const early = Date.now() < earlyUntil;
   const spamLeft = Math.ceil((spamUntil - Date.now()) / 1000);
   let cls = "", main = "Wait…", small = "Buzzers closed", msg = "";
-  if (locked) { cls = "locked"; main = "Locked"; small = "Out for this question"; msg = "Wait for the next question."; }
+  // the host just marked an answer Correct / Wrong
+  const v = freshVerdict(buzz, Date.now() + serverOffset);
+  const vTeam = v ? ((teams[v.team] && teams[v.team].name) || "A team") : "";
+  if (v && v.team === myTeam && v.kind === "right") { cls = "first"; main = "Correct!"; small = v.points ? "+" + Number(v.points).toLocaleString() + " points" : "Nice one"; msg = "Nailed it!"; }
+  else if (v && v.team === myTeam && v.kind === "wrong") { cls = "locked"; main = "Wrong"; small = "Out for this question"; msg = "The others can buzz in now."; }
+  else if (locked) { cls = "locked"; main = "Locked"; small = "Out for this question"; msg = "Wait for the next question."; }
   else if (place === 0) {
     cls = "first"; main = "First!"; small = buzz.test ? "Test buzz worked" : "You buzzed in first"; msg = buzz.test ? "Your buzzer works." : "Get ready to answer!";
     const c = answerClock(buzz, order, Date.now() + serverOffset);
@@ -280,6 +285,9 @@ function render(){
   else if (early) { cls = "early"; main = "Too early!"; small = "Locked for a moment"; msg = "Wait for the host to open the buzzers."; }
   else if (buzz.open) { cls = "open"; main = "BUZZ!"; small = buzz.test ? "Test: tap now" : "Tap to buzz in"; }
   else if (order.length) { main = "Wait…"; small = "Buzzers closed"; msg = first + " buzzed in first."; }
+  if (v && v.team !== myTeam && !(place >= 0)) msg = v.kind === "right" ? `${vTeam} got it!` : `${vTeam} was wrong${buzz.open ? " \u2014 buzz in!" : "."}`;
+  // buzz once for my own verdict
+  if (v && v.team === myTeam && v.id !== lastVerdictSeen) { lastVerdictSeen = v.id; try { navigator.vibrate && navigator.vibrate(v.kind === "right" ? [60, 50, 60, 50, 200] : [400]); } catch(e) {} }
   const btn = $("buzzBtn");
   btn.className = cls; $("btnMain").textContent = main; $("btnSmall").textContent = small; $("msg").textContent = msg;
   // a buzz for me just landed first: a happy double buzz
@@ -288,7 +296,7 @@ function render(){
 }
 
 // keep the buzz-in countdown moving
-setInterval(() => { if (myTeam && Object.keys(roundBuzzes).length) render(); }, 250);
+setInterval(() => { if (myTeam && (Object.keys(roundBuzzes).length || buzz.verdict)) render(); }, 250);
 
 // keep the screen on while the buzzer is open (where the phone allows it)
 let wakeLock = null;

@@ -678,6 +678,28 @@
   .bz-ok { background: #3cb44b !important; border-color: #3cb44b !important; color: #04210b !important; }
   .bz-bad { border-color: #d9736f !important; color: #f0a08f !important; }
 
+  /* ---- Saved Jeopardy boards ---- */
+  .jp-gamename { font-size: 13px; color: var(--muted); margin-right: auto; margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
+  .jp-gamename b { color: var(--ink); }
+  .jp-gamename.unsaved b { color: #f0bf17; }
+  .jl-now { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+  .jl-now.unsaved { border-color: #f0bf17; }
+  .jl-now .lbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .jl-now input, .jl-new input { background: var(--field); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 8px 10px; font-size: 14px; min-width: 240px; }
+  .jl-now input:focus, .jl-new input:focus { outline: none; border-color: var(--accent); }
+  .jl-now .hint { font-size: 12.5px; color: var(--muted); }
+  .jl-new { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .jl-list { display: flex; flex-direction: column; gap: 8px; }
+  .jl-row { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; }
+  .jl-row.loaded { border-color: var(--accent); }
+  .jl-row .nm { font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .jl-row .chip { font-size: 10.5px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--on-accent); }
+  .jl-row .meta { font-size: 12px; color: var(--muted); }
+  .jl-row .cats { font-size: 12.5px; color: var(--muted); grid-column: 1 / -1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .jl-row .cats b { color: var(--ink); font-weight: 700; }
+  .jl-row .acts { display: flex; gap: 6px; }
+  .jl-empty { color: var(--muted); font-size: 14px; padding: 20px; text-align: center; border: 1px dashed var(--line); border-radius: 10px; }
+
   /* ---- Jeopardy ---- */
   #jeopStage { justify-content: flex-start; align-items: stretch; padding: 14px 24px 20px; overflow-y: auto; gap: 12px; }
   .jp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -912,7 +934,9 @@
       <div class="jp-tabs" id="jpTabs">
         <button class="jp-tab active" data-jtab="play">Play</button>
         <button class="jp-tab" data-jtab="edit">Edit questions</button>
+        <button class="jp-tab" data-jtab="lib">Saved boards</button>
       </div>
+      <span class="jp-gamename" id="jpGameName"></span>
       <div class="jp-boardpick">
         <span class="hdr-lbl">Board</span>
         <div class="tvgrp" id="jpBoardPick">
@@ -937,6 +961,16 @@
         <span class="jp-hint">Click a question to put it on the TV. Questions you finish turn grey on the TV board.</span>
         <button class="mbtn warn" id="jpResetUsed">Reset board</button>
       </div>
+    </section>
+
+    <section id="jpLib" hidden>
+      <div class="jl-now" id="jlNow"></div>
+      <div class="jl-new">
+        <input type="text" id="jlNewName" maxlength="60" placeholder="New board name (e.g. Oct 16 &mdash; Halloween)">
+        <button class="mbtn primary" id="jlNewBtn">+ New blank board</button>
+        <input type="search" id="jlSearch" placeholder="Search saved boards" style="margin-left:auto">
+      </div>
+      <div class="jl-list" id="jlList"></div>
     </section>
 
     <section id="jpEdit" hidden>
@@ -1849,6 +1883,7 @@ function normalizeJeopardy(j){
   const out = { timer: Number(j && j.timer) || 30, boards: {},
     buzz: { auto: bz.auto === true, lockout: Number.isFinite(Number(bz.lockout)) && bz.lockout !== undefined && bz.lockout !== null ? Number(bz.lockout) : 0.5,
       answer: Number.isFinite(Number(bz.answer)) && bz.answer !== undefined && bz.answer !== null ? Number(bz.answer) : 10 } };
+  out.game = (j && j.game && j.game.id) ? { id: j.game.id, name: j.game.name || "Untitled board" } : null;
   JB_IDS.forEach(id => {
     const b = (j && j.boards && j.boards[id]) || {}, base = blankJBoard(id);
     out.boards[id] = {
@@ -2474,7 +2509,9 @@ wheel.onclick = spin;
   /* ---------- tabs + board pick ---------- */
   $("jpTabs").onclick = e => {
     const b = e.target.closest("[data-jtab]"); if (!b) return;
-    tab = b.dataset.jtab; renderJeopardy();
+    tab = b.dataset.jtab;
+    if (tab === "lib") fetchLib();
+    renderJeopardy();
   };
   $("jpBoardPick").onclick = e => {
     const b = e.target.closest("[data-jb]"); if (!b) return;
@@ -2505,6 +2542,7 @@ wheel.onclick = spin;
     jp.stage = gambleNow() ? "pick" : "question";
     if (gambleNow() && jp.cats <= c) jp.cats = c + 1;
     if (BZ()) { if (gambleNow()) buzzIdle(); else Buzz.newQuestion(!!(jq.buzz && jq.buzz.auto)); }
+    markPlayed();
     onTV(); sendJplay({ timer: "stop" });
   };
   function finishCell(markUsed){
@@ -2724,7 +2762,7 @@ wheel.onclick = spin;
     on("bzRight", () => {
       const f = Buzz.order[0]; if (!f) return;
       if (!teams.find(t => t.id === f.team)) { toast("That team isn't on the scoreboard"); return; }
-      award(f.team); Buzz.stopTimer(); Buzz.close();
+      award(f.team); Buzz.markRight(f.team, (board().values || [])[jp.cell.r] || 0);
       revealAnswer({ team: f.team });
     });
   }
@@ -2932,10 +2970,182 @@ wheel.onclick = spin;
     else { const t = e.dataTransfer.getData("text"); if (t) useLink(box, t); }
   });
 
+  /* ---------- SAVED BOARDS (library) ---------- */
+  // The loaded board (jq) is what you edit and play. If it's in the library, edits are saved back to it automatically.
+  let lib = null, libLoading = false, libBaseline = null, libSaving = false;
+  const libApi = (action, body) => body
+    ? fetch(SCORES_API + "?action=" + action, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json())
+    : fetch(SCORES_API + "?action=" + action, { cache: "no-store" }).then(r => r.json());
+  const boardsJSON = () => JSON.stringify(jq.boards);
+  async function fetchLib(){
+    libLoading = true;
+    try { const d = await libApi("jlib_list"); lib = d.boards || []; } catch(e) { toast("Couldn't load saved boards"); lib = lib || []; }
+    libLoading = false;
+    if (tab === "lib") renderLib();
+  }
+  // autosave: every couple of seconds, if the loaded board changed, save it back to the library
+  async function libAutosave(){
+    if (!jq.game || libSaving) return;
+    const now = boardsJSON();
+    if (libBaseline === null) { libBaseline = now; return; }
+    if (now === libBaseline) return;
+    libSaving = true;
+    try {
+      const d = await libApi("jlib_save", { id: jq.game.id, name: jq.game.name, boards: jq.boards });
+      if (d.ok && d.entry.id !== jq.game.id) { jq.game.id = d.entry.id; saveState(); }   // the saved copy was deleted elsewhere: re-created
+      if (d.ok) { libBaseline = now; if (lib) { const i = lib.findIndex(e => e.id === d.entry.id); if (i >= 0) lib[i] = d.entry; else lib.unshift(d.entry); if (tab === "lib") renderLib(); } }
+    } catch(e) {}
+    libSaving = false;
+  }
+  setInterval(libAutosave, 2000);
+  async function flushLib(){ libSaving = false; await libAutosave(); }
+  const fmtDay = t => t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: new Date(t).getFullYear() === new Date().getFullYear() ? undefined : "numeric" }) : "";
+  function freshPlay(){
+    // a newly loaded board starts clean: categories hidden, nothing used
+    jp.board = "r1"; jp.cats = 0; jp.cell = null; jp.stage = "question"; jp.used = { r1: [], g1: [] };
+    buzzIdle();
+    sendJplay({ timer: "stop" });
+  }
+  function useBoard(id, name, boards){
+    jq.boards = normalizeJeopardy({ boards }).boards;
+    jq.game = { id, name };
+    libBaseline = boardsJSON();
+    editCat = 0; editBoard = "r1";
+    saveState(); freshPlay();
+  }
+  async function loadBoard(id){
+    const e = lib && lib.find(x => x.id === id);
+    if (!e) return;
+    const playing = (jp.used.r1 || []).some(Boolean) || (jp.used.g1 || []).some(Boolean) || jp.cats > 0 || jp.cell;
+    if (!confirm(`Load "${e.name}"?` + (playing ? "\n\nTonight's play progress (revealed categories, used questions) starts over." : ""))) return;
+    await flushLib();
+    try {
+      const d = await libApi("jlib_get&id=" + encodeURIComponent(id));
+      if (!d.board) throw new Error(d.error || "missing");
+      useBoard(d.board.id, d.board.name, d.board.boards);
+      toast("Loaded \u2713"); renderJeopardy();
+    } catch(err) { toast("Couldn't load that board"); }
+  }
+  async function saveCurrent(name){
+    name = String(name || "").trim();
+    if (!name) { toast("Give the board a name first"); return; }
+    const d = await libApi("jlib_save", { name, boards: jq.boards }).catch(() => ({}));
+    if (!d.ok) { toast(d.error || "Couldn't save"); return; }
+    jq.game = { id: d.entry.id, name: d.entry.name }; libBaseline = boardsJSON(); saveState();
+    toast("Saved to the library \u2713"); fetchLib(); renderJeopardy();
+  }
+  async function newBoard(name){
+    name = String(name || "").trim();
+    if (!name) { toast("Type a name for the new board"); $("jlNewName").focus(); return; }
+    await flushLib();
+    if (!jq.game && !confirm("The board that's loaded now isn't saved to the library. Start a new board anyway? (Save it first if you want to keep it.)")) return;
+    const blank = { r1: blankJBoard("r1"), g1: blankJBoard("g1") };
+    const d = await libApi("jlib_save", { name, boards: blank }).catch(() => ({}));
+    if (!d.ok) { toast(d.error || "Couldn't create the board"); return; }
+    useBoard(d.entry.id, d.entry.name, blank);
+    $("jlNewName").value = "";
+    fetchLib(); tab = "edit"; renderJeopardy(); toast("New board \u2713 \u2014 fill it in");
+  }
+  async function duplicateBoard(id){
+    const e = lib && lib.find(x => x.id === id); if (!e) return;
+    await flushLib();
+    const d = await libApi("jlib_get&id=" + encodeURIComponent(id)).catch(() => ({}));
+    if (!d.board) { toast("Couldn't copy that board"); return; }
+    const s2 = await libApi("jlib_save", { name: (e.name + " (copy)").slice(0, 60), boards: d.board.boards }).catch(() => ({}));
+    if (!s2.ok) { toast(s2.error || "Couldn't copy"); return; }
+    toast("Copied \u2713"); fetchLib();
+  }
+  async function deleteBoard(id){
+    const e = lib && lib.find(x => x.id === id); if (!e) return;
+    const loaded = jq.game && jq.game.id === id;
+    if (!confirm(`Delete "${e.name}" from the library? This can't be undone.` + (loaded ? "\n\nIt's loaded right now: it stays on screen, but stops saving to the library." : ""))) return;
+    const d = await libApi("jlib_delete", { id }).catch(() => ({}));
+    if (!d.ok) { toast("Couldn't delete"); return; }
+    if (loaded) { jq.game = null; saveState(); }
+    toast("Deleted"); fetchLib(); renderJeopardy();
+  }
+  async function renameCurrent(name){
+    name = String(name || "").trim();
+    if (!jq.game || !name || name === jq.game.name) return;
+    const d = await libApi("jlib_rename", { id: jq.game.id, name }).catch(() => ({}));
+    if (!d.ok) { toast("Couldn't rename"); return; }
+    jq.game.name = d.entry.name; saveState(); fetchLib(); renderJeopardy();
+  }
+  // "Last played": the first clue opened on a given day marks the loaded board as played
+  function markPlayed(){
+    if (!jq.game) return;
+    const k = "kavaJPlayed:" + jq.game.id, day = new Date().toDateString();
+    try { if (localStorage.getItem(k) === day) return; localStorage.setItem(k, day); } catch(e) {}
+    libApi("jlib_played", { id: jq.game.id }).then(d => { if (d.ok && lib) { const i = lib.findIndex(x => x.id === d.entry.id); if (i >= 0) lib[i] = d.entry; } }).catch(() => {});
+  }
+  function renderLib(){
+    const now = $("jlNow");
+    if (jq.game) {
+      now.className = "jl-now";
+      if (document.activeElement && document.activeElement.id === "jlRename") return renderLibList();
+      now.innerHTML = `<span class="lbl">Loaded now</span>
+        <input type="text" id="jlRename" maxlength="60" value="${escA(jq.game.name)}" title="Rename this board">
+        <span class="hint">Edits in <b>Edit questions</b> save to this board automatically. Play progress isn't saved into the board.</span>`;
+    } else {
+      now.className = "jl-now unsaved";
+      if (document.activeElement && document.activeElement.id === "jlSaveName") return renderLibList();
+      now.innerHTML = `<span class="lbl">Loaded now</span><b>This board isn't saved to the library yet.</b>
+        <input type="text" id="jlSaveName" maxlength="60" placeholder="Name it (e.g. Oct 9 &mdash; Monsters)">
+        <button class="mbtn primary" id="jlSaveBtn">Save it to the library</button>`;
+    }
+    renderLibList();
+  }
+  function renderLibList(){
+    const el = $("jlList");
+    if (!lib) { el.innerHTML = `<div class="jl-empty">Loading saved boards&hellip;</div>`; if (!libLoading) fetchLib(); return; }
+    const q = ($("jlSearch").value || "").trim().toLowerCase();
+    const rows = lib.filter(e => !q || [e.name].concat(e.r1 || [], e.g1 || []).join(" ").toLowerCase().includes(q));
+    if (!lib.length) { el.innerHTML = `<div class="jl-empty">No saved boards yet. Save the one that's loaded, or start a new blank board above.</div>`; return; }
+    if (!rows.length) { el.innerHTML = `<div class="jl-empty">No saved boards match &ldquo;${esc(q)}&rdquo;.</div>`; return; }
+    el.innerHTML = rows.map(e => {
+      const loaded = jq.game && jq.game.id === e.id;
+      const cats = arr => (arr || []).filter(Boolean).map(esc).join(" &middot; ") || "<i>no categories yet</i>";
+      return `<div class="jl-row ${loaded ? "loaded" : ""}" data-id="${escA(e.id)}">
+        <div><div class="nm">${esc(e.name)}${loaded ? `<span class="chip">Loaded</span>` : ""}</div>
+          <div class="meta">${e.clues || 0} of 28 clues written &middot; edited ${fmtDay(e.updated)}${e.lastPlayed ? ` &middot; last played ${fmtDay(e.lastPlayed)}` : " &middot; not played yet"}</div></div>
+        <div class="acts">
+          ${loaded ? "" : `<button class="mbtn primary" data-jl="load">Load</button>`}
+          <button class="mbtn" data-jl="dup" title="Make a copy (a starting point for a new board)">Duplicate</button>
+          <button class="mbtn warn" data-jl="del">Delete</button>
+        </div>
+        <div class="cats"><b>Round 1:</b> ${cats(e.r1)} &nbsp; <b>Gamble:</b> ${cats(e.g1)}</div>
+      </div>`;
+    }).join("");
+  }
+  $("jlList").onclick = e => {
+    const b = e.target.closest("[data-jl]"); if (!b) return;
+    const id = b.closest(".jl-row").dataset.id;
+    if (b.dataset.jl === "load") loadBoard(id);
+    else if (b.dataset.jl === "dup") duplicateBoard(id);
+    else if (b.dataset.jl === "del") deleteBoard(id);
+  };
+  $("jlNow").addEventListener("click", e => { if (e.target.id === "jlSaveBtn") saveCurrent($("jlSaveName").value); });
+  $("jlNow").addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    if (e.target.id === "jlSaveName") saveCurrent(e.target.value);
+    if (e.target.id === "jlRename") e.target.blur();
+  });
+  $("jlNow").addEventListener("change", e => { if (e.target.id === "jlRename") renameCurrent(e.target.value); });
+  $("jlNewBtn").onclick = () => newBoard($("jlNewName").value);
+  $("jlNewName").onkeydown = e => { if (e.key === "Enter") newBoard($("jlNewName").value); };
+  $("jlSearch").oninput = renderLibList;
+
   window.renderJeopardy = function(){
     if (!jeopMode) return;
     document.querySelectorAll("#jpTabs .jp-tab").forEach(b => b.classList.toggle("active", b.dataset.jtab === tab));
-    $("jpPlay").hidden = tab !== "play"; $("jpEdit").hidden = tab !== "edit";
+    $("jpPlay").hidden = tab !== "play"; $("jpEdit").hidden = tab !== "edit"; $("jpLib").hidden = tab !== "lib";
+    document.querySelector("#jeopStage .jp-boardpick").style.visibility = tab === "lib" ? "hidden" : "";
+    $("jpBuzzBar").style.display = tab === "lib" ? "none" : "";
+    const gn = $("jpGameName");
+    gn.classList.toggle("unsaved", !jq.game);
+    gn.innerHTML = jq.game ? `Board: <b>${esc(jq.game.name)}</b>` : `<b>Not saved to the library</b>`;
+    gn.title = jq.game ? "Edits save to this saved board automatically" : "Open Saved boards to save this board";
+    if (tab === "lib") { renderLib(); return; }
     const shownBoard = tab === "edit" ? editBoard : jp.board;
     document.querySelectorAll("#jpBoardPick button").forEach(b => {
       b.classList.toggle("on", b.dataset.jb === shownBoard);

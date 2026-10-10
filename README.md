@@ -157,6 +157,18 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
 - Everything saves automatically. Questions saved before this update carry over
   (Round 1 keeps its first 5 categories; the old full-grid gamble board isn't used).
 
+**Saved boards (Jeopardy → Saved boards tab)**
+- A library of every board you've built: name, Round 1 + Gamble categories, how many clues are
+  written, when it was last edited and last played. Search by name or category.
+- The **loaded** board (shown at the top of the Jeopardy tool) is what you edit and play. Edits in
+  Edit questions save back to its library copy automatically (every couple of seconds).
+- **+ New blank board** (type a name first) to build ahead; it opens Edit questions.
+- **Load** a board for tonight (or to look back at an old one). Loading starts play fresh: categories
+  hidden, nothing greyed out. Buzzer settings and timers are your own settings, not part of a board.
+- **Duplicate** (start from an old board), rename the loaded board in the box at the top, **Delete**.
+- Opening the first clue of the night marks the loaded board "last played" today.
+- A board that isn't in the library yet shows "Save it to the library" with a name box.
+
 **Play — Round 1**
 - **Reveal 1st category … Reveal all / Hide all** — categories appear on the TV one
   at a time (hidden ones show the logo).
@@ -227,6 +239,10 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
   phones ("First!", "#2"…). **Correct** adds the points, stops the timer, closes the buzzers and shows
   the answer, all in one tap. **Wrong** locks that team out of this clue and reopens for everyone else.
   **Reset buzzers** clears buzzes and lockouts. Then **Done** (big) goes back to the board.
+- **Correct / Wrong on screen:** Correct flashes a big green check, "Correct!", the team and the points
+  on the TV with a chime; Wrong flashes a big red X and "Wrong!" with the buzzer sound. The team's phone
+  shows "Correct! +200" or "Wrong"; the other phones show "Root Down got it!" or "Kava Kats was wrong —
+  buzz in!". Clears after about 3 seconds. (TV sound needs the one click on the TV screen.)
 - **Buzz-in timer:** the moment a team buzzes, a countdown starts (Edit questions → **Buzz-in answer
   time**, default 10 s; 0 turns it off). It shows on your panel, next to the team name on the TV and on
   the buzzing team's phone, all in sync. **Pause / Resume** and **Restart** are on your panel. At zero
