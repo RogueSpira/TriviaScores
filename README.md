@@ -181,3 +181,43 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
 6. For the final gamble, pick **Gamble round** again and reveal: the midpoint's category
    shows greyed out, so only the other two can be chosen.
 
+
+## Phone buzzers (replaces Buzzinga)
+Teams scan the **Join QR**, type a team name, and their phone becomes a buzzer. Firebase
+(project `kava-and-company-trivia`) only carries the buzzer: who joined, who's connected,
+who buzzed and when. Questions, answers and scores stay on Netlify.
+
+**Files:** `buzz.html` (phone page), `kava-buzz.js` (Firebase connection + config),
+`buzz-host.js` (laptop side), `firebase-rules.json` (security rules to paste into Firebase).
+
+**One-time Firebase setup**
+1. Authentication → Sign-in method → **Anonymous** → Enable.
+2. Realtime Database → **Rules** tab → paste `firebase-rules.json`, change
+   `CHANGE-THIS-HOST-PIN` to your own PIN (letters/numbers, 6+ characters) → **Publish**.
+3. On the laptop: Jeopardy tool → **Buzzers** bar → type the PIN → Connect. The laptop
+   remembers it. Only a device with the PIN can open/close buzzers or remove teams.
+
+**During the night**
+- **On TV → Jeopardy → Join QR**: teams scan and join; their names pop up on the TV and they're
+  added to the scoreboard automatically. A second phone on the same team taps its team name.
+  Typing an existing name joins that team instead of making a duplicate.
+- Green dot next to a team = its phone is connected; grey = dropped off (they just reopen the page).
+- **Test buzzers**: everyone taps BUZZ; you get a check per team. **Done testing** when happy.
+- **New night (clear teams)** with buzzers connected also clears joined phones and starts with no
+  teams (they rejoin with the QR). Deleting a team sends its phones back to the join screen.
+
+**Jeopardy (Round 1)**
+- Clicking a clue starts a fresh buzz round. Buzzers are **closed** until you press **Open
+  buzzers** (or turn on "Open buzzers as soon as a clue goes up" in Edit questions).
+- A team that buzzes **before** you open is locked out for the **Early-buzz lockout**
+  (Edit questions, default 0.5 s).
+- First buzz shows on your panel (with the order and time gaps), on the TV clue card, and on the
+  phones ("First!", "#2"…). **Correct** adds the value and closes the buzzers. **Wrong** locks that
+  team out of this clue and reopens for everyone else. **Reset buzzers** clears buzzes and lockouts.
+- Gamble rounds don't use buzzers.
+
+**Feud face-off**: Feud → Play → **Buzzers** card: Open buzzers → first team shows on the laptop and
+on the TV Feud board → Reset for the next face-off.
+
+The Buzzinga Buzzer QR is gone from the On TV bar (the Join QR replaces it).
+Firebase free plan: 100 phones connected at once, far more than a trivia night needs.

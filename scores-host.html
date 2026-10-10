@@ -632,6 +632,37 @@
   #f_toast { position:fixed; bottom:20px; left:calc((100vw - 420px) / 2); transform:translateX(-50%); background:var(--panel-2); border:1px solid var(--line); padding:11px 18px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:60; }
   #f_toast.show { opacity:1; }
 
+  /* ---- Phone buzzers ---- */
+  .bz-dot { width: 9px; height: 9px; border-radius: 50%; background: #5b6b70; flex: 0 0 auto; box-shadow: 0 0 0 2px var(--panel); }
+  .bz-dot.on { background: #3cdc5a; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(60,220,90,.7); }
+  .bz-dot[hidden] { display: none; }
+  .row-top .bz-dot { margin: 0 -2px 0 -4px; }
+  .bz-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; }
+  .bz-bar .bz-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .bz-bar .bz-count { font-weight: 700; display: flex; align-items: center; gap: 7px; }
+  .bz-bar .bz-sp { margin-left: auto; }
+  .bz-bar input { background: var(--field); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 6px 9px; width: 130px; font-size: 13px; }
+  .bz-bar .bz-err { color: #f0a08f; font-weight: 700; }
+  .bz-bar .bz-hint { color: var(--muted); font-size: 12px; }
+  .bz-test { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
+  .bz-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); font-size: 12.5px; font-weight: 700; color: var(--muted); }
+  .bz-chip.ok { color: #6ee08a; border-color: #3cb44b; background: rgba(60,180,75,.14); }
+  .bz-chip i { width: 9px; height: 9px; border-radius: 50%; }
+  .bz-box { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .bz-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .bz-state { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; background: #3a4a50; color: #c9d6d9; }
+  .bz-state.open { background: #3cdc5a; color: #04210b; animation: bzpulse 1.1s ease-in-out infinite; }
+  .bz-state.buzzed { background: var(--accent); color: var(--on-accent); }
+  @keyframes bzpulse { 50% { opacity: .55; } }
+  .bz-first { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+  .bz-first i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.5); }
+  .bz-order { display: flex; gap: 6px; flex-wrap: wrap; }
+  .bz-order .bz-chip b { color: var(--ink); }
+  .bz-order .bz-chip small { font-weight: 600; color: var(--muted); }
+  .bz-note { font-size: 12.5px; color: var(--muted); }
+  .bz-ok { background: #3cb44b !important; border-color: #3cb44b !important; color: #04210b !important; }
+  .bz-bad { border-color: #d9736f !important; color: #f0a08f !important; }
+
   /* ---- Jeopardy ---- */
   #jeopStage { justify-content: flex-start; align-items: stretch; padding: 14px 24px 20px; overflow-y: auto; gap: 12px; }
   .jp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -685,7 +716,8 @@
   .jp-settings input, .jp-settings select, .jp-values input, .jp-cated input, .jp-cated textarea, .jp-cated select {
     background: var(--field); border: 1px solid var(--line); color: var(--ink); padding: 7px 9px; border-radius: 7px; font: inherit; font-size: 13.5px; }
   .jp-settings input:focus, .jp-cated input:focus, .jp-cated textarea:focus, .jp-values input:focus { outline: none; border-color: var(--accent); }
-  #jpName { width: 170px; } #jpTimer { width: 64px; text-align: right; }
+  #jpName { width: 170px; } #jpTimer, #jpLockout { width: 64px; text-align: right; }
+  #jpAutoOpen { width: auto; }
   .jp-values { display: flex; align-items: center; gap: 6px; }
   .jp-values input { width: 78px; text-align: right; font-weight: 700; }
   .jp-cattabs { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -788,6 +820,7 @@
         <div class="tvcol">
           <span class="tvcap">Jeopardy</span>
           <div class="tvgrp">
+            <button data-tv="qr:join" title="QR for teams to join on their phones and get a buzzer (works all night)">Join QR</button>
             <button data-tv="jeopardy" title="The Jeopardy board (clicking a question in Jeopardy &rarr; Play also puts it up)">Board</button>
           </div>
         </div>
@@ -808,8 +841,7 @@
           <span class="tvcap">Feud</span>
           <div class="tvgrp">
             <button data-tv="qr:survey" title="Step 1: QR for the Feud survey on phones">Survey QR</button>
-            <button data-tv="qr:buzz" title="Step 2: QR to join the Buzzinga buzzers">Buzzer QR</button>
-            <button data-tv="feud" title="Step 3: the Feud board (Load to TV in Feud &rarr; Play also puts it up)">Feud board</button>
+            <button data-tv="feud" title="Step 2: the Feud board (Load to TV in Feud &rarr; Play also puts it up)">Feud board</button>
           </div>
         </div>
         <div class="tvcol">
@@ -875,6 +907,8 @@
       </div>
     </div>
 
+    <div class="bz-bar" data-bzbar id="jpBuzzBar"></div>
+
     <section id="jpPlay">
       <div class="jp-catctl">
         <span class="jp-catstatus" id="jpCatStatus"></span>
@@ -894,6 +928,8 @@
       <div class="jp-settings">
         <label>Board name <input type="text" id="jpName" maxlength="40"></label>
         <label>Answer timer <input type="number" id="jpTimer" min="5" max="120"> sec</label>
+        <label title="A team that presses its buzzer before you open the buzzers can't buzz again for this long">Early-buzz lockout <input type="number" id="jpLockout" min="0" max="5" step="0.25"> sec</label>
+        <label title="On: the buzzers open as soon as a clue goes on the TV. Off: you press Open buzzers when you've finished reading."><input type="checkbox" id="jpAutoOpen"> Open buzzers as soon as a clue goes up</label>
       </div>
       <div class="jp-values" id="jpValues">
         <span class="hdr-lbl">Values</span>
@@ -1021,6 +1057,11 @@
           <button class="btn" id="f_clearBoard">Clear board (TV shows survey screen)</button>
         </div>
       </div>
+      <div class="card" id="f_buzzCard">
+        <h2>Buzzers <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; face-off: open the buzzers, see who's first</span></h2>
+        <div class="bz-bar" data-bzbar></div>
+        <div id="f_buzzCtl" style="margin-top:10px;"></div>
+      </div>
       <div class="card" id="f_playCard" style="display:none;">
         <h2>Reveal answers <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; tap to flip each open on the TV</span></h2>
         <div id="f_playBoard"></div>
@@ -1086,6 +1127,7 @@
   <div id="auditList"><div class="audit-empty">No score changes yet.</div></div>
 </aside>
 
+<script type="module" src="buzz-host.js"></script>
 <script>
 // Distinct default colors, one per team
 const TEAM_COLORS = [
@@ -1344,7 +1386,7 @@ function renderList() {
     swatch.className = "swatch";
     swatch.value = team.color;
     swatch.title = "Team color";
-    swatch.oninput = e => { team.color = e.target.value; drawWheel(); if (musicMode) renderMusic(); if (feudMode) paintFeudTeams(); if (jeopMode) renderJeopardy(); saveState(); };
+    swatch.oninput = e => { team.color = e.target.value; if (window.Buzz) Buzz.teamEdited(team); drawWheel(); if (musicMode) renderMusic(); if (feudMode) paintFeudTeams(); if (jeopMode) renderJeopardy(); saveState(); };
 
     const name = document.createElement("textarea");
     name.className = "name-input";
@@ -1352,7 +1394,7 @@ function renderList() {
     name.value = team.name;
     name.placeholder = "Team name\u2026";
     const autoGrow = () => { name.style.height = "auto"; name.style.height = name.scrollHeight + "px"; };
-    name.oninput = e => { team.name = e.target.value; autoGrow(); drawWheel(); if (musicMode) renderMusic(); if (feudMode) paintFeudTeams(); if (jeopMode) renderJeopardy(); saveState(); };
+    name.oninput = e => { team.name = e.target.value; if (window.Buzz) Buzz.teamEdited(team); autoGrow(); drawWheel(); if (musicMode) renderMusic(); if (feudMode) paintFeudTeams(); if (jeopMode) renderJeopardy(); saveState(); };
     name.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); name.blur(); } };
     // Grow to fit once the row is in the DOM
     requestAnimationFrame(autoGrow);
@@ -1477,6 +1519,8 @@ function renderList() {
     del.textContent = "\u2715";
     del.title = "Delete team";
     del.onclick = () => {
+      if (window.Buzz && Buzz.isOn() && Buzz.isFb(team.id) && !confirm(`Remove "${team.name || "this team"}"? Their phones go back to the join screen.`)) return;
+      if (window.Buzz) Buzz.removeTeam(team.id);
       teams.splice(i,1);
       forgetMusicTeam(team.id);
       delete feudCorrect[team.id];
@@ -1486,7 +1530,9 @@ function renderList() {
     // Line 1: who + running total.  Line 2: points and bid controls.
     const top = document.createElement("div");
     top.className = "row-top";
-    top.append(rank, swatch, name, score, editTotal, del);
+    const dot = document.createElement("span");
+    dot.className = "bz-dot"; dot.dataset.bzt = team.id; dot.hidden = true;
+    top.append(rank, dot, swatch, name, score, editTotal, del);
 
     // one-click amounts: a single click adds that many points
     const quick = document.createElement("div");
@@ -1516,6 +1562,7 @@ function renderList() {
   if (typeof musicMode !== "undefined" && musicMode) renderMusic();
   if (typeof feudMode !== "undefined" && feudMode && typeof paintFeudTeams === "function") paintFeudTeams();
   if (typeof jeopMode !== "undefined" && jeopMode && typeof renderJeopardy === "function") renderJeopardy();
+  paintBuzzDots();
   fitTeams();
   requestAnimationFrame(fitTeams);   // again once long names have wrapped
 }
@@ -1556,6 +1603,89 @@ function syncScores() {
   markLeaders();
   saveState();
 }
+
+/* ---------- Phone buzzers (see buzz-host.js) ---------- */
+// green / grey dot next to teams that joined on a phone
+function paintBuzzDots(){
+  const B = window.Buzz;
+  document.querySelectorAll(".bz-dot[data-bzt]").forEach(d => {
+    const id = d.dataset.bzt, fb = !!(B && B.isOn() && B.isFb(id));
+    d.hidden = !fb;
+    if (fb) { const on = B.online(id); d.classList.toggle("on", on); d.title = on ? "Buzzer phone connected" : "Buzzer phone not connected"; }
+  });
+}
+function escHTML(s){ const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+const bzTeam = id => teams.find(t => t.id === id) || { name: (window.Buzz && Buzz.teams[id] && Buzz.teams[id].name) || "A team", color: "#888" };
+// The "Buzzers" bar (top of Jeopardy, Feud face-off card): connect, who's connected, Join QR, test
+function renderBuzzBars(){
+  const B = window.Buzz; if (!B) return;
+  document.querySelectorAll("[data-bzbar]").forEach(el => {
+    let h = `<span class="bz-lbl">Buzzers</span>`;
+    if (B.status === "on") {
+      const fbTeams = teams.filter(t => B.isFb(t.id)), online = fbTeams.filter(t => B.online(t.id)).length;
+      h += `<span class="bz-count"><span class="bz-dot ${online ? "on" : ""}"></span>${fbTeams.length ? `${online} of ${fbTeams.length} team${fbTeams.length === 1 ? "" : "s"} connected` : "No teams have joined yet"}</span>
+        <span class="bz-sp"></span>
+        <button class="mbtn" data-bz="joinqr">Join QR on TV</button>` +
+        (B.state.test ? `<button class="mbtn primary" data-bz="endtest">Done testing</button>` : `<button class="mbtn" data-bz="test" title="Every team taps BUZZ on its phone; you see a check for each one that works">Test buzzers</button>`);
+      if (B.state.test) {
+        const got = new Set(B.order.map(o => o.team));
+        h += `<div class="bz-test">` + (fbTeams.length ? fbTeams.map(t => `<span class="bz-chip ${got.has(t.id) ? "ok" : ""}"><i style="background:${escHTML(t.color)}"></i>${got.has(t.id) ? "&#10003; " : ""}${escHTML(t.name || "Team")}</span>`).join("") : `<span class="bz-note">No teams yet.</span>`) +
+          `<span class="bz-note">Everyone tap BUZZ now.</span></div>`;
+      }
+    } else if (B.status === "connecting" || B.status === "off") {
+      h += `<span class="bz-hint">Connecting&hellip;</span>`;
+    } else {
+      h += `<input type="password" data-bz="pin" placeholder="Host PIN" autocomplete="current-password">
+        <button class="mbtn primary" data-bz="connect">Connect phone buzzers</button>
+        ${B.err ? `<span class="bz-err">${escHTML(B.err)}</span>` : `<span class="bz-hint">The PIN is the one in your Firebase rules. This laptop remembers it.</span>`}`;
+    }
+    if (el.dataset.sig === h) return;
+    el.dataset.sig = h; el.innerHTML = h;
+  });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-bz]"); if (!b || b.tagName === "INPUT" || !window.Buzz) return;
+  const act = b.dataset.bz;
+  if (act === "connect") { const inp = b.parentElement.querySelector('[data-bz="pin"]'); Buzz.connect(inp ? inp.value : ""); }
+  else if (act === "joinqr") setTVDisplay("qr", { url: Buzz.joinUrl(), label: "Scan to join & get your buzzer", kind: "join" });
+  else if (act === "test") Buzz.test();
+  else if (act === "endtest") Buzz.idle();
+  else if (act === "fopen") Buzz.open();
+  else if (act === "fclose") Buzz.close();
+  else if (act === "freset") Buzz.reset();
+});
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset && e.target.dataset.bz === "pin" && window.Buzz) Buzz.connect(e.target.value); });
+// Who buzzed, in order: "1 Root Down · 2 Kava Kats +0.31s"
+function buzzOrderHTML(){
+  const B = window.Buzz, o = B.order;
+  return `<div class="bz-order">` + o.map((b, i) => {
+    const t = bzTeam(b.team);
+    return `<span class="bz-chip"><i style="background:${escHTML(t.color)}"></i><b>${i + 1}</b> ${escHTML(t.name || "Team")}${i ? ` <small>+${((b.at - o[0].at) / 1000).toFixed(2)}s</small>` : ""}</span>`;
+  }).join("") + `</div>`;
+}
+// Feud face-off buzzers: open, see who's first, reset
+function renderFeudBuzz(){
+  const el = document.getElementById("f_buzzCtl"), B = window.Buzz;
+  if (!el || !B) return;
+  if (!B.isOn() || B.state.test) { el.innerHTML = ""; return; }
+  const first = B.order[0], st = B.state;
+  let h = `<div class="bz-box"><div class="bz-head">`;
+  if (first) {
+    const t = bzTeam(first.team);
+    h += `<span class="bz-state buzzed">Buzzed</span><span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>${buzzOrderHTML()}
+      <div class="btn-row"><button class="btn aqua" data-bz="freset">Reset for the next face-off</button></div>`;
+  } else if (st.open) {
+    h += `<span class="bz-state open">Open</span><span class="bz-note">Waiting for a buzz&hellip;</span></div><div class="btn-row"><button class="btn" data-bz="fclose">Close buzzers</button></div>`;
+  } else {
+    h += `<span class="bz-state">Closed</span><span class="bz-note">Read the question, then open the buzzers.</span></div><div class="btn-row"><button class="btn aqua" data-bz="fopen">Open buzzers</button></div>`;
+  }
+  h += `</div>`;
+  if (el.dataset.sig !== h) { el.dataset.sig = h; el.innerHTML = h; }
+}
+window.onBuzzChange = function(){
+  paintBuzzDots(); renderBuzzBars(); renderFeudBuzz();
+  if (typeof jeopMode !== "undefined" && jeopMode && typeof window.renderJeopardyBuzz === "function") window.renderJeopardyBuzz();
+};
 
 function markLeaders() {
   const maxScore = Math.max(...teams.map(t => t.score), 0);
@@ -1604,11 +1734,14 @@ document.getElementById("resetScoresBtn").onclick = () => {
 };
 
 document.getElementById("newNightBtn").onclick = () => {
-  if (!confirm("Clear all teams and scores for a new night?")) return;
-  teams = [
+  const phones = window.Buzz && Buzz.isOn();
+  if (!confirm(phones ? "Clear all teams, scores and joined phones for a new night? Teams join again with the Join QR." : "Clear all teams and scores for a new night?")) return;
+  // with phone buzzers, teams arrive by scanning the Join QR, so start empty
+  teams = phones ? [] : [
     { id: newTeamId(), name: "Team 1", score: 0, color: TEAM_COLORS[0], out: false, bid: 0 },
     { id: newTeamId(), name: "Team 2", score: 0, color: TEAM_COLORS[1], out: false, bid: 0 },
   ];
+  if (phones) Buzz.clearAll();
   colorCursor = teams.length;
   music.marks = {}; music.applied = {}; feudCorrect = {};
   auditLog = []; renderAudit();
@@ -1659,7 +1792,9 @@ function normJSide(sd){
   return o;
 }
 function normalizeJeopardy(j){
-  const out = { timer: Number(j && j.timer) || 30, boards: {} };
+  const bz = (j && j.buzz) || {};
+  const out = { timer: Number(j && j.timer) || 30, boards: {},
+    buzz: { auto: bz.auto === true, lockout: Number.isFinite(Number(bz.lockout)) && bz.lockout !== undefined && bz.lockout !== null ? Number(bz.lockout) : 0.5 } };
   JB_IDS.forEach(id => {
     const b = (j && j.boards && j.boards[id]) || {}, base = blankJBoard(id);
     out.boards[id] = {
@@ -1765,10 +1900,7 @@ tvBar.addEventListener("click", e => {
   else if (mode === "reveal") startReveal();
   else if (mode === "song") setTVDisplay("song", tvSong || 1);
   else if (mode === "qr" && sub === "survey") setTVDisplay("qr", { url: feudSurveyUrl(), label: "Scan to take the survey", kind: "survey" });
-  else if (mode === "qr" && sub === "buzz") {
-    if (!links.buzzinga) { toast("Add the Buzzinga link in Feud → Surveys → Links"); return; }
-    setTVDisplay("qr", { url: links.buzzinga, label: "Scan to join the buzzers", kind: "buzz" });
-  }
+  else if (mode === "qr" && sub === "join") setTVDisplay("qr", { url: new URL("buzz.html", location.href).href, label: "Scan to join & get your buzzer", kind: "join" });
   else setTVDisplay(mode);
 });
 // arg: the song number for "song", { url, label, kind } for "qr", "soon"/"night" for "title"
@@ -2295,8 +2427,12 @@ wheel.onclick = spin;
     if (tab === "edit") { editBoard = b.dataset.jb; editCat = 0; renderJeopardy(); return; }
     if (b.dataset.jb === jp.board) return;
     jp.board = b.dataset.jb; jp.cell = null; jp.cats = 0; jp.stage = "question";
+    buzzIdle();
     sendJplay({ timer: "stop" });
   };
+  // phone buzzers follow the board: a new clue starts a fresh buzz round (closed unless auto-open is on)
+  const BZ = () => (window.Buzz && Buzz.isOn()) ? Buzz : null;
+  function buzzIdle(){ const b = BZ(); if (b && (b.state.open || b.order.length || b.state.test)) b.idle(); }
 
   /* ---------- PLAY ---------- */
   $("jpCatNext").onclick = () => { if (jp.cats < nCats()) { jp.cats++; onTV(); sendJplay(); } };
@@ -2314,6 +2450,7 @@ wheel.onclick = spin;
     // Gamble: the chosen category goes up with "Place your wagers!"; the question comes after the wagers are in
     jp.stage = gambleNow() ? "pick" : "question";
     if (gambleNow() && jp.cats <= c) jp.cats = c + 1;
+    if (BZ()) { if (gambleNow()) buzzIdle(); else Buzz.newQuestion(!!(jq.buzz && jq.buzz.auto)); }
     onTV(); sendJplay({ timer: "stop" });
   };
   function finishCell(markUsed){
@@ -2322,6 +2459,7 @@ wheel.onclick = spin;
       const u = (jp.used[jp.board] || []).slice(); u[cellIdx(jp.board, jp.cell.c, jp.cell.r)] = true; jp.used[jp.board] = u;
     }
     jp.cell = null; jp.stage = "question";
+    buzzIdle();
     sendJplay({ timer: "stop" });
   }
   const awarded = {};
@@ -2435,6 +2573,7 @@ wheel.onclick = spin;
       <div class="jp-pvs">${sidePreview(q.clue, "Clue")}${sidePreview(q.resp, jp.stage === "answer" ? "Correct response &middot; on TV" : "Correct response &middot; only you can see this")}</div>
       ${mediaCtl}
       <div class="jp-row">${stageBtns}</div>
+      ${G ? "" : `<div id="jpBuzz"></div>`}
       ${scoring}
       <div class="jp-row" style="margin-top:4px">
         <button class="mbtn primary" id="jpDone">Done &mdash; back to board</button>
@@ -2451,6 +2590,7 @@ wheel.onclick = spin;
     on("jpDone", () => finishCell(true));
     on("jpCancel", () => finishCell(false));
     P.querySelectorAll("[data-award]").forEach(b => b.onclick = () => award(b.dataset.award));
+    renderJeopardyBuzz();
     P.querySelectorAll("[data-mc]").forEach(b => b.onclick = () => sendJplay({ media: { cmd: b.dataset.mc, n: ++mediaN + Date.now() } }));
     clearInterval(timerTick); timerTick = null;
     if (jp.timer) timerTick = setInterval(() => {
@@ -2458,6 +2598,54 @@ wheel.onclick = spin;
       const t = timeLeft(); el.textContent = Math.ceil(t); el.classList.toggle("out", t === 0);
     }, 250);
   }
+
+  /* ---------- phone buzzers in the question panel (Round 1) ---------- */
+  function renderJeopardyBuzz(){
+    const el = $("jpBuzz"); if (!el || !jp.cell) return;
+    const B = window.Buzz;
+    let h;
+    if (!B || !B.isOn()) {
+      h = `<div class="bz-note">Phone buzzers aren't connected (Buzzers bar at the top). You can still add points by hand below.</div>`;
+    } else if (B.state.test) {
+      h = `<div class="bz-box"><div class="bz-head"><span class="bz-state open">Testing</span><span class="bz-note">Press <b>Done testing</b> in the Buzzers bar to use the buzzers for this clue.</span></div></div>`;
+    } else {
+      const st = B.state, first = B.order[0], v = (board().values || [])[jp.cell.r] || 0;
+      const locked = Object.keys(st.locked || {}).map(id => escHTML(bzTeam(id).name || "Team"));
+      const lockNote = locked.length ? `<div class="bz-note">Locked out of this clue: ${locked.join(", ")}</div>` : "";
+      if (first) {
+        const t = bzTeam(first.team);
+        h = `<div class="bz-box"><div class="bz-head"><span class="bz-state buzzed">Buzzed</span>
+            <span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>
+          ${buzzOrderHTML()}
+          <div class="jp-row">
+            <button class="mbtn bz-ok" id="bzRight">&#10003; Correct &mdash; +${v.toLocaleString()} ${escHTML(t.name || "Team")}</button>
+            <button class="mbtn bz-bad" id="bzWrong" title="Locks ${escHTML(t.name || "this team")} out of this clue and reopens the buzzers for everyone else">&#10007; Wrong &mdash; reopen for the others</button>
+            <button class="mbtn" id="bzReset" title="Clears the buzzes and lockouts; buzzers stay closed until you open them">Reset buzzers</button>
+          </div>${lockNote}</div>`;
+      } else if (st.open) {
+        h = `<div class="bz-box"><div class="bz-head"><span class="bz-state open">Open</span><span class="bz-note">Waiting for a buzz&hellip;</span>
+            <button class="mbtn" id="bzClose" style="margin-left:auto">Close buzzers</button></div>${lockNote}</div>`;
+      } else {
+        const lk = B.lockoutMs() / 1000;
+        h = `<div class="bz-box"><div class="bz-head"><span class="bz-state">Closed</span>
+            <button class="mbtn primary" id="bzOpen">Open buzzers</button>
+            <span class="bz-note">${lk ? `Anyone who buzzes before you open is locked out for ${lk}s.` : "Read the clue, then open the buzzers."}</span></div>${lockNote}</div>`;
+      }
+    }
+    if (el.dataset.sig === h) return;
+    el.dataset.sig = h; el.innerHTML = h;
+    const on = (id, fn) => { const x = $(id); if (x) x.onclick = fn; };
+    on("bzOpen", () => Buzz.open());
+    on("bzClose", () => Buzz.close());
+    on("bzReset", () => Buzz.reset());
+    on("bzWrong", () => { const f = Buzz.order[0]; if (f) Buzz.wrong(f.team); });
+    on("bzRight", () => {
+      const f = Buzz.order[0]; if (!f) return;
+      if (!teams.find(t => t.id === f.team)) { toast("That team isn't on the scoreboard"); return; }
+      award(f.team); Buzz.close();
+    });
+  }
+  window.renderJeopardyBuzz = renderJeopardyBuzz;
 
   /* ---------- EDIT ---------- */
   const SIDE_LBL = { clue: "Clue", resp: "Correct response" };
@@ -2505,6 +2693,8 @@ wheel.onclick = spin;
     const B = board(editBoard), G = B.kind === "gamble";
     if (document.activeElement !== $("jpName")) $("jpName").value = B.name;
     if (document.activeElement !== $("jpTimer")) $("jpTimer").value = jq.timer;
+    if (document.activeElement !== $("jpLockout")) $("jpLockout").value = jq.buzz.lockout;
+    $("jpAutoOpen").checked = !!jq.buzz.auto;
     $("jpValues").hidden = G;
     if (!G) document.querySelectorAll(".jp-val").forEach(inp => { if (document.activeElement !== inp) inp.value = B.values[+inp.dataset.r]; });
     $("jpCatTabs").hidden = G;
@@ -2584,6 +2774,12 @@ wheel.onclick = spin;
   $("jpCatTabs").onclick = e => { const b = e.target.closest("[data-ct]"); if (!b) return; editCat = +b.dataset.ct; renderEdit(); };
   $("jpName").oninput = () => { board(editBoard).name = $("jpName").value || blankJBoard(editBoard).name; saveState(); };
   $("jpName").onchange = () => renderJeopardy();
+  $("jpLockout").onchange = () => {
+    const v = Math.max(0, Math.min(5, Math.round((Number($("jpLockout").value) || 0) * 4) / 4));
+    jq.buzz.lockout = v; $("jpLockout").value = v; saveState();
+    if (window.Buzz) Buzz.setLockout();
+  };
+  $("jpAutoOpen").onchange = () => { jq.buzz.auto = $("jpAutoOpen").checked; saveState(); };
   $("jpTimer").onchange = () => { jq.timer = Math.max(5, Math.min(120, Math.round(+$("jpTimer").value) || 30)); $("jpTimer").value = jq.timer; saveState(); };
   document.querySelectorAll(".jp-val").forEach(inp => inp.onchange = () => {
     board(editBoard).values[+inp.dataset.r] = Math.max(0, Math.round(+inp.value) || 0); saveState(); renderEdit();
@@ -3070,8 +3266,8 @@ wheel.onclick = spin;
   }
 })();
 
-// Load any saved state from the backend first, then render.
-(async () => {
+// Load any saved state from the backend first, then render. (The buzzer waits for this.)
+window.scoresReady = (async () => {
   const boardUrlEl = document.getElementById("boardUrl");
   if (boardUrlEl) boardUrlEl.textContent = new URL("scores-board.html", location.href).href;
   updateTVLabel();

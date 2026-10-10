@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0e2c18">
+<title>Kava &amp; Co. Buzzer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Fredoka:wght@500;600;700&family=DM+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --jungle:#0e2c18; --jungle-2:#163f23; --leaf:#5f951f; --neon:#34E209; --lime:#C0FF5B;
+    --orange:#F36F03; --sun:#F0BF17; --cream:#FFF3E0; --ink:#0b0800; --red:#d8352a;
+    --groovy:"Shrikhand", Georgia, serif; --round:"Fredoka", system-ui, sans-serif; --body:"DM Sans", system-ui, sans-serif;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { margin:0; height:100%; }
+  body { background:var(--jungle) url("assets/mandarin-pattern.jpg") center/cover fixed; color:var(--cream); font-family:var(--body);
+    display:flex; flex-direction:column; min-height:100dvh; overflow:hidden; overscroll-behavior:none; }
+  body::before { content:""; position:fixed; inset:0; background:rgba(14,44,24,.72); z-index:-1; }
+  .top { display:flex; justify-content:center; padding:max(14px, env(safe-area-inset-top)) 16px 4px; }
+  .top img { height:46px; filter:drop-shadow(0 3px 6px rgba(0,0,0,.4)); }
+  main { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px 16px max(18px, env(safe-area-inset-bottom)); gap:16px; min-height:0; }
+  [hidden] { display:none !important; }
+  .card { width:min(100%, 420px); background:var(--cream); color:var(--ink); border:4px solid var(--ink); border-radius:22px;
+    box-shadow:7px 7px 0 var(--orange), 10px 10px 0 var(--ink); padding:20px 18px; display:flex; flex-direction:column; gap:12px; }
+  h1 { font-family:var(--groovy); font-weight:400; font-size:32px; line-height:1.1; margin:0; text-align:center; color:var(--orange);
+    -webkit-text-stroke:1.5px var(--ink); paint-order:stroke fill; text-shadow:3px 3px 0 var(--sun); }
+  .sub { text-align:center; font-size:15px; margin:-4px 0 2px; }
+  input.name { font:600 22px var(--round); padding:14px 14px; border:3px solid var(--ink); border-radius:14px; width:100%; background:#fff; color:var(--ink); }
+  input.name:focus { outline:none; border-color:var(--orange); }
+  button { font-family:var(--round); cursor:pointer; }
+  .big { font-weight:700; font-size:21px; padding:14px; border:3px solid var(--ink); border-radius:14px; background:var(--orange); color:var(--cream);
+    box-shadow:4px 4px 0 var(--ink); }
+  .big:active { transform:translate(2px,2px); box-shadow:2px 2px 0 var(--ink); }
+  .big:disabled { opacity:.55; }
+  .err { color:var(--red); font-weight:700; font-size:14px; text-align:center; min-height:1em; }
+  .err:empty { display:none; }
+  .or { text-align:center; font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#6b5a48; margin-top:4px; }
+  .teams { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .teams button { font-weight:600; font-size:16px; padding:9px 13px; border:2px solid var(--ink); border-radius:999px; background:#fff; color:var(--ink); border-left-width:8px; }
+  .status { font:700 13px var(--round); letter-spacing:1.5px; text-transform:uppercase; color:var(--lime); text-align:center; }
+  .status.off { color:var(--sun); }
+
+  /* buzzer screen */
+  .teampill { display:flex; align-items:center; gap:10px; background:var(--cream); color:var(--ink); border:3px solid var(--ink); border-radius:999px;
+    padding:7px 16px 7px 8px; box-shadow:4px 4px 0 var(--ink); max-width:100%; }
+  .teampill i { width:24px; height:24px; border-radius:50%; border:2px solid var(--ink); flex:0 0 auto; }
+  .teampill b { font:700 20px var(--round); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #buzzBtn { width:min(78vw, 46dvh, 380px); aspect-ratio:1; border-radius:50%; border:6px solid var(--ink); background:#5d6b5f; color:var(--cream);
+    box-shadow:0 10px 0 var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:18px;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none; transition:background .12s; }
+  #buzzBtn .main { font-family:var(--groovy); font-size:clamp(34px, 11vw, 62px); line-height:1; -webkit-text-stroke:2px var(--ink); paint-order:stroke fill; }
+  #buzzBtn .small { font:700 15px var(--round); letter-spacing:1px; text-transform:uppercase; }
+  #buzzBtn:active { transform:translateY(6px); box-shadow:0 4px 0 var(--ink); }
+  #buzzBtn.open { background:var(--orange); animation:throb 1s ease-in-out infinite; }
+  #buzzBtn.open .main { text-shadow:4px 4px 0 var(--sun); }
+  #buzzBtn.first { background:var(--leaf); }
+  #buzzBtn.later { background:var(--jungle-2); }
+  #buzzBtn.sent { background:#c0640c; }
+  #buzzBtn.early, #buzzBtn.locked { background:var(--red); }
+  @keyframes throb { 0%,100% { transform:scale(1); } 50% { transform:scale(1.035); } }
+  .msg { min-height:48px; text-align:center; font:600 18px var(--round); max-width:420px; }
+  .foot { display:flex; gap:14px; justify-content:center; align-items:center; font-size:13px; }
+  .linkbtn { background:none; border:none; color:var(--cream); text-decoration:underline; font:500 13px var(--body); padding:4px; opacity:.8; }
+</style>
+</head>
+<body>
+  <div class="top"><img src="assets/mandarin-logo.png" alt="Kava &amp; Co. Mandarin"></div>
+  <main>
+    <div class="status" id="loading">Connecting&hellip;</div>
+
+    <!-- JOIN -->
+    <section class="card" id="joinView" hidden>
+      <h1>Trivia Night!</h1>
+      <div class="sub">Type your team name to join and get your buzzer.</div>
+      <form id="joinForm" autocomplete="off">
+        <input class="name" id="teamName" maxlength="30" placeholder="Team name" enterkeyhint="go" autocapitalize="words">
+      </form>
+      <button class="big" id="joinBtn" form="joinForm" type="submit">Join</button>
+      <div class="err" id="joinErr"></div>
+      <div id="otherTeams" hidden>
+        <div class="or">Teammate already joined? Tap your team</div>
+        <div class="teams" id="teamList"></div>
+      </div>
+    </section>
+
+    <!-- BUZZER -->
+    <section id="buzzView" hidden style="display:flex;flex-direction:column;align-items:center;gap:18px;width:100%">
+      <div class="teampill"><i id="myColor"></i><b id="myName"></b></div>
+      <div class="status" id="connState">Connected</div>
+      <button id="buzzBtn" type="button" aria-live="polite"><span class="main" id="btnMain">Wait&hellip;</span><span class="small" id="btnSmall">Buzzers closed</span></button>
+      <div class="msg" id="msg"></div>
+      <div class="foot"><button class="linkbtn" id="switchTeam">Switch team</button></div>
+    </section>
+
+    <div class="card" id="failView" hidden>
+      <h1>Hmm&hellip;</h1>
+      <div class="sub" id="failMsg">Couldn't connect to the buzzers. Check your Wi-Fi or data, then try again.</div>
+      <button class="big" onclick="location.reload()">Try again</button>
+    </div>
+  </main>
+
+<script type="module">
+import { connectBuzz, buzzOrder } from "./kava-buzz.js";
+const $ = id => document.getElementById(id);
+const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }, del(k){ try { localStorage.removeItem(k); } catch(e) {} } };
+
+let fb, myTeam = store.get("kavaBuzzTeam"), teams = {}, buzz = {}, roundBuzzes = {}, isConnected = false;
+let roundUnsub = null, watchedRound = null, earlyUntil = 0, earlyTimer = null, pressedRound = null, presenceFor = null;
+let lastFirstKey = "";
+
+function show(view){ ["loading", "joinView", "buzzView", "failView"].forEach(id => $(id).hidden = id !== view); }
+const norm = s => String(s || "").trim().replace(/\s+/g, " ");
+
+try { fb = await connectBuzz(); }
+catch (e) { show("failView"); throw e; }
+
+fb.connected(c => { isConnected = c; if (c) claimPresence(true); render(); });
+fb.watch("game/teams", v => { teams = v || {}; checkTeam(); renderTeamList(); render(); });
+fb.watch("game/buzz", v => {
+  buzz = v || {};
+  if (buzz.round !== watchedRound) {
+    if (roundUnsub) roundUnsub();
+    watchedRound = buzz.round || null; roundBuzzes = {};
+    roundUnsub = watchedRound ? fb.watch("game/buzzes/" + watchedRound, b => { roundBuzzes = b || {}; render(); }) : null;
+  }
+  render();
+});
+
+// ---------- joining ----------
+let teamsLoaded = false;
+function checkTeam(){
+  teamsLoaded = true;
+  if (myTeam && !teams[myTeam]) { leaveTeam(false); }          // host removed the team
+  if (myTeam && teams[myTeam]) { fb.set(`game/members/${myTeam}/${fb.uid}`, true).catch(() => {}); claimPresence(); show("buzzView"); }
+  else show("joinView");
+}
+function renderTeamList(){
+  const list = Object.entries(teams).sort((a, b) => (a[1].at || 0) - (b[1].at || 0));
+  $("otherTeams").hidden = !list.length;
+  $("teamList").innerHTML = "";
+  list.forEach(([id, t]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = t.name; b.style.borderLeftColor = t.color || "#F36F03";
+    b.onclick = () => joinTeam(id);
+    $("teamList").appendChild(b);
+  });
+}
+$("joinForm").onsubmit = async e => {
+  e.preventDefault();
+  const name = norm($("teamName").value);
+  if (!name) { $("joinErr").textContent = "Type a team name first."; return; }
+  const same = Object.entries(teams).find(([, t]) => norm(t.name).toLowerCase() === name.toLowerCase());
+  if (same) return joinTeam(same[0]);
+  $("joinBtn").disabled = true; $("joinErr").textContent = "";
+  const id = "fb_" + Math.random().toString(36).slice(2, 10);
+  try {
+    await fb.set(`game/teams/${id}`, { name, owner: fb.uid, at: fb.ts() });
+    await joinTeam(id);
+  } catch (err) { $("joinErr").textContent = "Couldn't join. Try again in a moment."; }
+  $("joinBtn").disabled = false;
+};
+async function joinTeam(id){
+  try {
+    await fb.set(`game/members/${id}/${fb.uid}`, true);
+    myTeam = id; store.set("kavaBuzzTeam", id);
+    claimPresence(); show("buzzView"); render();
+    keepAwake();
+  } catch (err) { $("joinErr").textContent = "Couldn't join that team. Try again."; }
+}
+function leaveTeam(clean){
+  if (clean && myTeam) {
+    fb.remove(`game/presence/${myTeam}/${fb.uid}`).catch(() => {});
+    fb.remove(`game/members/${myTeam}/${fb.uid}`).catch(() => {});
+  }
+  if (presenceFor) fb.cancelOnDisconnect(`game/presence/${presenceFor}/${fb.uid}`).catch(() => {});
+  myTeam = null; presenceFor = null; store.del("kavaBuzzTeam");
+}
+$("switchTeam").onclick = () => {
+  if (!confirm("Leave this team and pick another?")) return;
+  leaveTeam(true); show("joinView"); renderTeamList();
+};
+// "I'm here": shows as a green dot next to the team on the host's laptop; disappears when the phone drops off
+function claimPresence(force){
+  if (!myTeam || !teams[myTeam] || !isConnected) return;
+  if (presenceFor === myTeam && !force) return;
+  presenceFor = myTeam;
+  const p = `game/presence/${myTeam}/${fb.uid}`;
+  fb.onDisconnectRemove(p).then(() => fb.set(p, true)).catch(() => {});
+}
+
+// ---------- buzzing ----------
+const lockoutMs = () => Math.max(0, Math.min(5000, Number(buzz.lockoutMs) || 0));
+function press(e){
+  if (e) e.preventDefault();
+  if (!myTeam || !buzz.round) return;
+  if (buzz.locked && buzz.locked[myTeam]) return;
+  if (roundBuzzes[myTeam] || pressedRound === buzz.round) return;
+  if (Date.now() < earlyUntil) return;
+  if (!buzz.open) {
+    // pressed before the host opened the buzzers: short lockout
+    if (lockoutMs() > 0) {
+      earlyUntil = Date.now() + lockoutMs();
+      clearTimeout(earlyTimer); earlyTimer = setTimeout(render, lockoutMs() + 20);
+      try { navigator.vibrate && navigator.vibrate([40, 40, 40]); } catch(err) {}
+      render();
+    }
+    return;
+  }
+  pressedRound = buzz.round;
+  try { navigator.vibrate && navigator.vibrate(60); } catch(err) {}
+  render();
+  fb.set(`game/buzzes/${buzz.round}/${myTeam}`, { at: fb.ts() }).catch(() => { pressedRound = null; render(); });
+}
+$("buzzBtn").addEventListener("pointerdown", press);
+$("buzzBtn").addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") press(e); });
+$("buzzBtn").addEventListener("contextmenu", e => e.preventDefault());
+
+function render(){
+  if (!myTeam || !teams[myTeam]) return;
+  const t = teams[myTeam];
+  $("myName").textContent = t.name; $("myColor").style.background = t.color || "#F36F03";
+  $("connState").textContent = isConnected ? "Connected" : "Reconnecting…";
+  $("connState").classList.toggle("off", !isConnected);
+  const order = buzzOrder(roundBuzzes);
+  const place = order.findIndex(b => b.team === myTeam);
+  const first = order[0] && teams[order[0].team] ? teams[order[0].team].name : (order[0] ? "Another team" : "");
+  const locked = buzz.locked && buzz.locked[myTeam];
+  const early = Date.now() < earlyUntil;
+  let cls = "", main = "Wait…", small = "Buzzers closed", msg = "";
+  if (locked) { cls = "locked"; main = "Locked"; small = "Out for this question"; msg = "Wait for the next question."; }
+  else if (place === 0) { cls = "first"; main = "First!"; small = buzz.test ? "Test buzz worked" : "You buzzed in first"; msg = buzz.test ? "Your buzzer works." : "Get ready to answer!"; }
+  else if (place > 0) { cls = "later"; main = "#" + (place + 1); small = "You buzzed in"; msg = first + " was first."; }
+  else if (pressedRound && pressedRound === buzz.round) { cls = "sent"; main = "Sent…"; small = "Buzzing in"; }
+  else if (early) { cls = "early"; main = "Too early!"; small = "Locked for a moment"; msg = "Wait for the host to open the buzzers."; }
+  else if (buzz.open) { cls = "open"; main = "BUZZ!"; small = buzz.test ? "Test: tap now" : "Tap to buzz in"; }
+  else if (order.length) { main = "Wait…"; small = "Buzzers closed"; msg = first + " buzzed in first."; }
+  const btn = $("buzzBtn");
+  btn.className = cls; $("btnMain").textContent = main; $("btnSmall").textContent = small; $("msg").textContent = msg;
+  // a buzz for me just landed first: a happy double buzz
+  const fk = order[0] ? watchedRound + order[0].team : "";
+  if (fk !== lastFirstKey) { if (order[0] && order[0].team === myTeam) { try { navigator.vibrate && navigator.vibrate([80, 60, 160]); } catch(e) {} } lastFirstKey = fk; }
+}
+
+// keep the screen on while the buzzer is open (where the phone allows it)
+let wakeLock = null;
+async function keepAwake(){
+  try { if ("wakeLock" in navigator && document.visibilityState === "visible" && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch(e) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { keepAwake(); claimPresence(true); } });
+document.addEventListener("pointerdown", keepAwake, { once: true });
+if (!teamsLoaded) setTimeout(() => { if (!teamsLoaded) show(myTeam ? "loading" : "joinView"); }, 4000);
+</script>
+</body>
+</html>
