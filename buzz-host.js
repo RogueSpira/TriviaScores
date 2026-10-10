@@ -19,7 +19,8 @@ const B = window.Buzz = {
   online(id){ return (this.presence[id] || 0) > 0; },
   joinUrl(){ return new URL("buzz.html", location.href).href; },
   lockoutMs(){ const s = (typeof jq !== "undefined" && jq.buzz) ? Number(jq.buzz.lockout) : 0.5; return Math.round((Number.isFinite(s) ? s : 0.5) * 1000); },
-  connect, open, close, newQuestion, idle, wrong, reset, test, removeTeam, clearAll, setLockout, teamEdited
+  isReleased(id){ return !!(this.teams[id] && this.teams[id].owner === "released"); },
+  connect, open, close, newQuestion, idle, wrong, reset, test, removeTeam, release, clearAll, setLockout, teamEdited
 };
 
 let notifyQueued = false;
@@ -35,7 +36,13 @@ async function connect(pin){
   if (!pin) { B.status = "pin"; notify(); return false; }
   B.status = "connecting"; B.err = ""; notify();
   try { api = await connectBuzz(); }
-  catch (e) { B.status = "error"; B.err = "Couldn't reach the buzzer service. Check the internet and try again."; notify(); return false; }
+  catch (e) {
+    const code = String((e && (e.code || e.message)) || e);
+    B.status = "error";
+    B.err = /operation-not-allowed|admin-restricted/.test(code) ? "Anonymous sign-in is off in Firebase (Authentication \u2192 Sign-in method \u2192 Anonymous)."
+      : "Couldn't reach the buzzer service (" + code + ").";
+    notify(); return false;
+  }
   try { await api.set(`hosts/${api.uid}`, pin); }
   catch (e) { B.status = "wrongpin"; B.err = "That PIN didn't work."; notify(); return false; }
   store.set(PIN_KEY, pin);
@@ -100,6 +107,11 @@ function setLockout(){ if (!B.isOn()) return; write(api.update("game/buzz", { lo
 function removeTeam(id){
   if (!B.isOn() || !B.isFb(id)) return;
   write(api.update("game", { ["teams/" + id]: null, ["members/" + id]: null, ["presence/" + id]: null }));
+}
+// One phone per team: free the team's buzzer so a new phone can take it over (e.g. the old phone died).
+function release(id){
+  if (!B.isOn() || !B.isFb(id)) return;
+  write(api.update("game", { ["teams/" + id + "/owner"]: "released", ["presence/" + id]: null }));
 }
 function clearAll(){
   if (!B.isOn()) return;

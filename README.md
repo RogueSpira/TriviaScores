@@ -199,9 +199,14 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
 
 **During the night**
 - **On TV → Jeopardy → Join QR**: teams scan and join; their names pop up on the TV and they're
-  added to the scoreboard automatically. A second phone on the same team taps its team name.
-  Typing an existing name joins that team instead of making a duplicate.
+  added to the scoreboard automatically.
+- **One phone per team.** The phone that creates a team is its only buzzer. There's no "switch team",
+  and another phone typing that team's name is turned away (the Firebase rules enforce this too).
+  Refreshing or reopening the page on the same phone goes straight back to its buzzer.
 - Green dot next to a team = its phone is connected; grey = dropped off (they just reopen the page).
+- **Phone died / new phone?** Click the team's dot → Release. The dot turns amber, the old phone stops
+  working, and the new phone takes over by tapping the team on the join screen (or typing its name).
+  Points stay.
 - **Test buzzers**: everyone taps BUZZ; you get a check per team. **Done testing** when happy.
 - **New night (clear teams)** with buzzers connected also clears joined phones and starts with no
   teams (they rejoin with the QR). Deleting a team sends its phones back to the join screen.
@@ -210,7 +215,9 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
 - Clicking a clue starts a fresh buzz round. Buzzers are **closed** until you press **Open
   buzzers** (or turn on "Open buzzers as soon as a clue goes up" in Edit questions).
 - A team that buzzes **before** you open is locked out for the **Early-buzz lockout**
-  (Edit questions, default 0.5 s).
+  (Edit questions, default 0.5 s). Tapping **again** while still locked = spamming: that phone is
+  locked for **5 seconds** ("Slow down!" with a countdown), even if you open the buzzers meanwhile.
+  Refreshing the page doesn't get around it.
 - First buzz shows on your panel (with the order and time gaps), on the TV clue card, and on the
   phones ("First!", "#2"…). **Correct** adds the value and closes the buzzers. **Wrong** locks that
   team out of this clue and reopens for everyone else. **Reset buzzers** clears buzzes and lockouts.

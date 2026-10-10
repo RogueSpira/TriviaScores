@@ -81,7 +81,7 @@
       <button class="big" id="joinBtn" form="joinForm" type="submit">Join</button>
       <div class="err" id="joinErr"></div>
       <div id="otherTeams" hidden>
-        <div class="or">Teammate already joined? Tap your team</div>
+        <div class="or">New phone for your team? Tap it to take over its buzzer</div>
         <div class="teams" id="teamList"></div>
       </div>
     </section>
@@ -92,7 +92,6 @@
       <div class="status" id="connState">Connected</div>
       <button id="buzzBtn" type="button" aria-live="polite"><span class="main" id="btnMain">Wait&hellip;</span><span class="small" id="btnSmall">Buzzers closed</span></button>
       <div class="msg" id="msg"></div>
-      <div class="foot"><button class="linkbtn" id="switchTeam">Switch team</button></div>
     </section>
 
     <div class="card" id="failView" hidden>
@@ -110,12 +109,26 @@ const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { retur
 let fb, myTeam = store.get("kavaBuzzTeam"), teams = {}, buzz = {}, roundBuzzes = {}, isConnected = false;
 let roundUnsub = null, watchedRound = null, earlyUntil = 0, earlyTimer = null, pressedRound = null, presenceFor = null;
 let lastFirstKey = "";
+// Tapping again while still locked from an early tap = spamming: this phone is locked for 5 seconds.
+// (Kept in storage so refreshing the page doesn't get around it.)
+const SPAM_MS = 5000;
+let spamUntil = Number(store.get("kavaBuzzSpam")) || 0, earlyWindowUntil = 0, spamTick = null;
 
 function show(view){ ["loading", "joinView", "buzzView", "failView"].forEach(id => $(id).hidden = id !== view); }
 const norm = s => String(s || "").trim().replace(/\s+/g, " ");
 
 try { fb = await connectBuzz(); }
-catch (e) { show("failView"); throw e; }
+catch (e) {
+  // say why, so the host can fix it (the code in brackets helps when asking for help)
+  const code = String((e && (e.code || e.message)) || e);
+  let why = "Couldn't connect to the buzzers. Check your Wi-Fi or data, then try again.";
+  if (/operation-not-allowed|admin-restricted/.test(code)) why = "The buzzers aren't switched on yet (host: turn on Anonymous sign-in in Firebase).";
+  else if (/api-key|referer|unauthorized-domain/i.test(code)) why = "The buzzer service blocked this site (host: check the Firebase API key settings).";
+  else if (/dynamically imported module|Failed to fetch|Importing a module/i.test(code)) why = "Couldn't load the buzzer. Check your Wi-Fi or data (or turn off an ad blocker), then try again.";
+  $("failMsg").innerHTML = "";
+  $("failMsg").append(why, Object.assign(document.createElement("div"), { textContent: "(" + code + ")", style: "font-size:12px;opacity:.6;margin-top:8px;word-break:break-all" }));
+  show("failView"); throw e;
+}
 
 fb.connected(c => { isConnected = c; if (c) claimPresence(true); render(); });
 fb.watch("game/teams", v => { teams = v || {}; checkTeam(); renderTeamList(); render(); });
@@ -130,21 +143,29 @@ fb.watch("game/buzz", v => {
 });
 
 // ---------- joining ----------
+// One phone per team: the phone that creates a team is its buzzer. If that phone dies, the host
+// releases the team on the laptop and a new phone can take it over.
 let teamsLoaded = false;
 function checkTeam(){
   teamsLoaded = true;
-  if (myTeam && !teams[myTeam]) { leaveTeam(false); }          // host removed the team
-  if (myTeam && teams[myTeam]) { fb.set(`game/members/${myTeam}/${fb.uid}`, true).catch(() => {}); claimPresence(); show("buzzView"); }
+  const t = myTeam && teams[myTeam];
+  if (myTeam && (!t || t.owner !== fb.uid)) {
+    // the host removed the team, or released it so another phone could take over
+    const moved = t && t.owner !== "released";
+    leaveTeam();
+    $("joinErr").textContent = moved ? "Your team's buzzer moved to another phone." : (t ? "The host released your buzzer. Tap your team below to take it back." : "");
+  }
+  if (myTeam && teams[myTeam]) { claimPresence(); show("buzzView"); }
   else show("joinView");
 }
 function renderTeamList(){
-  const list = Object.entries(teams).sort((a, b) => (a[1].at || 0) - (b[1].at || 0));
+  const list = Object.entries(teams).filter(([, t]) => t.owner === "released").sort((a, b) => (a[1].at || 0) - (b[1].at || 0));
   $("otherTeams").hidden = !list.length;
   $("teamList").innerHTML = "";
   list.forEach(([id, t]) => {
     const b = document.createElement("button");
     b.type = "button"; b.textContent = t.name; b.style.borderLeftColor = t.color || "#F36F03";
-    b.onclick = () => joinTeam(id);
+    b.onclick = () => takeOver(id);
     $("teamList").appendChild(b);
   });
 }
@@ -153,35 +174,34 @@ $("joinForm").onsubmit = async e => {
   const name = norm($("teamName").value);
   if (!name) { $("joinErr").textContent = "Type a team name first."; return; }
   const same = Object.entries(teams).find(([, t]) => norm(t.name).toLowerCase() === name.toLowerCase());
-  if (same) return joinTeam(same[0]);
+  if (same) {
+    const [id, t] = same;
+    if (t.owner === fb.uid) return useTeam(id);          // this phone already is that team's buzzer
+    if (t.owner === "released") return takeOver(id);
+    $("joinErr").textContent = `"${t.name}" already has a buzzer on another phone. Pick a different name, or if this is your team's new phone, ask the host to release your buzzer.`;
+    return;
+  }
   $("joinBtn").disabled = true; $("joinErr").textContent = "";
   const id = "fb_" + Math.random().toString(36).slice(2, 10);
   try {
     await fb.set(`game/teams/${id}`, { name, owner: fb.uid, at: fb.ts() });
-    await joinTeam(id);
+    useTeam(id);
   } catch (err) { $("joinErr").textContent = "Couldn't join. Try again in a moment."; }
   $("joinBtn").disabled = false;
 };
-async function joinTeam(id){
-  try {
-    await fb.set(`game/members/${id}/${fb.uid}`, true);
-    myTeam = id; store.set("kavaBuzzTeam", id);
-    claimPresence(); show("buzzView"); render();
-    keepAwake();
-  } catch (err) { $("joinErr").textContent = "Couldn't join that team. Try again."; }
+async function takeOver(id){
+  try { await fb.update(`game/teams/${id}`, { owner: fb.uid }); useTeam(id); }
+  catch (err) { $("joinErr").textContent = "Couldn't take over that buzzer. Ask the host to release it again."; }
 }
-function leaveTeam(clean){
-  if (clean && myTeam) {
-    fb.remove(`game/presence/${myTeam}/${fb.uid}`).catch(() => {});
-    fb.remove(`game/members/${myTeam}/${fb.uid}`).catch(() => {});
-  }
+function useTeam(id){
+  myTeam = id; store.set("kavaBuzzTeam", id); $("joinErr").textContent = "";
+  claimPresence(); show("buzzView"); render();
+  keepAwake();
+}
+function leaveTeam(){
   if (presenceFor) fb.cancelOnDisconnect(`game/presence/${presenceFor}/${fb.uid}`).catch(() => {});
   myTeam = null; presenceFor = null; store.del("kavaBuzzTeam");
 }
-$("switchTeam").onclick = () => {
-  if (!confirm("Leave this team and pick another?")) return;
-  leaveTeam(true); show("joinView"); renderTeamList();
-};
 // "I'm here": shows as a green dot next to the team on the host's laptop; disappears when the phone drops off
 function claimPresence(force){
   if (!myTeam || !teams[myTeam] || !isConnected) return;
@@ -196,17 +216,26 @@ const lockoutMs = () => Math.max(0, Math.min(5000, Number(buzz.lockoutMs) || 0))
 function press(e){
   if (e) e.preventDefault();
   if (!myTeam || !buzz.round) return;
+  const now = Date.now();
+  if (now < spamUntil) return;                                   // locked for spamming
   if (buzz.locked && buzz.locked[myTeam]) return;
   if (roundBuzzes[myTeam] || pressedRound === buzz.round) return;
-  if (Date.now() < earlyUntil) return;
+  if (now < earlyUntil || (!buzz.open && now < earlyWindowUntil)) {
+    // tapped again while still locked from an early tap: 5-second lockout
+    spamUntil = now + SPAM_MS; store.set("kavaBuzzSpam", String(spamUntil));
+    earlyUntil = 0; earlyWindowUntil = 0;
+    try { navigator.vibrate && navigator.vibrate([200, 80, 200]); } catch(err) {}
+    tickSpam(); render();
+    return;
+  }
   if (!buzz.open) {
     // pressed before the host opened the buzzers: short lockout
-    if (lockoutMs() > 0) {
-      earlyUntil = Date.now() + lockoutMs();
-      clearTimeout(earlyTimer); earlyTimer = setTimeout(render, lockoutMs() + 20);
-      try { navigator.vibrate && navigator.vibrate([40, 40, 40]); } catch(err) {}
-      render();
-    }
+    const ms = lockoutMs();
+    if (ms > 0) earlyUntil = now + ms;
+    earlyWindowUntil = now + (ms > 0 ? ms : 1000);
+    clearTimeout(earlyTimer); earlyTimer = setTimeout(render, (ms || 0) + 20);
+    try { navigator.vibrate && navigator.vibrate([40, 40, 40]); } catch(err) {}
+    render();
     return;
   }
   pressedRound = buzz.round;
@@ -214,6 +243,12 @@ function press(e){
   render();
   fb.set(`game/buzzes/${buzz.round}/${myTeam}`, { at: fb.ts() }).catch(() => { pressedRound = null; render(); });
 }
+// redraw the countdown while locked for spamming
+function tickSpam(){
+  clearInterval(spamTick);
+  spamTick = setInterval(() => { render(); if (Date.now() >= spamUntil) { clearInterval(spamTick); spamTick = null; store.del("kavaBuzzSpam"); render(); } }, 250);
+}
+if (spamUntil > Date.now()) tickSpam(); else store.del("kavaBuzzSpam");
 $("buzzBtn").addEventListener("pointerdown", press);
 $("buzzBtn").addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") press(e); });
 $("buzzBtn").addEventListener("contextmenu", e => e.preventDefault());
@@ -229,11 +264,13 @@ function render(){
   const first = order[0] && teams[order[0].team] ? teams[order[0].team].name : (order[0] ? "Another team" : "");
   const locked = buzz.locked && buzz.locked[myTeam];
   const early = Date.now() < earlyUntil;
+  const spamLeft = Math.ceil((spamUntil - Date.now()) / 1000);
   let cls = "", main = "Wait…", small = "Buzzers closed", msg = "";
   if (locked) { cls = "locked"; main = "Locked"; small = "Out for this question"; msg = "Wait for the next question."; }
   else if (place === 0) { cls = "first"; main = "First!"; small = buzz.test ? "Test buzz worked" : "You buzzed in first"; msg = buzz.test ? "Your buzzer works." : "Get ready to answer!"; }
   else if (place > 0) { cls = "later"; main = "#" + (place + 1); small = "You buzzed in"; msg = first + " was first."; }
   else if (pressedRound && pressedRound === buzz.round) { cls = "sent"; main = "Sent…"; small = "Buzzing in"; }
+  else if (spamLeft > 0) { cls = "early"; main = "Slow down!"; small = "Locked " + spamLeft + "s"; msg = "Too many taps before the buzzers opened."; }
   else if (early) { cls = "early"; main = "Too early!"; small = "Locked for a moment"; msg = "Wait for the host to open the buzzers."; }
   else if (buzz.open) { cls = "open"; main = "BUZZ!"; small = buzz.test ? "Test: tap now" : "Tap to buzz in"; }
   else if (order.length) { main = "Wait…"; small = "Buzzers closed"; msg = first + " buzzed in first."; }

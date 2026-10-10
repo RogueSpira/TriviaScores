@@ -14,16 +14,8 @@
       ".write": "auth != null && root.child('hosts').child(auth.uid).exists()",
       "teams": {
         "$team": {
-          ".write": "auth != null && ((!data.exists() && newData.child('owner').val() === auth.uid) || (data.exists() && newData.exists() && data.child('owner').val() === auth.uid))",
+          ".write": "auth != null && newData.child('owner').val() === auth.uid && (!data.exists() || data.child('owner').val() === auth.uid || data.child('owner').val() === 'released')",
           ".validate": "$team.length <= 24 && newData.hasChildren(['name', 'owner']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 30"
-        }
-      },
-      "members": {
-        "$team": {
-          "$uid": {
-            ".write": "auth != null && auth.uid === $uid",
-            ".validate": "newData.val() === true && root.child('game/teams/' + $team).exists()"
-          }
         }
       },
       "presence": {
@@ -37,7 +29,7 @@
       "buzzes": {
         "$round": {
           "$team": {
-            ".write": "auth != null && !data.exists() && newData.exists() && root.child('game/buzz/open').val() === true && root.child('game/buzz/round').val() === $round && root.child('game/members/' + $team + '/' + auth.uid).exists() && !root.child('game/buzz/locked/' + $team).exists()",
+            ".write": "auth != null && !data.exists() && newData.exists() && root.child('game/buzz/open').val() === true && root.child('game/buzz/round').val() === $round && root.child('game/teams/' + $team + '/owner').val() === auth.uid && !root.child('game/buzz/locked/' + $team).exists()",
             ".validate": "newData.child('at').val() === now"
           }
         }

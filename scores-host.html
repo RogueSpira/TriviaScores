@@ -634,6 +634,9 @@
 
   /* ---- Phone buzzers ---- */
   .bz-dot { width: 9px; height: 9px; border-radius: 50%; background: #5b6b70; flex: 0 0 auto; box-shadow: 0 0 0 2px var(--panel); }
+  .row-top .bz-dot { cursor: pointer; width: 11px; height: 11px; }
+  .bz-dot.rel { background: #f0bf17; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(240,191,23,.7); cursor: default; }
+  .bz-big { font-size: 22px !important; font-weight: 800 !important; padding: 18px 24px !important; width: 100%; border-radius: 12px !important; letter-spacing: .5px; }
   .bz-dot.on { background: #3cdc5a; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(60,220,90,.7); }
   .bz-dot[hidden] { display: none; }
   .row-top .bz-dot { margin: 0 -2px 0 -4px; }
@@ -1532,6 +1535,10 @@ function renderList() {
     top.className = "row-top";
     const dot = document.createElement("span");
     dot.className = "bz-dot"; dot.dataset.bzt = team.id; dot.hidden = true;
+    dot.onclick = () => {
+      if (!window.Buzz || !Buzz.isOn() || !Buzz.isFb(team.id) || Buzz.isReleased(team.id)) return;
+      if (confirm(`Release ${team.name || "this team"}'s buzzer?\n\nTheir current phone stops working, and a new phone can take over by typing the team name. (Points stay.)`)) Buzz.release(team.id);
+    };
     top.append(rank, dot, swatch, name, score, editTotal, del);
 
     // one-click amounts: a single click adds that many points
@@ -1611,7 +1618,13 @@ function paintBuzzDots(){
   document.querySelectorAll(".bz-dot[data-bzt]").forEach(d => {
     const id = d.dataset.bzt, fb = !!(B && B.isOn() && B.isFb(id));
     d.hidden = !fb;
-    if (fb) { const on = B.online(id); d.classList.toggle("on", on); d.title = on ? "Buzzer phone connected" : "Buzzer phone not connected"; }
+    if (fb) {
+      const on = B.online(id), rel = B.isReleased(id);
+      d.classList.toggle("on", on && !rel); d.classList.toggle("rel", rel);
+      d.title = rel ? "Buzzer released: waiting for a new phone to take over (type the team name or tap it on the join screen)"
+        : (on ? "Buzzer phone connected. Click to release it (if their phone died and a new phone needs to take over)"
+              : "Buzzer phone not connected. Click to release it so a new phone can take over");
+    }
   });
 }
 function escHTML(s){ const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
@@ -1677,7 +1690,7 @@ function renderFeudBuzz(){
   } else if (st.open) {
     h += `<span class="bz-state open">Open</span><span class="bz-note">Waiting for a buzz&hellip;</span></div><div class="btn-row"><button class="btn" data-bz="fclose">Close buzzers</button></div>`;
   } else {
-    h += `<span class="bz-state">Closed</span><span class="bz-note">Read the question, then open the buzzers.</span></div><div class="btn-row"><button class="btn aqua" data-bz="fopen">Open buzzers</button></div>`;
+    h += `<span class="bz-state">Closed</span><span class="bz-note">Read the question, then open the buzzers.</span></div><button class="btn aqua bz-big" data-bz="fopen">Open buzzers</button>`;
   }
   h += `</div>`;
   if (el.dataset.sig !== h) { el.dataset.sig = h; el.innerHTML = h; }
@@ -2628,8 +2641,8 @@ wheel.onclick = spin;
       } else {
         const lk = B.lockoutMs() / 1000;
         h = `<div class="bz-box"><div class="bz-head"><span class="bz-state">Closed</span>
-            <button class="mbtn primary" id="bzOpen">Open buzzers</button>
-            <span class="bz-note">${lk ? `Anyone who buzzes before you open is locked out for ${lk}s.` : "Read the clue, then open the buzzers."}</span></div>${lockNote}</div>`;
+            <span class="bz-note">Read the clue, then open the buzzers.${lk ? ` Anyone who buzzes early is locked out for ${lk}s (5s if they keep tapping).` : ""}</span></div>
+            <button class="mbtn primary bz-big" id="bzOpen">Open buzzers</button>${lockNote}</div>`;
       }
     }
     if (el.dataset.sig === h) return;
