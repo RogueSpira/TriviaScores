@@ -62,3 +62,20 @@ export function buzzOrder(roundBuzzes){
     .sort((a, b) => a.at - b.at || (a.team < b.team ? -1 : 1));
 }
 export const newRoundId = (prefix = "r") => prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+// The buzz-in answer timer: starts the moment the first team's buzz reaches the server.
+// state = game/buzz (answerSecs, timer overrides from the host), order = buzzOrder(...), now = server time (ms).
+// Host overrides in state.timer: { team, paused, leftMs } | { team, stopped, leftMs } | { team, anchor, ms } (resumed/restarted)
+export function answerClock(state, order, now){
+  state = state || {};
+  const first = order && order[0];
+  const secs = Number(state.answerSecs);
+  if (!first || state.test || !(secs > 0)) return null;
+  const total = secs * 1000;
+  const t = state.timer && state.timer.team === first.team ? state.timer : null;
+  if (t && t.stopped) return { team: first.team, total, left: Number(t.leftMs) || 0, paused: false, stopped: true, done: false };
+  if (t && t.paused) return { team: first.team, total, left: Number(t.leftMs) || 0, paused: true, stopped: false, done: false };
+  const anchor = t ? Number(t.anchor) : first.at, ms = t ? Number(t.ms) : total;
+  const left = Math.max(0, ms - (now - anchor));
+  return { team: first.team, total, left, paused: false, stopped: false, done: left <= 0 };
+}

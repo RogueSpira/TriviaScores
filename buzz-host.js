@@ -1,7 +1,7 @@
 // buzz-host.js — the host laptop's side of the phone buzzers (loaded by scores-host.html).
 // Teams that join on their phones are added to the scoreboard; the Jeopardy and Feud tools
 // open / close / reset the buzzers through window.Buzz.
-import { connectBuzz, buzzOrder, newRoundId } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, newRoundId, answerClock } from "./kava-buzz.js";
 
 const PIN_KEY = "kavaHostPin";
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
@@ -18,8 +18,12 @@ const B = window.Buzz = {
   isFb(id){ return !!this.teams[id]; },
   online(id){ return (this.presence[id] || 0) > 0; },
   joinUrl(){ return new URL("buzz.html", location.href).href; },
+  offset: 0,              // server clock minus this laptop's clock
+  answerSecs(){ const s = (typeof jq !== "undefined" && jq.buzz) ? Number(jq.buzz.answer) : 10; return Number.isFinite(s) ? s : 10; },
+  clock(){ return answerClock(this.state, this.order, Date.now() + this.offset); },
   lockoutMs(){ const s = (typeof jq !== "undefined" && jq.buzz) ? Number(jq.buzz.lockout) : 0.5; return Math.round((Number.isFinite(s) ? s : 0.5) * 1000); },
   isReleased(id){ return !!(this.teams[id] && this.teams[id].owner === "released"); },
+  pauseTimer, resumeTimer, restartTimer, stopTimer,
   connect, open, close, newQuestion, idle, wrong, reset, test, removeTeam, release, clearAll, setLockout, teamEdited
 };
 
@@ -47,6 +51,7 @@ async function connect(pin){
   catch (e) { B.status = "wrongpin"; B.err = "That PIN didn't work."; notify(); return false; }
   store.set(PIN_KEY, pin);
   B.status = "on";
+  api.serverOffset(o => { B.offset = o; });
   api.watch("game/teams", v => { B.teams = v || {}; syncTeams(); notify(); });
   api.watch("game/presence", v => {
     const p = {}; Object.entries(v || {}).forEach(([t, phones]) => { p[t] = Object.keys(phones || {}).length; });
@@ -93,17 +98,23 @@ function teamEdited(team){
   }, 600);
 }
 
-function round(fields){ return Object.assign({ lockoutMs: B.lockoutMs(), round: newRoundId() }, fields); }
+function round(fields){ return Object.assign({ lockoutMs: B.lockoutMs(), answerSecs: B.answerSecs(), round: newRoundId() }, fields); }
 function newQuestion(openNow){ if (!B.isOn()) return; write(api.set("game/buzz", round(openNow ? { open: true, openedAt: api.ts() } : { open: false }))); }
 function idle(){ if (!api) return; write(api.set("game/buzz", round({ open: false }))); }
 function open(){ if (!B.isOn()) return; write(api.update("game/buzz", { open: true, openedAt: api.ts() })); }
 function close(){ if (!B.isOn()) return; write(api.update("game/buzz", { open: false })); }
 // Wrong answer: lock that team out of this question and reopen for everyone else.
-function wrong(team){ if (!B.isOn()) return; write(api.update("game/buzz", { ["locked/" + team]: true, round: newRoundId(), open: true, openedAt: api.ts() })); }
+function wrong(team){ if (!B.isOn()) return; write(api.update("game/buzz", { ["locked/" + team]: true, round: newRoundId(), open: true, openedAt: api.ts(), timer: null })); }
 // Clear the buzzes and any lockouts; buzzers closed until you open them.
-function reset(){ if (!B.isOn()) return; write(api.update("game/buzz", { round: newRoundId(), open: false, locked: null })); }
+function reset(){ if (!B.isOn()) return; write(api.update("game/buzz", { round: newRoundId(), open: false, locked: null, timer: null })); }
+// Buzz-in timer controls (the timer itself starts on its own when a team buzzes)
+function timerSet(t){ if (!B.isOn()) return; write(api.update("game/buzz", { timer: t })); }
+function pauseTimer(){ const c = B.clock(); if (c && !c.paused && !c.stopped) timerSet({ team: c.team, paused: true, leftMs: Math.round(c.left) }); }
+function resumeTimer(){ const c = B.clock(); if (c && (c.paused || c.stopped)) timerSet({ team: c.team, anchor: api.ts(), ms: Math.round(c.left) }); }
+function restartTimer(){ const c = B.clock(); if (c) timerSet({ team: c.team, anchor: api.ts(), ms: c.total }); }
+function stopTimer(){ const c = B.clock(); if (c && !c.stopped) timerSet({ team: c.team, stopped: true, leftMs: Math.round(c.left) }); }
 function test(){ if (!B.isOn()) return; write(api.set("game/buzz", round({ open: true, test: true, round: newRoundId("test"), openedAt: api.ts() }))); }
-function setLockout(){ if (!B.isOn()) return; write(api.update("game/buzz", { lockoutMs: B.lockoutMs() })); }
+function setLockout(){ if (!B.isOn()) return; write(api.update("game/buzz", { lockoutMs: B.lockoutMs(), answerSecs: B.answerSecs() })); }
 function removeTeam(id){
   if (!B.isOn() || !B.isFb(id)) return;
   write(api.update("game", { ["teams/" + id]: null, ["members/" + id]: null, ["presence/" + id]: null }));

@@ -186,7 +186,9 @@ function cleanJeopardy(j) {
   const bz = (j.buzz && typeof j.buzz === "object") ? j.buzz : {};
   const lockout = Number(bz.lockout);
   return { timer: Math.max(5, Math.min(120, Math.round(Number(j.timer) || 30))), boards,
-    buzz: { auto: bz.auto === true, lockout: Number.isFinite(lockout) ? Math.max(0, Math.min(5, Math.round(lockout * 4) / 4)) : 0.5 } };
+    buzz: { auto: bz.auto === true, lockout: Number.isFinite(lockout) ? Math.max(0, Math.min(5, Math.round(lockout * 4) / 4)) : 0.5,
+      // seconds a team gets to answer after buzzing in (0 = no buzz-in timer)
+      answer: Number.isFinite(Number(bz.answer)) && bz.answer !== null && bz.answer !== "" ? Math.max(0, Math.min(60, Math.round(Number(bz.answer)))) : 10 } };
 }
 const mediaStore = () => getStore({ name: "trivia-media", consistency: "strong" });
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];

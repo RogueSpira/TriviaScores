@@ -636,6 +636,13 @@
   .bz-dot { width: 9px; height: 9px; border-radius: 50%; background: #5b6b70; flex: 0 0 auto; box-shadow: 0 0 0 2px var(--panel); }
   .row-top .bz-dot { cursor: pointer; width: 11px; height: 11px; }
   .bz-dot.rel { background: #f0bf17; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(240,191,23,.7); cursor: default; }
+  .bz-timer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .bz-timer .bz-tnum { font-size: 34px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 64px; text-align: center; line-height: 1; }
+  .bz-timer .bz-tbar { flex: 1 1 160px; height: 12px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; min-width: 120px; }
+  .bz-timer .bz-tbar i { display: block; height: 100%; width: 100%; background: #3cdc5a; transform-origin: left; }
+  .bz-timer.low .bz-tnum { color: #f0bf17; } .bz-timer.low .bz-tbar i { background: #f0bf17; }
+  .bz-timer.done .bz-tnum { color: #d9736f; } .bz-timer.paused .bz-tnum { color: var(--muted); }
+  .bz-timer .bz-tlbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
   .bz-big { font-size: 22px !important; font-weight: 800 !important; padding: 18px 24px !important; width: 100%; border-radius: 12px !important; letter-spacing: .5px; }
   .bz-dot.on { background: #3cdc5a; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(60,220,90,.7); }
   .bz-dot[hidden] { display: none; }
@@ -719,7 +726,7 @@
   .jp-settings input, .jp-settings select, .jp-values input, .jp-cated input, .jp-cated textarea, .jp-cated select {
     background: var(--field); border: 1px solid var(--line); color: var(--ink); padding: 7px 9px; border-radius: 7px; font: inherit; font-size: 13.5px; }
   .jp-settings input:focus, .jp-cated input:focus, .jp-cated textarea:focus, .jp-values input:focus { outline: none; border-color: var(--accent); }
-  #jpName { width: 170px; } #jpTimer, #jpLockout { width: 64px; text-align: right; }
+  #jpName { width: 170px; } #jpTimer, #jpLockout, #jpAnswerSecs { width: 64px; text-align: right; }
   #jpAutoOpen { width: auto; }
   .jp-values { display: flex; align-items: center; gap: 6px; }
   .jp-values input { width: 78px; text-align: right; font-weight: 700; }
@@ -931,6 +938,7 @@
       <div class="jp-settings">
         <label>Board name <input type="text" id="jpName" maxlength="40"></label>
         <label>Answer timer <input type="number" id="jpTimer" min="5" max="120"> sec</label>
+        <label title="Seconds a team gets to answer after it buzzes in (counts down on the TV and phones; 0 = no timer)">Buzz-in answer time <input type="number" id="jpAnswerSecs" min="0" max="60" step="1"> sec</label>
         <label title="A team that presses its buzzer before you open the buzzers can't buzz again for this long">Early-buzz lockout <input type="number" id="jpLockout" min="0" max="5" step="0.25"> sec</label>
         <label title="On: the buzzers open as soon as a clue goes on the TV. Off: you press Open buzzers when you've finished reading."><input type="checkbox" id="jpAutoOpen"> Open buzzers as soon as a clue goes up</label>
       </div>
@@ -1666,6 +1674,9 @@ document.addEventListener("click", e => {
   else if (act === "fopen") Buzz.open();
   else if (act === "fclose") Buzz.close();
   else if (act === "freset") Buzz.reset();
+  else if (act === "tpause") Buzz.pauseTimer();
+  else if (act === "tresume") Buzz.resumeTimer();
+  else if (act === "trestart") Buzz.restartTimer();
 });
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset && e.target.dataset.bz === "pin" && window.Buzz) Buzz.connect(e.target.value); });
 // Who buzzed, in order: "1 Root Down · 2 Kava Kats +0.31s"
@@ -1676,6 +1687,30 @@ function buzzOrderHTML(){
     return `<span class="bz-chip"><i style="background:${escHTML(t.color)}"></i><b>${i + 1}</b> ${escHTML(t.name || "Team")}${i ? ` <small>+${((b.at - o[0].at) / 1000).toFixed(2)}s</small>` : ""}</span>`;
   }).join("") + `</div>`;
 }
+// The buzz-in timer row: number + bar (filled in by tickBuzzTimers) and Pause / Resume / Restart
+function buzzTimerHTML(){
+  const c = window.Buzz && Buzz.clock();
+  if (!c) return "";
+  const btn = c.stopped ? `<button class="mbtn" data-bz="tresume">&#9654; Resume timer</button>`
+    : c.paused ? `<button class="mbtn primary" data-bz="tresume">&#9654; Resume</button>`
+    : `<button class="mbtn" data-bz="tpause">&#10074;&#10074; Pause</button>`;
+  return `<div class="bz-timer" data-bztimer><span class="bz-tlbl">${c.stopped ? "Timer stopped" : c.paused ? "Paused" : "Time to answer"}</span>
+    <span class="bz-tnum"></span><span class="bz-tbar"><i></i></span>${btn}<button class="mbtn" data-bz="trestart" title="Start the countdown over">&#8635; Restart</button></div>`;
+}
+function tickBuzzTimers(){
+  const els = document.querySelectorAll("[data-bztimer]");
+  if (!els.length || !window.Buzz) return;
+  const c = Buzz.clock();
+  els.forEach(el => {
+    if (!c) return;
+    const s = Math.ceil(c.left / 1000);
+    el.querySelector(".bz-tnum").textContent = c.done ? "Time!" : s + "s";
+    el.querySelector(".bz-tbar i").style.transform = `scaleX(${Math.max(0, Math.min(1, c.left / c.total))})`;
+    el.classList.toggle("done", c.done); el.classList.toggle("paused", c.paused || c.stopped);
+    el.classList.toggle("low", !c.done && s <= 3);
+  });
+}
+setInterval(tickBuzzTimers, 150);
 // Feud face-off buzzers: open, see who's first, reset
 function renderFeudBuzz(){
   const el = document.getElementById("f_buzzCtl"), B = window.Buzz;
@@ -1685,7 +1720,7 @@ function renderFeudBuzz(){
   let h = `<div class="bz-box"><div class="bz-head">`;
   if (first) {
     const t = bzTeam(first.team);
-    h += `<span class="bz-state buzzed">Buzzed</span><span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>${buzzOrderHTML()}
+    h += `<span class="bz-state buzzed">Buzzed</span><span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>${buzzTimerHTML()}${buzzOrderHTML()}
       <div class="btn-row"><button class="btn aqua" data-bz="freset">Reset for the next face-off</button></div>`;
   } else if (st.open) {
     h += `<span class="bz-state open">Open</span><span class="bz-note">Waiting for a buzz&hellip;</span></div><div class="btn-row"><button class="btn" data-bz="fclose">Close buzzers</button></div>`;
@@ -1693,7 +1728,7 @@ function renderFeudBuzz(){
     h += `<span class="bz-state">Closed</span><span class="bz-note">Read the question, then open the buzzers.</span></div><button class="btn aqua bz-big" data-bz="fopen">Open buzzers</button>`;
   }
   h += `</div>`;
-  if (el.dataset.sig !== h) { el.dataset.sig = h; el.innerHTML = h; }
+  if (el.dataset.sig !== h) { el.dataset.sig = h; el.innerHTML = h; tickBuzzTimers(); }
 }
 window.onBuzzChange = function(){
   paintBuzzDots(); renderBuzzBars(); renderFeudBuzz();
@@ -1807,7 +1842,8 @@ function normJSide(sd){
 function normalizeJeopardy(j){
   const bz = (j && j.buzz) || {};
   const out = { timer: Number(j && j.timer) || 30, boards: {},
-    buzz: { auto: bz.auto === true, lockout: Number.isFinite(Number(bz.lockout)) && bz.lockout !== undefined && bz.lockout !== null ? Number(bz.lockout) : 0.5 } };
+    buzz: { auto: bz.auto === true, lockout: Number.isFinite(Number(bz.lockout)) && bz.lockout !== undefined && bz.lockout !== null ? Number(bz.lockout) : 0.5,
+      answer: Number.isFinite(Number(bz.answer)) && bz.answer !== undefined && bz.answer !== null ? Number(bz.answer) : 10 } };
   JB_IDS.forEach(id => {
     const b = (j && j.boards && j.boards[id]) || {}, base = blankJBoard(id);
     out.boards[id] = {
@@ -2629,6 +2665,7 @@ wheel.onclick = spin;
         const t = bzTeam(first.team);
         h = `<div class="bz-box"><div class="bz-head"><span class="bz-state buzzed">Buzzed</span>
             <span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>
+          ${buzzTimerHTML()}
           ${buzzOrderHTML()}
           <div class="jp-row">
             <button class="mbtn bz-ok" id="bzRight">&#10003; Correct &mdash; +${v.toLocaleString()} ${escHTML(t.name || "Team")}</button>
@@ -2646,7 +2683,7 @@ wheel.onclick = spin;
       }
     }
     if (el.dataset.sig === h) return;
-    el.dataset.sig = h; el.innerHTML = h;
+    el.dataset.sig = h; el.innerHTML = h; tickBuzzTimers();
     const on = (id, fn) => { const x = $(id); if (x) x.onclick = fn; };
     on("bzOpen", () => Buzz.open());
     on("bzClose", () => Buzz.close());
@@ -2655,7 +2692,7 @@ wheel.onclick = spin;
     on("bzRight", () => {
       const f = Buzz.order[0]; if (!f) return;
       if (!teams.find(t => t.id === f.team)) { toast("That team isn't on the scoreboard"); return; }
-      award(f.team); Buzz.close();
+      award(f.team); Buzz.stopTimer(); Buzz.close();
     });
   }
   window.renderJeopardyBuzz = renderJeopardyBuzz;
@@ -2707,6 +2744,7 @@ wheel.onclick = spin;
     if (document.activeElement !== $("jpName")) $("jpName").value = B.name;
     if (document.activeElement !== $("jpTimer")) $("jpTimer").value = jq.timer;
     if (document.activeElement !== $("jpLockout")) $("jpLockout").value = jq.buzz.lockout;
+    if (document.activeElement !== $("jpAnswerSecs")) $("jpAnswerSecs").value = jq.buzz.answer;
     $("jpAutoOpen").checked = !!jq.buzz.auto;
     $("jpValues").hidden = G;
     if (!G) document.querySelectorAll(".jp-val").forEach(inp => { if (document.activeElement !== inp) inp.value = B.values[+inp.dataset.r]; });
@@ -2790,6 +2828,11 @@ wheel.onclick = spin;
   $("jpLockout").onchange = () => {
     const v = Math.max(0, Math.min(5, Math.round((Number($("jpLockout").value) || 0) * 4) / 4));
     jq.buzz.lockout = v; $("jpLockout").value = v; saveState();
+    if (window.Buzz) Buzz.setLockout();
+  };
+  $("jpAnswerSecs").onchange = () => {
+    const v = Math.max(0, Math.min(60, Math.round(Number($("jpAnswerSecs").value) || 0)));
+    jq.buzz.answer = v; $("jpAnswerSecs").value = v; saveState();
     if (window.Buzz) Buzz.setLockout();
   };
   $("jpAutoOpen").onchange = () => { jq.buzz.auto = $("jpAutoOpen").checked; saveState(); };

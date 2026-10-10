@@ -102,7 +102,7 @@
   </main>
 
 <script type="module">
-import { connectBuzz, buzzOrder } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, answerClock } from "./kava-buzz.js";
 const $ = id => document.getElementById(id);
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }, del(k){ try { localStorage.removeItem(k); } catch(e) {} } };
 
@@ -130,6 +130,8 @@ catch (e) {
   show("failView"); throw e;
 }
 
+let serverOffset = 0;
+fb.serverOffset(o => { serverOffset = o; });
 fb.connected(c => { isConnected = c; if (c) claimPresence(true); render(); });
 fb.watch("game/teams", v => { teams = v || {}; checkTeam(); renderTeamList(); render(); });
 fb.watch("game/buzz", v => {
@@ -267,7 +269,11 @@ function render(){
   const spamLeft = Math.ceil((spamUntil - Date.now()) / 1000);
   let cls = "", main = "Wait…", small = "Buzzers closed", msg = "";
   if (locked) { cls = "locked"; main = "Locked"; small = "Out for this question"; msg = "Wait for the next question."; }
-  else if (place === 0) { cls = "first"; main = "First!"; small = buzz.test ? "Test buzz worked" : "You buzzed in first"; msg = buzz.test ? "Your buzzer works." : "Get ready to answer!"; }
+  else if (place === 0) {
+    cls = "first"; main = "First!"; small = buzz.test ? "Test buzz worked" : "You buzzed in first"; msg = buzz.test ? "Your buzzer works." : "Get ready to answer!";
+    const c = answerClock(buzz, order, Date.now() + serverOffset);
+    if (c && !c.stopped) { main = c.done ? "Time!" : String(Math.ceil(c.left / 1000)); small = c.paused ? "Timer paused" : (c.done ? "Time's up" : "Seconds to answer"); msg = "You buzzed in first. Answer now!"; }
+  }
   else if (place > 0) { cls = "later"; main = "#" + (place + 1); small = "You buzzed in"; msg = first + " was first."; }
   else if (pressedRound && pressedRound === buzz.round) { cls = "sent"; main = "Sent…"; small = "Buzzing in"; }
   else if (spamLeft > 0) { cls = "early"; main = "Slow down!"; small = "Locked " + spamLeft + "s"; msg = "Too many taps before the buzzers opened."; }
@@ -280,6 +286,9 @@ function render(){
   const fk = order[0] ? watchedRound + order[0].team : "";
   if (fk !== lastFirstKey) { if (order[0] && order[0].team === myTeam) { try { navigator.vibrate && navigator.vibrate([80, 60, 160]); } catch(e) {} } lastFirstKey = fk; }
 }
+
+// keep the buzz-in countdown moving
+setInterval(() => { if (myTeam && Object.keys(roundBuzzes).length) render(); }, 250);
 
 // keep the screen on while the buzzer is open (where the phone allows it)
 let wakeLock = null;

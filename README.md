@@ -221,6 +221,11 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
 - First buzz shows on your panel (with the order and time gaps), on the TV clue card, and on the
   phones ("First!", "#2"…). **Correct** adds the value and closes the buzzers. **Wrong** locks that
   team out of this clue and reopens for everyone else. **Reset buzzers** clears buzzes and lockouts.
+- **Buzz-in timer:** the moment a team buzzes, a countdown starts (Edit questions → **Buzz-in answer
+  time**, default 10 s; 0 turns it off). It shows on your panel, next to the team name on the TV and on
+  the buzzing team's phone, all in sync. **Pause / Resume** and **Restart** are on your panel. At zero
+  the TV shows "Time!" with the buzzer sound. **Wrong** gives the next team a fresh timer; **Correct**
+  stops it. The Feud face-off card has the same timer.
 - Gamble rounds don't use buzzers.
 
 **Feud face-off**: Feud → Play → **Buzzers** card: Open buzzers → first team shows on the laptop and
