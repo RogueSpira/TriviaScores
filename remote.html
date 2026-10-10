@@ -120,7 +120,7 @@
 
 <nav id="nav" hidden>
   <button data-tab="tv">TV</button>
-  <button data-tab="jeop" class="on">Jeopardy</button>
+  <button data-tab="jeop" class="on">Jeopardy &amp; Gambling</button>
   <button data-tab="music">Music</button>
   <button data-tab="feud">Feud</button>
 </nav>
@@ -148,6 +148,9 @@ async function connect(pin){
   fb.serverOffset(o => { offset = o; });
   fb.watch("hostonly/view", v => { view = v; renderAll(); });
   fb.watch("hostonly/alive", v => { alive = Number(v) || 0; paintConn(); });
+  // ask the laptop "are you there?" every few seconds (it answers straight away)
+  const ping = () => fb.set("hostonly/ping", fb.ts()).catch(() => {});
+  ping(); setInterval(ping, 5000);
   fb.watch("game/teams", v => { fbTeams = v || {}; renderAll(); });
   fb.watch("game/buzz", v => {
     buzz = v || {};
@@ -243,8 +246,8 @@ function renderJeop(){
     const n = B.cats.length;
     h += `<div class="card">
       ${j.game ? `<div class="note">Board: <b>${esc(j.game)}</b></div>` : ""}
-      <div class="seg"><button class="b ${j.board === "r1" ? "on" : ""}" data-j="board" data-arg="r1">${esc(j.boards.r1.name)}</button>
-        <button class="b ${j.board === "g1" ? "on" : ""}" data-j="board" data-arg="g1">${esc(j.boards.g1.name)}</button></div>
+      <div class="seg"><button class="b ${j.board === "r1" ? "on" : ""}" data-j="board" data-arg="r1">Jeopardy</button>
+        <button class="b ${j.board === "g1" ? "on" : ""}" data-j="board" data-arg="g1">Gambling</button></div>
       <div class="row"><span class="note grow">${j.cats} of ${n} categories showing</span>
         <button class="b primary" data-j="revealNext" ${j.cats >= n ? "disabled" : ""}>Reveal next</button>
         <button class="b" data-j="revealAll" ${j.cats >= n ? "disabled" : ""}>All</button></div></div>`;
@@ -364,15 +367,27 @@ async function loadFeud(){
   catch(e) { feud = feud || { error: true }; }
   if (tab === "feud") renderFeud();
 }
-async function feudDo(action, body, after){
-  try {
-    const r = await fetch(feudApi() + "?action=" + action, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body || {}) });
-    const d = await r.json();
-    if (d.error) { flash(d.error); return; }
-  } catch(e) { flash("Couldn't reach the Feud site"); return; }
-  try { navigator.vibrate && navigator.vibrate(15); } catch(e) {}
-  send({ a: "f", fn: after || "refresh" });
-  loadFeud();
+const F = (fn, ...args) => send({ a: "f", fn, args });
+function feudTurnHTML(PQ){
+  const tn = view && view.feudTurn, first = order[0];
+  if (buzz.test) return `<div class="note">The laptop is testing buzzers.</div>`;
+  if (first && tn && tn.team === first.team) {
+    const t = teamOf(tn.team);
+    if (tn.over) return `<div class="side"><span class="state buzzed">Turn over</span>
+        <div class="first" style="margin-top:6px"><i style="background:${esc(t.color)}"></i>${esc(t.name)}</div>
+        <div class="note">${esc(tn.why)}</div></div>
+      <button class="b primary big" data-f="next">Next race &mdash; reset buzzers &amp; strikes</button>`;
+    return `<div class="side"><span class="state buzzed">Their turn</span>
+        <div class="first" style="margin-top:6px"><i style="background:${esc(t.color)}"></i>${esc(t.name)}</div>
+        <div class="note">Guess ${tn.guesses + 1} of 4 &middot; ${tn.strikes} of 3 strikes</div>
+        <div class="timer" data-btimer><span class="num"></span><span class="note" data-btlbl></span></div>
+        <div class="row" data-btbtns></div></div>
+      <div class="note">Right answer? Tap <b>&#10003;</b> next to it below (reveals it + adds ${tn.pts || ""} points on the laptop).</div>
+      <button class="b bad big" data-f="wrong">&#10007; Wrong &mdash; strike</button>`;
+  }
+  if (first) return `<div class="note">Buzz received&hellip;</div>`;
+  if (buzz.open) return `<div class="row"><span class="state open">Open</span><span class="note grow">Waiting for a buzz&hellip;</span></div>`;
+  return `<button class="b primary big" data-f="open">Open buzzers (race to buzz)</button>`;
 }
 function renderFeud(){
   if (!feud) { paint("tab-feud", `<div class="card"><div class="note">Loading Feud&hellip;</div></div>`); return; }
@@ -381,7 +396,20 @@ function renderFeud(){
   const ids = Object.keys(surveys).filter(id => Array.isArray(surveys[id].questions));
   if (!feudSel.sid && play.surveyId && surveys[play.surveyId]) feudSel.sid = play.surveyId;
   const S = feudSel.sid && surveys[feudSel.sid];
-  let h = `<div class="card"><div class="lbl">Load a board</div>
+  const PS = play.surveyId && surveys[play.surveyId], PQ = PS && PS.questions.find(q => q.qid === play.qid);
+  let h = "";
+  if (PQ && PQ.board) {
+    const strikes = play.strikes || 0, tn = view && view.feudTurn, live = tn && !tn.over && order[0] && tn.team === order[0].team;
+    h += `<div class="card"><div class="lbl">On the TV</div><div class="t" style="font-weight:800;font-size:17px">${esc(PQ.text)}</div>
+      ${feudTurnHTML(PQ)}
+      ${PQ.board.slots.map((sl, i) => `<div class="slot ${sl.revealed ? "rev" : ""}"><span class="n">${i + 1}</span><span class="a">${esc(sl.text)}</span><span class="c">${sl.count}</span>
+        ${sl.revealed ? `<button class="b" disabled>Shown</button>` : live ? `<button class="b ok" data-f="correct" data-i="${i}">&#10003; +${tn.pts || ""}</button>` : `<button class="b primary" data-f="reveal" data-i="${i}">Reveal</button>`}</div>`).join("")}
+      <div class="row"><div class="xs grow">${[1, 2, 3].map(n => `<span class="${n <= strikes ? "on" : ""}">&#10005;</span>`).join("")}</div>
+        <button class="b" data-f="clearStrikes">Reset strikes</button></div>
+      ${live ? `<button class="b" data-f="next">End turn &amp; reset</button>` : `<button class="b strike" data-f="wrong">&#10005; Strike</button>`}
+      <div class="row"><button class="b grow" data-f="hideAll">Re-hide all</button><button class="b grow" data-f="clear">Clear board</button></div></div>`;
+  }
+  h += `<div class="card"><div class="lbl">Load a board</div>
     <select id="fSurvey"><option value="">&mdash; pick a survey &mdash;</option>${ids.map(id => `<option value="${esc(id)}" ${id === feudSel.sid ? "selected" : ""}>${esc(surveys[id].title)}</option>`).join("")}</select>`;
   if (S) {
     const qs = S.questions.map((q, i) => ({ q, i })).filter(x => x.q.board && x.q.board.locked);
@@ -392,17 +420,6 @@ function renderFeud(){
       : `<div class="note">No locked boards in this survey yet (lock them on the laptop).</div>`;
   }
   h += `</div>`;
-  const PS = play.surveyId && surveys[play.surveyId], PQ = PS && PS.questions.find(q => q.qid === play.qid);
-  if (PQ && PQ.board) {
-    const strikes = play.strikes || 0;
-    h += `<div class="card"><div class="lbl">On the TV</div><div class="t" style="font-weight:800;font-size:17px">${esc(PQ.text)}</div>
-      ${PQ.board.slots.map((sl, i) => `<div class="slot ${sl.revealed ? "rev" : ""}"><span class="n">${i + 1}</span><span class="a">${esc(sl.text)}</span><span class="c">${sl.count}</span>
-        <button class="b ${sl.revealed ? "" : "primary"}" data-f="reveal" data-i="${i}" ${sl.revealed ? "disabled" : ""}>${sl.revealed ? "Shown" : "Reveal"}</button></div>`).join("")}
-      <div class="row"><div class="xs grow">${[1, 2, 3].map(n => `<span class="${n <= strikes ? "on" : ""}">&#10005;</span>`).join("")}</div>
-        <button class="b" data-f="clearStrikes">Reset strikes</button></div>
-      <button class="b strike big" data-f="strike">&#10005; Strike</button>
-      <div class="row"><button class="b grow" data-f="hideAll">Re-hide all</button><button class="b grow" data-f="clear">Clear board</button></div></div>`;
-  }
   paint("tab-feud", h);
   const sel = $("fSurvey"); if (sel) sel.onchange = () => { feudSel = { sid: sel.value || null, qid: null }; renderFeud(); };
 }
@@ -410,12 +427,11 @@ $("tab-feud").onclick = e => {
   const q = e.target.closest("[data-fq]"); if (q) { feudSel.qid = q.dataset.fq; renderFeud(); return; }
   const b = e.target.closest("[data-f]"); if (!b || b.disabled) return;
   const f = b.dataset.f;
-  if (f === "load") feudDo("play_load", { surveyId: feudSel.sid, qid: feudSel.qid }, "loaded");
-  else if (f === "reveal") feudDo("reveal", { index: +b.dataset.i });
-  else if (f === "strike") feudDo("strike", { mode: "add" });
-  else if (f === "clearStrikes") feudDo("strike", { mode: "clear" });
-  else if (f === "hideAll") feudDo("hide_all");
-  else if (f === "clear") { if (confirm("Clear the board? The TV goes back to the survey screen.")) feudDo("play_reset", {}, "loaded"); }
+  if (f === "load") F("load", feudSel.sid, feudSel.qid);
+  else if (f === "reveal" || f === "correct") F(f, +b.dataset.i);
+  else if (f === "clear") { if (confirm("Clear the board? The TV goes back to the survey screen.")) F("clear"); }
+  else F(f);   // open, wrong, next, hideAll, clearStrikes
+  setTimeout(loadFeud, 700); setTimeout(loadFeud, 1600);
 };
 </script>
 </body>

@@ -161,6 +161,8 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
 - Everything saves automatically. Questions saved before this update carry over
   (Round 1 keeps its first 5 categories; the old full-grid gamble board isn't used).
 
+**Board switch:** the buttons say **Jeopardy** and **Gambling** (laptop and phone).
+
 **Saved boards (Jeopardy → Saved boards tab)**
 - A library of every board you've built: name, Round 1 + Gamble categories, how many clues are
   written, when it was last edited and last played. Search by name or category.
@@ -256,8 +258,12 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
   stops it. The Feud face-off card has the same timer.
 - Gamble rounds don't use buzzers.
 
-**Feud face-off**: Feud → Play → **Buzzers** card: Open buzzers → first team shows on the laptop and
-on the TV Feud board → Reset for the next face-off.
+**Feud races** (Feud board on the TV): **Open buzzers** → the first team to buzz gets the turn and keeps
+guessing until **4 guesses** or **3 strikes**. Right answer: **✓ Correct** next to it (on the laptop's board
+or the phone) reveals it and adds the points per answer straight to that team (history/undo as "feud").
+Wrong: **✗ Wrong — strike** (TV big X, buzzer, angry Manny). When the turn ends: **Next race** resets the
+buzzers and strikes. With no turn going, answers just have **Reveal** (no points) and Strike is a plain strike.
+The old per-team "correct" tally on the laptop still works for anything you want to add by hand.
 
 The Buzzinga Buzzer QR is gone from the On TV bar (the Join QR replaces it).
 Firebase free plan: 100 phones connected at once, far more than a trivia night needs.

@@ -950,8 +950,8 @@
       <div class="jp-boardpick">
         <span class="hdr-lbl">Board</span>
         <div class="tvgrp" id="jpBoardPick">
-          <button data-jb="r1">Round 1</button>
-          <button data-jb="g1">Gamble round</button>
+          <button data-jb="r1">Jeopardy</button>
+          <button data-jb="g1">Gambling</button>
         </div>
       </div>
     </div>
@@ -1041,10 +1041,6 @@
             <label>Feud site</label>
             <input type="text" id="f_linkFeud" placeholder="https://kavafeud.netlify.app" style="width:100%;">
           </div>
-          <div>
-            <label>Buzzinga join link</label>
-            <input type="text" id="f_linkBuzz" placeholder="https://play.buzzinga.io/join/…" style="width:100%;">
-          </div>
         </div>
         <div class="btn-row" style="margin-top:10px;">
           <button class="btn primary" id="f_saveLinks">Save links</button>
@@ -1118,7 +1114,7 @@
         </div>
       </div>
       <div class="card" id="f_buzzCard">
-        <h2>Buzzers <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; face-off: open the buzzers, see who's first</span></h2>
+        <h2>Buzzers <span class="hint" style="text-transform:none;letter-spacing:0;">&mdash; race to buzz: that team guesses until 4 guesses or 3 strikes</span></h2>
         <div class="bz-bar" data-bzbar></div>
         <div id="f_buzzCtl" style="margin-top:10px;"></div>
       </div>
@@ -1677,6 +1673,7 @@ window.remoteView = function(){
     feudBase: (links.feud || "https://kavafeud.netlify.app").replace(/\/+$/, ""),
     teams: teams.map(t => ({ id: t.id, name: t.name, color: t.color })) };
   v.jeop = window.jeopRemoteView ? window.jeopRemoteView() : null;
+  v.feudTurn = window.feudRemoteView ? window.feudRemoteView() : null;
   const pl = typeof playing !== "undefined" && playing;
   let left = null;
   if (pl) left = pl.tv ? music.clip - Math.max(0, (Date.now() - pl.startedAt) / 1000) : null;
@@ -1699,10 +1696,8 @@ window.remoteRun = function(cmd){
     if (cmd.fn === "play") { const s = music.songs[Number(args[0]) - 1]; if (s) playSong(s); }
     else if (cmd.fn === "stop") { if (playing) stopClip(); }
   } else if (cmd.a === "f") {
-    // the phone already told the Feud site; show it here too
     if (!feudMode) setView("feud");
-    if (typeof window.feudOpened === "function") window.feudOpened();
-    if (cmd.fn === "loaded") setTVDisplay("feud");
+    if (window.FTurn && typeof FTurn[cmd.fn] === "function" && !["get", "max"].includes(cmd.fn)) FTurn[cmd.fn](...args);
   }
 };
 
@@ -1759,9 +1754,11 @@ document.addEventListener("click", e => {
   else if (act === "joinqr") setTVDisplay("qr", { url: Buzz.joinUrl(), label: "Scan to join & get your buzzer", kind: "join" });
   else if (act === "test") Buzz.test();
   else if (act === "endtest") Buzz.idle();
-  else if (act === "fopen") Buzz.open();
+  else if (act === "fopen") { if (window.FTurn) FTurn.open(); else Buzz.open(); }
+  else if (act === "fwrong") { if (window.FTurn) FTurn.wrong(); }
+  else if (act === "fnext") { if (window.FTurn) FTurn.next(); }
   else if (act === "fclose") Buzz.close();
-  else if (act === "freset") Buzz.reset();
+  else if (act === "freset") { if (window.FTurn) FTurn.next(); else Buzz.reset(); }
   else if (act === "tpause") Buzz.pauseTimer();
   else if (act === "tresume") Buzz.resumeTimer();
   else if (act === "trestart") Buzz.restartTimer();
@@ -1806,10 +1803,19 @@ function renderFeudBuzz(){
   if (!B.isOn() || B.state.test) { el.innerHTML = ""; return; }
   const first = B.order[0], st = B.state;
   let h = `<div class="bz-box"><div class="bz-head">`;
+  const tn = window.FTurn ? FTurn.get() : null;
   if (first) {
     const t = bzTeam(first.team);
-    h += `<span class="bz-state buzzed">Buzzed</span><span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>${buzzTimerHTML()}${buzzOrderHTML()}
-      <div class="btn-row"><button class="btn aqua" data-bz="freset">Reset for the next face-off</button></div>`;
+    const g = tn ? tn.guesses : 0, k = tn ? tn.strikes : 0;
+    h += `<span class="bz-state buzzed">${tn && tn.over ? "Turn over" : "Their turn"}</span><span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")}</span>
+      <span class="bz-note">Guess ${Math.min(g + (tn && tn.over ? 0 : 1), 4)} of 4 &middot; ${k} of 3 strikes</span></div>`;
+    if (tn && tn.over) {
+      h += `<div class="bz-note">Turn over (${escHTML(tn.why)}).</div><button class="btn aqua bz-big" data-bz="fnext">Next race &mdash; reset buzzers &amp; strikes</button>`;
+    } else {
+      h += `${buzzTimerHTML()}<div class="bz-note">Right answer: tap <b>&#10003; Correct</b> next to it on the board below (reveals it + adds the points).</div>
+        <div class="btn-row"><button class="btn danger" data-bz="fwrong" style="font-size:16px;padding:12px 18px">&#10007; Wrong &mdash; strike</button>
+        <button class="btn" data-bz="freset">End turn &amp; reset</button></div>`;
+    }
   } else if (st.open) {
     h += `<span class="bz-state open">Open</span><span class="bz-note">Waiting for a buzz&hellip;</span></div><div class="btn-row"><button class="btn" data-bz="fclose">Close buzzers</button></div>`;
   } else {
@@ -1820,6 +1826,7 @@ function renderFeudBuzz(){
 }
 window.onBuzzChange = function(){
   paintBuzzDots(); renderBuzzBars(); renderFeudBuzz();
+  if (typeof feudMode !== "undefined" && feudMode && typeof window.feudRepaint === "function") window.feudRepaint();
   if (typeof jeopMode !== "undefined" && jeopMode && typeof window.renderJeopardyBuzz === "function") window.renderJeopardyBuzz();
 };
 
@@ -3285,7 +3292,7 @@ wheel.onclick = spin;
     const shownBoard = tab === "edit" ? editBoard : jp.board;
     document.querySelectorAll("#jpBoardPick button").forEach(b => {
       b.classList.toggle("on", b.dataset.jb === shownBoard);
-      b.textContent = jq.boards[b.dataset.jb].name;
+      b.textContent = b.dataset.jb === "g1" ? "Gambling" : "Jeopardy";
     });
     if (tab === "play") renderPlay(); else renderEdit();
   };
@@ -3348,15 +3355,13 @@ wheel.onclick = spin;
   /* ---------- Links ---------- */
   function paintLinks(){
     if (document.activeElement !== $("linkFeud")) $("linkFeud").value = links.feud || "";
-    if (document.activeElement !== $("linkBuzz")) $("linkBuzz").value = links.buzzinga || "";
     $("surveyUrl").textContent = surveyUrl();
   }
   $("saveLinks").onclick = () => {
     const ok = v => /^https?:\/\/\S+$/i.test(v);
-    const f = $("linkFeud").value.trim().replace(/\/+$/, ""), b = $("linkBuzz").value.trim();
+    const f = $("linkFeud").value.trim().replace(/\/+$/, "");
     if (f && !ok(f)) { $("linkStatus").textContent = "The Feud link needs to start with https://"; return; }
-    if (b && !ok(b)) { $("linkStatus").textContent = "The Buzzinga link needs to start with https://"; return; }
-    links = { feud: f || "https://kavafeud.netlify.app", buzzinga: b };
+    links = Object.assign({}, links, { feud: f || "https://kavafeud.netlify.app" });
     saveState(); paintLinks();
     $("linkStatus").textContent = "Saved ✓";
     refresh();
@@ -3622,7 +3627,9 @@ wheel.onclick = spin;
     setTVDisplay("feud");
     toast("Board cleared — TV shows the survey screen"); refresh();
   };
+  const teamName = id => { const t = teams.find(x => x.id === id); return (t && t.name) || "the team"; };
   function paintPlay(){
+    syncTurn();
     const pid = state.play.surveyId, qid = state.play.qid;
     const s = pid?state.surveys[pid]:null;
     const q = s?s.questions.find(x=>x.qid===qid):null;
@@ -3639,11 +3646,87 @@ wheel.onclick = spin;
     $("playBoard").innerHTML = q.board.slots.map((sl,i)=>`
       <div class="play-slot ${sl.revealed?"revealed":""}">
         <span class="n">${i+1}</span><span class="a">${escapeHtml(sl.text)}</span><span class="c">${sl.count}</span>
-        <button class="btn sm ${sl.revealed?"":"aqua"}" onclick="fRevealSlot(${i})" ${sl.revealed?"disabled":""}>${sl.revealed?"Revealed":"Reveal"}</button>
+        ${sl.revealed ? `<button class="btn sm" disabled>Revealed</button>`
+          : (turn && !turn.over) ? `<button class="btn sm green" onclick="FTurn.correct(${i})" title="Reveal it and give ${escapeHtml(teamName(turn.team))} the points">&#10003; Correct +${ppa()}</button>`
+          : `<button class="btn sm aqua" onclick="fRevealSlot(${i})">Reveal</button>`}
       </div>`).join("");
   }
   window.fRevealSlot = async (i)=>{ await api("reveal",{index:i}); refresh(); };
-  $("addStrikeBtn").onclick = async ()=>{ await api("strike",{mode:"add"}); refresh(); };
+  $("addStrikeBtn").onclick = () => FTurn.wrong();
+
+  /* ---------- Turns: race to buzz, then that team guesses until 4 guesses or 3 strikes ----------
+     Correct = reveal that answer + its points go straight to the team (history/undo as "feud").
+     Wrong = a strike (TV big X, buzzer, angry Manny). */
+  const MAX_GUESSES = 4, MAX_STRIKES = 3;
+  let turn = null;   // { team, round, guesses, strikes, over, why }
+  function syncTurn(){
+    const B = window.Buzz; if (!B || !B.isOn() || B.state.test) return;
+    if (tvDisplay !== "feud") return;   // turns only apply while the Feud board is on the TV (not Jeopardy buzzes)
+    const f = B.order[0];
+    if (f && (!turn || turn.round !== B.state.round)) {
+      turn = { team: f.team, round: B.state.round, guesses: 0, strikes: 0, over: false, why: "" };
+      if (B.state.open) B.close();   // the race is won; the others wait
+    }
+  }
+  function endCheck(){
+    if (!turn || turn.over) return;
+    if (turn.strikes >= MAX_STRIKES) { turn.over = true; turn.why = "3 strikes"; }
+    else if (turn.guesses >= MAX_GUESSES) { turn.over = true; turn.why = "4 guesses"; }
+  }
+  const repaint = () => { if (state) paint(); if (typeof window.onBuzzChange === "function") window.onBuzzChange(); };
+  window.FTurn = {
+    get(){ syncTurn(); return turn; },
+    max: { guesses: MAX_GUESSES, strikes: MAX_STRIKES },
+    async correct(i){
+      if (!state) await refresh();
+      syncTurn();
+      const q = currentQ(); const sl = q && q.board && q.board.slots[i];
+      if (!sl || sl.revealed) return;
+      const r = await api("reveal", { index: i });
+      if (r && r.error) { toast(r.error); return; }
+      if (turn && !turn.over) {
+        const team = teams.find(t => t.id === turn.team), pts = ppa();
+        if (team && pts) {
+          const before = team.score; team.score += pts;
+          logAudit(team, "+" + pts, before, team.score, "feud"); syncScores();
+        }
+        turn.guesses++; endCheck();
+      }
+      await refresh(); repaint();
+    },
+    async wrong(){
+      syncTurn();
+      const r = await api("strike", { mode: "add" });
+      if (r && r.error) { toast(r.error); return; }
+      if (turn && !turn.over) { turn.guesses++; turn.strikes++; endCheck(); }
+      await refresh(); repaint();
+    },
+    // next race: buzzers reset (closed), strikes cleared; open the buzzers when you've read the question
+    async next(){
+      turn = null;
+      if (window.Buzz && Buzz.isOn()) Buzz.reset();
+      await api("strike", { mode: "clear" });
+      await refresh(); repaint();
+    },
+    open(){ if (!(window.Buzz && Buzz.isOn())) return; turn = null; if (Buzz.order.length) Buzz.newQuestion(true); else Buzz.open(); repaint(); },
+    async reveal(i){ await api("reveal", { index: i }); await refresh(); repaint(); },
+    async load(sid, qid){
+      const r = await api("play_load", { surveyId: sid, qid }); if (r && r.error) { toast(r.error); return; }
+      turn = null; if (window.Buzz && Buzz.isOn()) Buzz.reset();
+      await api("strike", { mode: "clear" });
+      setTVDisplay("feud"); await refresh(); repaint();
+    },
+    async hideAll(){ await api("hide_all"); await refresh(); repaint(); },
+    async clear(){ await api("play_reset"); turn = null; setTVDisplay("feud"); await refresh(); repaint(); },
+    async clearStrikes(){ await api("strike", { mode: "clear" }); if (turn) { turn.strikes = 0; } await refresh(); repaint(); },
+    refresh: () => refresh()
+  };
+  function currentQ(){
+    if (!state || !state.play) return null;
+    const s = state.surveys[state.play.surveyId]; return s ? s.questions.find(x => x.qid === state.play.qid) : null;
+  }
+  window.feudRepaint = () => { if (state) paint(); };
+  window.feudRemoteView = () => { syncTurn(); return turn ? Object.assign({ pts: ppa() }, turn) : null; };
   $("resetStrikesBtn").onclick = async ()=>{ await api("strike",{mode:"clear"}); refresh(); };
   $("hideAll").onclick = async ()=>{ await api("hide_all"); refresh(); };
   $("answerCount").onchange = async ()=>{ await api("set_answer_count",{count: +$("answerCount").value || 5}); toast("Answers on TV updated"); refresh(); };
