@@ -739,6 +739,13 @@
   .jp-cell.current { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .jp-cell.empty { color: #b5484e; }
   .jp-cell .mi { position: absolute; top: 3px; right: 5px; font-size: 11px; }
+  .jp-cell .pz { position: absolute; bottom: 2px; right: 4px; font-size: 13px; line-height: 1; text-decoration: none; display: inline-block; }
+  .jp-cell.used .pz { opacity: .7; }
+  .jp-qcard .v .jp-prize { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; }
+  .jp-qcard .v .jp-prize input:checked ~ * { color: var(--ink); }
+  .jp-prizerow { align-items: center; gap: 10px; flex-wrap: wrap; }
+  .jp-pzlbl { font-weight: 800; color: var(--accent); }
+  .jp-pzbadge { display: inline-block; margin-left: 8px; padding: 2px 9px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 800; vertical-align: 2px; }
   .jp-panel { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
   .jp-panel .jp-meta { font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
   .jp-panel .jp-qtext { font-size: 19px; font-weight: 700; line-height: 1.3; }
@@ -1754,11 +1761,11 @@ document.addEventListener("click", e => {
   else if (act === "joinqr") setTVDisplay("qr", { url: Buzz.joinUrl(), label: "Scan to join & get your buzzer", kind: "join" });
   else if (act === "test") Buzz.test();
   else if (act === "endtest") Buzz.idle();
-  else if (act === "fopen") { if (window.FTurn) FTurn.open(); else Buzz.open(); }
+  else if (act === "fopen") { if (window.FTurn) FTurn.open(); else Buzz.open({ noTimer: true }); }
   else if (act === "fwrong") { if (window.FTurn) FTurn.wrong(); }
   else if (act === "fnext") { if (window.FTurn) FTurn.next(); }
   else if (act === "fclose") Buzz.close();
-  else if (act === "freset") { if (window.FTurn) FTurn.next(); else Buzz.reset(); }
+  else if (act === "freset") { if (window.FTurn) FTurn.next(); else Buzz.reset({ noTimer: true }); }
   else if (act === "tpause") Buzz.pauseTimer();
   else if (act === "tresume") Buzz.resumeTimer();
   else if (act === "trestart") Buzz.restartTimer();
@@ -1812,7 +1819,7 @@ function renderFeudBuzz(){
     if (tn && tn.over) {
       h += `<div class="bz-note">Turn over (${escHTML(tn.why)}).</div><button class="btn aqua bz-big" data-bz="fnext">Next race &mdash; reset buzzers &amp; strikes</button>`;
     } else {
-      h += `${buzzTimerHTML()}<div class="bz-note">Right answer: tap <b>&#10003; Correct</b> next to it on the board below (reveals it + adds the points).</div>
+      h += `<div class="bz-note">Right answer: tap <b>&#10003; Correct</b> next to it on the board below (reveals it + adds the points).</div>
         <div class="btn-row"><button class="btn danger" data-bz="fwrong" style="font-size:16px;padding:12px 18px">&#10007; Wrong &mdash; strike</button>
         <button class="btn" data-bz="freset">End turn &amp; reset</button></div>`;
     }
@@ -1949,7 +1956,7 @@ function normalizeJeopardy(j){
         const src = (b.cats && b.cats[ci]) || {};
         return { name: src.name || "", qs: c.qs.map((_, qi) => {
           const q = (src.qs && src.qs[qi]) || {};
-          if (q.clue || q.resp) return { clue: normJSide(q.clue), resp: normJSide(q.resp) };
+          if (q.clue || q.resp) { const o = { clue: normJSide(q.clue), resp: normJSide(q.resp) }; if (q.prize === true) o.prize = true; return o; }
           const m = q.media || {};
           return { clue: normJSide({ type: m.type || "text", text: q.q, src: m.src, start: m.start }), resp: normJSide({ type: "text", text: q.a }) };
         }) };
@@ -2702,7 +2709,7 @@ wheel.onclick = spin;
           const empty = !filled(q.clue);
           const mi = typeIcon(q.clue);
           h += `<button class="jp-cell ${used ? "used" : ""} ${cur ? "current" : ""} ${empty ? "empty" : ""}" style="grid-column:${ci + 1};grid-row:${r + 2}"
-            data-c="${ci}" data-r="${r}" title="${empty ? "No question written yet" : escA(q.clue.text || "(" + (q.clue.type === "image" ? "picture" : "audio/video") + ")")}">${(B.values[r] || 0).toLocaleString()}${mi ? `<span class="mi">${mi}</span>` : ""}</button>`;
+            data-c="${ci}" data-r="${r}" title="${empty ? "No question written yet" : escA(q.clue.text || "(" + (q.clue.type === "image" ? "picture" : "audio/video") + ")")}">${(B.values[r] || 0).toLocaleString()}${mi ? `<span class="mi">${mi}</span>` : ""}${q.prize ? `<span class="pz" title="Prize question">&#127873;</span>` : ""}</button>`;
         });
       });
     }
@@ -2774,7 +2781,7 @@ wheel.onclick = spin;
     } else scoring = "";
     const pvs = `<div class="jp-pvs">${sidePreview(q.clue, "Clue")}${sidePreview(q.resp, jp.stage === "answer" ? "Correct response &middot; on TV" : "Correct response &middot; only you can see this")}</div>`;
     P.innerHTML = `
-      <div class="jp-meta">${esc(cat.name || "Category " + (jp.cell.c + 1))} &middot; ${G ? "Gamble" : v.toLocaleString()}</div>
+      <div class="jp-meta">${esc(cat.name || "Category " + (jp.cell.c + 1))} &middot; ${G ? "Gamble" : v.toLocaleString()}${!G && q.prize ? ` <span class="jp-pzbadge">&#127873; Prize question</span>` : ""}</div>
       ${G ? status + pvs : `<div id="jpBuzz"></div>` + pvs}
       ${mediaCtl}
       ${stageBtns ? `<div class="jp-row">${stageBtns}</div>` : ""}
@@ -2807,11 +2814,24 @@ wheel.onclick = spin;
   // how each Round 1 clue ended, for the "answer on TV" line: { team } or { nobody: true }
   const results = {};
   const cellKey = () => jp.board + ":" + jp.cell.c + ":" + jp.cell.r;
+  const curQ = () => jp.cell ? board().cats[jp.cell.c].qs[jp.cell.r] : null;
+  const prizeQ = () => !gambleNow() && !!(curQ() && curQ().prize);
+  function prizeFor(team){ const t = team ? bzTeam(team) : null; return { name: t ? (t.name || "") : "", color: t ? (t.color || "") : "" }; }
   function revealAnswer(result){
     results[cellKey()] = result;
     jp.stage = "answer";
-    sendJplay();
+    // a prize question answered correctly: the TV puts up the Prize screen after the Correct flash
+    sendJplay(result && result.team && prizeQ() ? { prize: prizeFor(result.team) } : undefined);
   }
+  // show (or show again) the Prize screen for this clue; uses whoever got it right, if anyone
+  function showPrize(){
+    if (!jp.cell || jp.stage !== "answer" || !prizeQ()) return;
+    const r = results[cellKey()];
+    // no buzz winner (points added by hand)? use the team that was given this clue's points
+    const hand = !(r && r.team) && teams.find(t => awarded[t.id + "@" + jp.board + jp.cell.c + jp.cell.r]);
+    sendJplay({ prize: prizeFor(r && r.team ? r.team : (hand ? hand.id : null)) });
+  }
+  window.jShowPrize = showPrize;
   function renderJeopardyBuzz(){
     const el = $("jpBuzz"); if (!el || !jp.cell) return;
     const B = window.Buzz;
@@ -2821,6 +2841,7 @@ wheel.onclick = spin;
       const r = results[cellKey()], t = r && r.team ? bzTeam(r.team) : null;
       h = `<div class="bz-box bz-done"><div class="bz-head"><span class="bz-state buzzed">Answer on TV</span>
           <span class="bz-first">${t ? `<i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} got it &mdash; +${v.toLocaleString()}` : (r && r.nobody ? "Nobody knew it" : "The answer is showing")}</span></div>
+        ${prizeQ() ? `<div class="jp-row jp-prizerow"><span class="jp-pzlbl">&#127873; Prize question${t ? " &mdash; Prize screen went up on the TV" : ""}</span><button class="mbtn" id="bzPrize">&#127873; ${t ? "Show prize again" : "Show prize screen"}</button></div>` : ""}
         <div class="bz-note">Press <b>Done</b> to go back to the board.</div></div>`;
     } else if (!B || !B.isOn()) {
       h = `<div class="bz-note">Phone buzzers aren't connected (Buzzers bar at the top). Use Show answer and add points by hand below.</div>`;
@@ -2862,6 +2883,7 @@ wheel.onclick = spin;
     on("bzWrong", doWrong);
     on("bzNobody", doNobody);
     on("bzRight", doCorrect);
+    on("bzPrize", showPrize);
   }
   function doNobody(){ if (!jp.cell || gambleNow()) return; if (window.Buzz && Buzz.isOn()) Buzz.close(); revealAnswer({ nobody: true }); }
   function doCorrect(){
@@ -2911,7 +2933,8 @@ wheel.onclick = spin;
   }
   function qCard(B, c, r){
     const q = B.cats[c].qs[r];
-    const tag = B.kind === "gamble" ? "" : `<div class="v">${(B.values[r] || 0).toLocaleString()}</div>`;
+    const tag = B.kind === "gamble" ? "" : `<div class="v">${(B.values[r] || 0).toLocaleString()}
+      <label class="jp-switch jp-prize" title="When this one's answered correctly, the TV puts up a Prize screen"><input type="checkbox" data-f="prize" data-c="${c}" data-r="${r}" ${q.prize ? "checked" : ""}><i></i> &#127873; Prize</label></div>`;
     return `<div class="jp-qcard">${tag}<div class="jp-sides">${sideEditor(q.clue, c, r, "clue")}${sideEditor(q.resp, c, r, "resp")}</div></div>`;
   }
   const catCount = cat => cat.qs.filter(q => filled(q.clue)).length;
@@ -3036,6 +3059,7 @@ wheel.onclick = spin;
     else if (f === "imglink") useLink(t, t.value, "image");
     else if (f === "mlink") { if (t.value.trim()) useLink(t, t.value, "media"); else setSide(t, { src: "" }); }
     else if (f === "show") setSide(t, { show: t.checked });
+    else if (f === "prize") { const q = board(editBoard).cats[+t.dataset.c].qs[+t.dataset.r]; if (t.checked) q.prize = true; else delete q.prize; saveState(); renderEdit(); }
   });
   ed.addEventListener("keydown", e => {
     const f = e.target.dataset.f;
@@ -3246,13 +3270,14 @@ wheel.onclick = spin;
   window.jeopRemoteView = function(){
     const v = { board: jp.board, cats: jp.cats, used: jp.used, stage: jp.stage, timer: jp.timer || null,
       game: jq.game ? jq.game.name : null, boards: {} };
-    ["r1", "g1"].forEach(id => { const B = jq.boards[id]; v.boards[id] = { name: B.name, kind: B.kind, values: B.values, cats: B.cats.map(c => c.name || "") }; });
+    ["r1", "g1"].forEach(id => { const B = jq.boards[id]; v.boards[id] = { name: B.name, kind: B.kind, values: B.values, cats: B.cats.map(c => c.name || ""),
+      prizes: B.kind === "gamble" ? [] : B.cats.map(c => c.qs.map(q => !!q.prize)) }; });
     if (jp.cell) {
       const B = board(), q = B.cats[jp.cell.c].qs[jp.cell.r], tvSide = sideOnTV(q);
       v.cell = { c: jp.cell.c, r: jp.cell.r, cat: B.cats[jp.cell.c].name || "", value: B.values ? B.values[jp.cell.r] : null,
         clue: sideSum(q.clue), resp: sideSum(q.resp), result: results[cellKey()] || null,
         clip: tvSide && tvSide.type === "media" && tvSide.src ? { who: tvSide === q.resp ? "answer" : "clue", show: tvSide.show !== false } : null,
-        mediaCmd: jp.media ? jp.media.cmd : null };
+        mediaCmd: jp.media ? jp.media.cmd : null, prize: !gambleNow() && !!q.prize };
     }
     return v;
   };
@@ -3274,7 +3299,7 @@ wheel.onclick = spin;
     buzzOpen(){ if (window.Buzz && Buzz.isOn()) Buzz.open(); },
     buzzClose(){ if (window.Buzz && Buzz.isOn()) Buzz.close(); },
     buzzReset(){ if (window.Buzz && Buzz.isOn()) Buzz.reset(); },
-    nobody: () => doNobody(), correct: () => doCorrect(), wrong: () => doWrong(),
+    nobody: () => doNobody(), correct: () => doCorrect(), wrong: () => doWrong(), showPrize: () => showPrize(),
     tpause(){ if (window.Buzz) Buzz.pauseTimer(); }, tresume(){ if (window.Buzz) Buzz.resumeTimer(); }, trestart(){ if (window.Buzz) Buzz.restartTimer(); }
   };
 
@@ -3665,7 +3690,7 @@ wheel.onclick = spin;
     const f = B.order[0];
     if (f && (!turn || turn.round !== B.state.round)) {
       turn = { team: f.team, round: B.state.round, guesses: 0, strikes: 0, over: false, why: "" };
-      if (B.state.open) B.close();   // the race is won; the others wait
+      if (B.state.open || Number(B.state.answerSecs) > 0) B.close({ noTimer: true });   // the race is won; the others wait (no countdown in Feud)
     }
   }
   function endCheck(){
@@ -3704,15 +3729,15 @@ wheel.onclick = spin;
     // next race: buzzers reset (closed), strikes cleared; open the buzzers when you've read the question
     async next(){
       turn = null;
-      if (window.Buzz && Buzz.isOn()) Buzz.reset();
+      if (window.Buzz && Buzz.isOn()) Buzz.reset({ noTimer: true });
       await api("strike", { mode: "clear" });
       await refresh(); repaint();
     },
-    open(){ if (!(window.Buzz && Buzz.isOn())) return; turn = null; if (Buzz.order.length) Buzz.newQuestion(true); else Buzz.open(); repaint(); },
+    open(){ if (!(window.Buzz && Buzz.isOn())) return; turn = null; if (Buzz.order.length) Buzz.newQuestion(true, { noTimer: true }); else Buzz.open({ noTimer: true }); repaint(); },
     async reveal(i){ await api("reveal", { index: i }); await refresh(); repaint(); },
     async load(sid, qid){
       const r = await api("play_load", { surveyId: sid, qid }); if (r && r.error) { toast(r.error); return; }
-      turn = null; if (window.Buzz && Buzz.isOn()) Buzz.reset();
+      turn = null; if (window.Buzz && Buzz.isOn()) Buzz.reset({ noTimer: true });
       await api("strike", { mode: "clear" });
       setTVDisplay("feud"); await refresh(); repaint();
     },

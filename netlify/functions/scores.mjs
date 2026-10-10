@@ -156,7 +156,8 @@ function cleanSide(sd) {
 }
 function cleanQ(q) {
   if (!q || typeof q !== "object") return blankQ();
-  if (q.clue || q.resp) return { clue: cleanSide(q.clue), resp: cleanSide(q.resp) };
+  // prize: true = a correct answer puts the Prize screen up on the TV (gachapon questions)
+  if (q.clue || q.resp) { const o = { clue: cleanSide(q.clue), resp: cleanSide(q.resp) }; if (q.prize === true) o.prize = true; return o; }
   // older saves: { q, a, media }
   const m = q.media || {};
   return {
@@ -227,7 +228,8 @@ function jeopardyTV(s) {
       c: p.cell.c, r: p.cell.r, cat: c.name, value: b.values ? b.values[p.cell.r] : null, stage: p.stage,
       clue: p.stage === "pick" ? null : q.clue,
       resp: p.stage === "answer" ? q.resp : null,
-      mediaCmd: p.media || null
+      mediaCmd: p.media || null,
+      prize: p.stage === "answer" && p.prize ? p.prize : null
     };
   }
   return out;
@@ -427,6 +429,11 @@ export default async (req) => {
           media: (body.media && ["play", "pause", "restart"].includes(body.media.cmd))
             ? { cmd: body.media.cmd, n: Math.round(Number(body.media.n) || 0) } : (sameCell ? (prev.media || null) : null)
         };
+        // Prize screen: { name, color } of the team that won it; "at" lets the TV show it once (and not replay after a refresh)
+        if (state.jplay.stage === "answer" && sameCell && body.prize && typeof body.prize === "object") {
+          const pc = String(body.prize.color || "");
+          state.jplay.prize = { name: String(body.prize.name || "").slice(0, 40), color: /^#[0-9a-fA-F]{3,8}$/.test(pc) ? pc : "", at: Date.now() };
+        } else if (state.jplay.stage === "answer" && sameCell && prev.prize && body.prize !== false) state.jplay.prize = prev.prize;
         await save(state);
         return json({ ok: true, jplay: state.jplay, now: Date.now() });
       }

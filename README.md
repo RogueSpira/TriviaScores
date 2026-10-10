@@ -205,6 +205,15 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
    shows greyed out, so only the other two can be chosen.
 
 
+### Prize questions (gachapon)
+- Edit questions → each Round 1 question has a **🎁 Prize** switch under its value.
+- Prize questions show a 🎁 in the bottom-right of their tile (laptop and phone remote) and a
+  "Prize question" badge when open. The TV board doesn't show it.
+- When a prize question is marked **Correct**, the TV flashes Correct, then puts up a **Prize!** screen
+  with the team's name ("Come grab your gachapon prize!") and a fanfare for about 8 seconds.
+- **Show prize again** (laptop answer panel or phone) brings it back; **Done** takes it down. If you
+  added the points by hand, use **Show prize screen**.
+
 ## Phone buzzers (replaces Buzzinga)
 Teams scan the **Join QR**, type a team name, and their phone becomes a buzzer. Firebase
 (project `kava-and-company-trivia`) only carries the buzzer: who joined, who's connected,
@@ -255,7 +264,7 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
   time**, default 10 s; 0 turns it off). It shows on your panel, next to the team name on the TV and on
   the buzzing team's phone, all in sync. **Pause / Resume** and **Restart** are on your panel. At zero
   the TV shows "Time!" with the buzzer sound. **Wrong** gives the next team a fresh timer; **Correct**
-  stops it. The Feud face-off card has the same timer.
+  stops it. Feud races have **no** countdown (the turn runs on guesses and strikes).
 - Gamble rounds don't use buzzers.
 
 **Feud races** (Feud board on the TV): **Open buzzers** → the first team to buzz gets the turn and keeps
