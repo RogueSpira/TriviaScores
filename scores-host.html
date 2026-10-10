@@ -503,6 +503,9 @@
   }
   .now-playing b { color: var(--accent-soft); }
   .now-playing .err { color: #f0a08f; }
+  .music-on { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+  .music-on .tvgrp button { padding: 6px 10px; }
+  .yt-box.tv-mode { display: none; }
   .yt-box {
     width: 260px; height: 200px; flex: 0 0 auto;  /* YouTube's minimum player size is 200x200 */
     background: var(--field); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
@@ -643,6 +646,9 @@
   .bz-timer.low .bz-tnum { color: #f0bf17; } .bz-timer.low .bz-tbar i { background: #f0bf17; }
   .bz-timer.done .bz-tnum { color: #d9736f; } .bz-timer.paused .bz-tnum { color: var(--muted); }
   .bz-timer .bz-tlbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .jp-clipctl .mc-on { font-weight: 800; }
+  .jp-clipctl .mc-play { background: #3cb44b; border-color: #3cb44b; color: #04210b; animation: bzpulse 1.6s ease-in-out infinite; }
+  .jp-clipctl .mc-pause { background: #f0bf17; border-color: #f0bf17; color: #2a1d00; }
   .bz-mid { font-size: 17px !important; font-weight: 800 !important; padding: 13px 18px !important; flex: 1 1 220px; }
   .bz-judge { display: flex; gap: 10px; flex-wrap: wrap; }
   .bz-nobody { background: #f3f4f6 !important; color: #c0262d !important; border-color: #f3f4f6 !important; }
@@ -916,6 +922,8 @@
         <div class="music-ctl">
           <label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label>
           <label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label>
+          <span class="music-on" id="musicOn" title="Where the clips play. TV = the cast TV tab plays them (click the TV screen once per night so it can play sound).">Play on
+            <span class="tvgrp"><button data-on="tv">TV</button><button data-on="laptop">This laptop</button></span></span>
           <button class="mbtn" id="editSongsBtn">Edit songs</button>
           <button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button>
         </div>
@@ -1923,7 +1931,7 @@ function setView(view) {
   document.getElementById("jeopStage").hidden = view !== "jeopardy";
   jeopMode = view === "jeopardy";
   viewSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
-  if (musicMode) { loadYouTubeAPI(); renderMusic(); }
+  if (musicMode) { paintMusicOn(); if (musicOn === "laptop") loadYouTubeAPI(); renderMusic(); }
   if (feudMode) feudOpened();
   if (jeopMode) renderJeopardy();
   fitTeams();
@@ -2183,6 +2191,32 @@ function addMusicPoints(team){
   renderMusic();
 }
 
+/* --- Where clips play: the TV tab (default) or this laptop --- */
+let musicOn = "tv";
+try { if (localStorage.getItem("kavaMusicOn") === "laptop") musicOn = "laptop"; } catch(e) {}
+function paintMusicOn(){
+  document.querySelectorAll("#musicOn button").forEach(b => b.classList.toggle("on", b.dataset.on === musicOn));
+  document.getElementById("ytBox").classList.toggle("tv-mode", musicOn === "tv");
+}
+document.getElementById("musicOn").addEventListener("click", e => {
+  const b = e.target.closest("[data-on]"); if (!b || b.dataset.on === musicOn) return;
+  if (playing) stopClip();
+  musicOn = b.dataset.on;
+  try { localStorage.setItem("kavaMusicOn", musicOn); } catch(err) {}
+  paintMusicOn();
+  if (musicOn === "laptop") loadYouTubeAPI();
+  setNowPlaying(idleMessage()); renderMusic();
+});
+async function sendMusicPlay(num, play){
+  try {
+    const res = await fetch(SCORES_API + "?action=musicplay", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ song: num, total: music.songs.length, play }) });
+    if (!res.ok) throw new Error("http " + res.status);
+    tvDisplay = "song"; tvSong = num; updateTVLabel();
+    return true;
+  } catch(e) { setNowPlaying(`<span class="err">Couldn't reach the TV. Check the internet, or switch Play on to This laptop.</span>`); return false; }
+}
+
 /* --- YouTube player --- */
 let ytPlayer = null, ytReady = false, ytLoading = false;
 let playing = null;          // { songId, start, end, began, askedAt }
@@ -2198,6 +2232,7 @@ const YT_ERRORS = {
 
 function setNowPlaying(html){ nowPlaying.innerHTML = html; }
 function idleMessage(){
+  if (musicOn === "tv") return `Press &#9654; to play a ${music.clip}-second clip <b>on the TV</b>. Press it again to stop early. (Click the TV screen once per night so it can play sound.)`;
   return ytReady
     ? `Press &#9654; to play a ${music.clip}-second clip. Press it again to stop early.`
     : "Loading the YouTube player&hellip;";
@@ -2231,9 +2266,17 @@ function playSong(song){
   const num = music.songs.indexOf(song) + 1;
   const yt = parseYouTube(song.yt);
   if (!yt) { setNowPlaying(`<span class="err">Song ${num} has no YouTube link yet &mdash; use Edit songs.</span>`); return; }
-  if (!ytReady) { loadYouTubeAPI(); setNowPlaying("Still loading the YouTube player&hellip; try again in a second."); return; }
   delete ytErrors[song.id];
   const start = Number(song.start) || 0;
+  if (musicOn === "tv") {
+    // the TV tab plays it; the countdown here allows ~1 s for the TV to pick it up
+    playing = { songId: song.id, start, end: start + music.clip, began: true, tv: true, startedAt: Date.now() + 1000 };
+    clearInterval(playTimer); playTimer = setInterval(tickClip, 250);
+    renderMusic(); tickClip();
+    sendMusicPlay(num, { id: yt.id, start, end: start + music.clip, cmd: "play", n: Date.now() }).then(ok => { if (!ok) { clearInterval(playTimer); playTimer = null; playing = null; renderMusic(); } });
+    return;
+  }
+  if (!ytReady) { loadYouTubeAPI(); setNowPlaying("Still loading the YouTube player&hellip; try again in a second."); return; }
   playing = { songId: song.id, start, end: start + music.clip, began: false, askedAt: Date.now() };
   ytPlayer.loadVideoById({ videoId: yt.id, startSeconds: start, endSeconds: start + music.clip });
   if (tvDisplay !== "song" || tvSong !== num) setTVDisplay("song", num);   // TV shows "Song N"
@@ -2245,7 +2288,10 @@ function playSong(song){
 
 function stopClip(){
   clearInterval(playTimer); playTimer = null;
-  if (playing && ytPlayer) { try { ytPlayer.pauseVideo(); } catch(e) {} }
+  if (playing && playing.tv) {
+    const num = music.songs.findIndex(s => s.id === playing.songId) + 1;
+    sendMusicPlay(num || tvSong || 1, { id: "", start: 0, end: 1, cmd: "stop", n: Date.now() });
+  } else if (playing && ytPlayer) { try { ytPlayer.pauseVideo(); } catch(e) {} }
   playing = null;
   setNowPlaying(idleMessage());
   renderMusic();
@@ -2255,7 +2301,10 @@ function tickClip(){
   if (!playing) return;
   const num = music.songs.findIndex(s => s.id === playing.songId) + 1;
   let left = music.clip;
-  if (playing.began) {
+  if (playing.tv) {
+    left = music.clip - Math.max(0, (Date.now() - playing.startedAt) / 1000);
+    if (left <= 0.1) { clearInterval(playTimer); playTimer = null; playing = null; setNowPlaying(idleMessage()); renderMusic(); return; }
+  } else if (playing.began) {
     let t = playing.start;
     try { t = ytPlayer.getCurrentTime() || playing.start; } catch(e) {}
     left = playing.end - Math.max(t, playing.start);
@@ -2269,7 +2318,7 @@ function tickClip(){
       ? `<span class="err">Song ${num} is taking a while to start&hellip; check the player, or press &#9632; and try again.</span>`
       : `Loading song <b>${num}</b>&hellip;`);
   } else {
-    setNowPlaying(`Playing song <b>${num}</b> &mdash; <b>${Math.ceil(left)}</b> sec left`);
+    setNowPlaying(`Playing song <b>${num}</b>${playing.tv ? " on the TV" : ""} &mdash; <b>${Math.ceil(left)}</b> sec left`);
   }
 }
 
@@ -2631,10 +2680,13 @@ wheel.onclick = spin;
     const tvSide = sideOnTV(q);
     let mediaCtl = "";
     if (tvSide && tvSide.type === "media" && tvSide.src) {
-      mediaCtl = `<div class="jp-row">
+      // the last press shows on the buttons: Playing (lit) or Paused (lit)
+      const mc = jp.media && jp.media.cmd;
+      const playingNow = mc === "play" || mc === "restart", pausedNow = mc === "pause";
+      mediaCtl = `<div class="jp-row jp-clipctl">
           <span class="jp-note"><b>${tvSide === q.resp ? "Answer clip" : "Clue clip"}</b> on the TV${tvSide.show ? "" : " (sound only)"}:</span>
-          <button class="mbtn primary" data-mc="play">&#9654; Play on TV</button>
-          <button class="mbtn" data-mc="pause">&#10074;&#10074; Pause</button>
+          <button class="mbtn ${playingNow ? "mc-on mc-play" : "primary"}" data-mc="play">${playingNow ? "&#9654; Playing on TV" : pausedNow ? "&#9654; Resume" : "&#9654; Play on TV"}</button>
+          <button class="mbtn ${pausedNow ? "mc-on mc-pause" : ""}" data-mc="pause">&#10074;&#10074; ${pausedNow ? "Paused" : "Pause"}</button>
           <button class="mbtn" data-mc="restart">&#8635; Restart</button>
         </div><div class="jp-note">The TV needs one click on its screen first so it's allowed to play sound.</div>`;
     }

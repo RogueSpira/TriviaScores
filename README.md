@@ -52,6 +52,10 @@ buzz in and be recognized here without re-entering anything. Not active yet; jus
 built so it's possible without a rewrite.
 
 ## Music round (Music button, top left)
+- **Play on: TV / This laptop** (next to Edit songs). **TV** (default): the cast TV tab plays the clips,
+  so the sound comes out of the TV; the laptop shows the countdown and ■ stops it early. Click the TV
+  screen once per night so it's allowed to play sound. **This laptop**: the old way (the YouTube player on
+  the laptop). Use it if a song ever won't play on the TV. The choice is remembered on that laptop.
 - **Edit songs**: paste each YouTube link, set where the clip starts (a link with
   `&t=65` fills it in), and type the title, artist and year. Songs save to the backend.
 - **▶** plays the clip (default 30 sec, change "Clip") and stops on its own. Press it
@@ -178,6 +182,8 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
   If the buzzers aren't connected, a plain **Show answer on TV** button appears instead.
   A text answer appears as a green banner (a playing clip keeps going); a picture or clip answer
   replaces the clue, labelled "Answer".
+- The clip buttons show what's happening: **▶ Playing on TV** lights up green after Play; **❚❚ Paused**
+  lights up yellow after Pause (Play then reads Resume).
 - Clips: **Play on TV / Pause / Restart** control whichever clip is on the TV (clue
   clip, or the answer clip once shown). Click the TV screen once at the start of the
   night so it's allowed to play sound (it shows a reminder).

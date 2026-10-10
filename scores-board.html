@@ -183,6 +183,7 @@
   #verdict .vpts { font-family:var(--groovy); font-size:8vh; color:var(--sun); -webkit-text-stroke:.3vh var(--ink); paint-order:stroke fill; }
   @keyframes vpop { from { transform:scale(.3); opacity:0; } to { transform:scale(1); opacity:1; } }
   @keyframes vshake { 0%,100% { transform:translateX(0); } 20%,60% { transform:translateX(-2.4vw); } 40%,80% { transform:translateX(2.4vw); } }
+  #musicYTwrap { position:absolute; width:2px; height:2px; opacity:0; pointer-events:none; overflow:hidden; left:0; bottom:0; }
   .jq-card { flex:1 1 auto; display:flex; flex-direction:column; background:var(--cream); color:var(--ink); border:.6vh solid var(--ink); border-radius:3vh; box-shadow:1.2vh 1.2vh 0 var(--orange), 1.8vh 1.8vh 0 var(--ink); overflow:hidden; min-height:0; margin:0 2vw 2vh; }
   .jq-meta { background:var(--orange); color:var(--cream); border-bottom:.5vh solid var(--ink); display:flex; justify-content:space-between; align-items:center; padding:1.4vh 3vw; font-family:var(--round); font-weight:700; font-size:3.4vh; text-transform:uppercase; letter-spacing:.2vh; }
   .jq-meta .v { font-family:var(--groovy); text-transform:none; font-size:4.4vh; -webkit-text-stroke:.25vh var(--ink); paint-order:stroke fill; }
@@ -346,6 +347,7 @@
     <div class="song-label retro">Song</div>
     <div class="song-num" id="songNum">1</div>
     <div class="song-dots" id="songDots"></div>
+    <div id="musicYTwrap" aria-hidden="true"><div id="musicYT"></div></div>
   </div>
 
   <!-- TITLE SCREEN VIEW -->
@@ -566,6 +568,33 @@ function renderSong(song){
   document.getElementById("songDots").innerHTML = dots;
 }
 
+// Music round clips play here on the TV tab (so they come out of the TV, not the laptop).
+let lastMusicN = null, musicPlayer = null, musicPlayerReady = null;
+function musicStop(){ try { if (musicPlayer && musicPlayer.pauseVideo) musicPlayer.pauseVideo(); } catch(e) {} songView.classList.remove("playing"); }
+function runMusic(play){
+  if (!play || play.n === lastMusicN) return;
+  const first = lastMusicN === null;
+  lastMusicN = play.n;
+  if (play.cmd !== "play" || !play.id) { musicStop(); return; }
+  // after a TV refresh, pick up mid-clip (or skip it if it already finished)
+  let start = play.start;
+  if (first) {
+    const elapsed = (Date.now() + serverOffset - (play.at || 0)) / 1000;
+    if (elapsed > play.end - play.start - 1) return;
+    if (elapsed > 1) start = Math.floor(play.start + elapsed);
+  }
+  if (!soundUnlocked) soundChip.hidden = false;
+  if (!musicPlayerReady) musicPlayerReady = loadYT().then(YT => new Promise(res => {
+    musicPlayer = new YT.Player("musicYT", { width: 2, height: 2, playerVars: { playsinline: 1, controls: 0, rel: 0 },
+      events: { onReady: () => res(musicPlayer), onStateChange: e => songView.classList.toggle("playing", e.data === 1) } });
+  }));
+  musicPlayerReady.then(p => {
+    if (lastMusicN !== play.n) return;   // a newer command arrived while the player loaded
+    p.loadVideoById({ videoId: play.id, startSeconds: start, endSeconds: play.end });
+    if (!soundUnlocked) soundChip.hidden = false;
+  });
+}
+
 function showView(display){
   if (display === currentDisplay) return;
   currentDisplay = display;
@@ -574,6 +603,7 @@ function showView(display){
   document.body.classList.toggle("title-mode", display === "title");
   prevShown = null;
   songView.classList.toggle("hidden", display !== "song");
+  if (display !== "song") musicStop();
   qrView.classList.toggle("hidden", display !== "qr");
   titleView.classList.toggle("hidden", display !== "title");
   jeopView.classList.toggle("hidden", display !== "jeopardy");
@@ -616,6 +646,7 @@ async function tick(){
     renderLeaderboard(latestTeams, data.reveal);
   } else if (currentDisplay === "song") {
     renderSong(data.song);
+    runMusic(data.song && data.song.play);
   } else if (currentDisplay === "qr") {
     renderQrCard(data.qr);
   } else if (currentDisplay === "title") {

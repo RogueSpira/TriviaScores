@@ -323,13 +323,31 @@ export default async (req) => {
         }
         state.display = d;
         if (d === "song") {
+          const prevPlay = state.song && state.song.play;   // a clip that's playing keeps playing
           state.song = {
             n: Math.max(1, Math.min(99, Math.round(Number(body.song) || 1))),
             total: Math.max(0, Math.min(99, Math.round(Number(body.total) || 0)))
           };
+          if (prevPlay) state.song.play = prevPlay;
         }
         await save(state);
         return json({ ok: true, display: d });
+      }
+      case "musicplay": {
+        // Music round played by the TV tab (cast to the TV): puts the "Song N" card up and tells the TV what to play.
+        // { song, total, play: { id: YouTube id, start, end, cmd: "play"|"stop", n } }
+        const p = body.play || {};
+        const id = String(p.id || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 11);
+        const start = Math.max(0, Math.min(36000, Math.round(Number(p.start) || 0)));
+        state.display = "song";
+        state.song = {
+          n: Math.max(1, Math.min(99, Math.round(Number(body.song) || 1))),
+          total: Math.max(0, Math.min(99, Math.round(Number(body.total) || 0))),
+          play: { id, start, end: Math.max(start + 1, Math.min(start + 600, Math.round(Number(p.end) || start + 30))),
+            cmd: p.cmd === "stop" ? "stop" : "play", n: Math.round(Number(p.n) || Date.now()), at: Date.now() }
+        };
+        await save(state);
+        return json({ ok: true, song: state.song, now: Date.now() });
       }
       case "spin": {
         // Host decided the winner; tell the TV to animate to it.
