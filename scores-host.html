@@ -643,6 +643,11 @@
   .bz-timer.low .bz-tnum { color: #f0bf17; } .bz-timer.low .bz-tbar i { background: #f0bf17; }
   .bz-timer.done .bz-tnum { color: #d9736f; } .bz-timer.paused .bz-tnum { color: var(--muted); }
   .bz-timer .bz-tlbl { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .bz-mid { font-size: 17px !important; font-weight: 800 !important; padding: 13px 18px !important; flex: 1 1 220px; }
+  .bz-judge { display: flex; gap: 10px; flex-wrap: wrap; }
+  .bz-nobody { background: #f3f4f6 !important; color: #c0262d !important; border-color: #f3f4f6 !important; }
+  .bz-nobody:hover { background: #fff !important; }
+  .bz-done { border-color: #3cb44b; }
   .bz-big { font-size: 22px !important; font-weight: 800 !important; padding: 18px 24px !important; width: 100%; border-radius: 12px !important; letter-spacing: .5px; }
   .bz-dot.on { background: #3cdc5a; box-shadow: 0 0 0 2px var(--panel), 0 0 8px rgba(60,220,90,.7); }
   .bz-dot[hidden] { display: none; }
@@ -937,7 +942,7 @@
     <section id="jpEdit" hidden>
       <div class="jp-settings">
         <label>Board name <input type="text" id="jpName" maxlength="40"></label>
-        <label>Answer timer <input type="number" id="jpTimer" min="5" max="120"> sec</label>
+        <label title="The countdown you can start during a Gamble question">Gamble answer timer <input type="number" id="jpTimer" min="5" max="120"> sec</label>
         <label title="Seconds a team gets to answer after it buzzes in (counts down on the TV and phones; 0 = no timer)">Buzz-in answer time <input type="number" id="jpAnswerSecs" min="0" max="60" step="1"> sec</label>
         <label title="A team that presses its buzzer before you open the buzzers can't buzz again for this long">Early-buzz lockout <input type="number" id="jpLockout" min="0" max="5" step="0.25"> sec</label>
         <label title="On: the buzzers open as soon as a clue goes on the TV. Off: you press Open buzzers when you've finished reading."><input type="checkbox" id="jpAutoOpen"> Open buzzers as soon as a clue goes up</label>
@@ -2534,6 +2539,11 @@ wheel.onclick = spin;
     $("jpCatNext").disabled = jp.cats >= n;
     $("jpCatNext").textContent = jp.cats >= n ? "All categories showing" : `Reveal ${ORD[jp.cats]} category`;
     $("jpGrid").className = G ? "jp-gamble" : "jp-grid";
+    // while a question is up, the board, category controls and footer step aside so the console sits at the top
+    const focus = !!jp.cell;
+    $("jpGrid").style.display = focus ? "none" : "";
+    document.querySelector("#jpPlay .jp-catctl").style.display = focus ? "none" : "";
+    document.querySelector("#jpPlay .jp-foot").style.display = focus ? "none" : "";
     let h = "";
     if (G) {
       B.cats.forEach((c, ci) => {
@@ -2596,6 +2606,12 @@ wheel.onclick = spin;
       status = `<div class="jp-status">TV shows the category with <b>&ldquo;Place your wagers!&rdquo;</b> Collect each team's wager and enter it on its <b>Bid</b> line on the right.</div>`;
       stageBtns = `<button class="mbtn primary" id="jpRevealQ">Reveal question on TV</button>` +
         (typeof showBids !== "undefined" && !showBids ? `<button class="mbtn" id="jpBidsOn">Show Bid lines</button>` : "");
+    } else if (!G) {
+      // Round 1: Correct / Nobody knows reveal the answer. Show answer only as a fallback when buzzers are off.
+      const bzOn = window.Buzz && Buzz.isOn();
+      stageBtns = jp.stage === "answer"
+        ? `<button class="mbtn" id="jpHideAns" title="Take the answer off the TV again">Hide answer</button>`
+        : (bzOn ? "" : `<button class="mbtn primary" id="jpShowAns">Show answer on TV</button>`);
     } else {
       status = `<div class="jp-status">${jp.stage === "answer" ? "TV shows the clue <b>and the answer</b>." : "TV shows the clue. The answer stays hidden until you show it."}</div>`;
       stageBtns = (jp.stage === "answer"
@@ -2608,7 +2624,7 @@ wheel.onclick = spin;
     }
     let scoring;
     if (!G) {
-      scoring = `<div class="jp-row"><span class="jp-note">Correct answer &rarr; add ${v.toLocaleString()} to:</span></div><div class="jp-row">` +
+      scoring = `<div class="jp-row"><span class="jp-note">Or add ${v.toLocaleString()} by hand to:</span></div><div class="jp-row">` +
         (teams.length ? teams.map(t => {
           const given = awarded[t.id + "@" + jp.board + jp.cell.c + jp.cell.r];
           return `<button class="jp-award ${given ? "given" : ""}" data-award="${t.id}" style="border-top-color:${escA(t.color)}">${given ? "&#10003; " : "+"}${v.toLocaleString()} ${esc(t.name || "Team")}</button>`;
@@ -2616,16 +2632,15 @@ wheel.onclick = spin;
     } else if (jp.stage !== "pick") {
       scoring = `<div class="jp-row"><span class="jp-note">Teams write their answers. Score each team on its <b>Bid</b> line on the right (wager, then Won / Lost).</span></div>`;
     } else scoring = "";
+    const pvs = `<div class="jp-pvs">${sidePreview(q.clue, "Clue")}${sidePreview(q.resp, jp.stage === "answer" ? "Correct response &middot; on TV" : "Correct response &middot; only you can see this")}</div>`;
     P.innerHTML = `
       <div class="jp-meta">${esc(cat.name || "Category " + (jp.cell.c + 1))} &middot; ${G ? "Gamble" : v.toLocaleString()}</div>
-      ${status}
-      <div class="jp-pvs">${sidePreview(q.clue, "Clue")}${sidePreview(q.resp, jp.stage === "answer" ? "Correct response &middot; on TV" : "Correct response &middot; only you can see this")}</div>
+      ${G ? status + pvs : `<div id="jpBuzz"></div>` + pvs}
       ${mediaCtl}
-      <div class="jp-row">${stageBtns}</div>
-      ${G ? "" : `<div id="jpBuzz"></div>`}
+      ${stageBtns ? `<div class="jp-row">${stageBtns}</div>` : ""}
       ${scoring}
       <div class="jp-row" style="margin-top:4px">
-        <button class="mbtn primary" id="jpDone">Done &mdash; back to board</button>
+        <button class="mbtn primary ${!G && jp.stage === "answer" ? "bz-big" : ""}" id="jpDone">Done &mdash; back to board</button>
         <button class="mbtn" id="jpCancel" title="Go back without greying out this question">Back without using it</button>
       </div>`;
     const on = (id, fn) => { const el = $(id); if (el) el.onclick = fn; };
@@ -2649,16 +2664,30 @@ wheel.onclick = spin;
   }
 
   /* ---------- phone buzzers in the question panel (Round 1) ---------- */
+  // how each Round 1 clue ended, for the "answer on TV" line: { team } or { nobody: true }
+  const results = {};
+  const cellKey = () => jp.board + ":" + jp.cell.c + ":" + jp.cell.r;
+  function revealAnswer(result){
+    results[cellKey()] = result;
+    jp.stage = "answer";
+    sendJplay();
+  }
   function renderJeopardyBuzz(){
     const el = $("jpBuzz"); if (!el || !jp.cell) return;
     const B = window.Buzz;
+    const v = (board().values || [])[jp.cell.r] || 0;
     let h;
-    if (!B || !B.isOn()) {
-      h = `<div class="bz-note">Phone buzzers aren't connected (Buzzers bar at the top). You can still add points by hand below.</div>`;
+    if (jp.stage === "answer") {
+      const r = results[cellKey()], t = r && r.team ? bzTeam(r.team) : null;
+      h = `<div class="bz-box bz-done"><div class="bz-head"><span class="bz-state buzzed">Answer on TV</span>
+          <span class="bz-first">${t ? `<i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} got it &mdash; +${v.toLocaleString()}` : (r && r.nobody ? "Nobody knew it" : "The answer is showing")}</span></div>
+        <div class="bz-note">Press <b>Done</b> to go back to the board.</div></div>`;
+    } else if (!B || !B.isOn()) {
+      h = `<div class="bz-note">Phone buzzers aren't connected (Buzzers bar at the top). Use Show answer and add points by hand below.</div>`;
     } else if (B.state.test) {
       h = `<div class="bz-box"><div class="bz-head"><span class="bz-state open">Testing</span><span class="bz-note">Press <b>Done testing</b> in the Buzzers bar to use the buzzers for this clue.</span></div></div>`;
     } else {
-      const st = B.state, first = B.order[0], v = (board().values || [])[jp.cell.r] || 0;
+      const st = B.state, first = B.order[0];
       const locked = Object.keys(st.locked || {}).map(id => escHTML(bzTeam(id).name || "Team"));
       const lockNote = locked.length ? `<div class="bz-note">Locked out of this clue: ${locked.join(", ")}</div>` : "";
       if (first) {
@@ -2666,19 +2695,21 @@ wheel.onclick = spin;
         h = `<div class="bz-box"><div class="bz-head"><span class="bz-state buzzed">Buzzed</span>
             <span class="bz-first"><i style="background:${escHTML(t.color)}"></i>${escHTML(t.name || "Team")} buzzed first</span></div>
           ${buzzTimerHTML()}
+          <div class="bz-judge">
+            <button class="mbtn bz-ok bz-mid" id="bzRight" title="Adds the points and shows the answer on the TV">&#10003; Correct &mdash; +${v.toLocaleString()} ${escHTML(t.name || "Team")}</button>
+            <button class="mbtn bz-bad bz-mid" id="bzWrong" title="Locks ${escHTML(t.name || "this team")} out of this clue and reopens the buzzers for everyone else">&#10007; Wrong &mdash; reopen</button>
+          </div>
           ${buzzOrderHTML()}
-          <div class="jp-row">
-            <button class="mbtn bz-ok" id="bzRight">&#10003; Correct &mdash; +${v.toLocaleString()} ${escHTML(t.name || "Team")}</button>
-            <button class="mbtn bz-bad" id="bzWrong" title="Locks ${escHTML(t.name || "this team")} out of this clue and reopens the buzzers for everyone else">&#10007; Wrong &mdash; reopen for the others</button>
-            <button class="mbtn" id="bzReset" title="Clears the buzzes and lockouts; buzzers stay closed until you open them">Reset buzzers</button>
-          </div>${lockNote}</div>`;
+          <div class="jp-row"><button class="mbtn" id="bzReset" title="Clears the buzzes and lockouts; buzzers stay closed until you open them">Reset buzzers</button></div>${lockNote}</div>`;
       } else if (st.open) {
         h = `<div class="bz-box"><div class="bz-head"><span class="bz-state open">Open</span><span class="bz-note">Waiting for a buzz&hellip;</span>
-            <button class="mbtn" id="bzClose" style="margin-left:auto">Close buzzers</button></div>${lockNote}</div>`;
+            <button class="mbtn" id="bzClose" style="margin-left:auto">Close buzzers</button></div>
+            <button class="mbtn bz-big bz-nobody" id="bzNobody" title="Closes the buzzers and shows the answer on the TV">Nobody knows &mdash; show the answer</button>${lockNote}</div>`;
       } else {
         const lk = B.lockoutMs() / 1000;
         h = `<div class="bz-box"><div class="bz-head"><span class="bz-state">Closed</span>
-            <span class="bz-note">Read the clue, then open the buzzers.${lk ? ` Anyone who buzzes early is locked out for ${lk}s (5s if they keep tapping).` : ""}</span></div>
+            <span class="bz-note">Read the clue, then open the buzzers.${lk ? ` Anyone who buzzes early is locked out for ${lk}s (5s if they keep tapping).` : ""}</span>
+            <button class="mbtn" id="bzNobody" style="margin-left:auto" title="Skip buzzing and show the answer on the TV">Skip &mdash; show answer</button></div>
             <button class="mbtn primary bz-big" id="bzOpen">Open buzzers</button>${lockNote}</div>`;
       }
     }
@@ -2689,10 +2720,12 @@ wheel.onclick = spin;
     on("bzClose", () => Buzz.close());
     on("bzReset", () => Buzz.reset());
     on("bzWrong", () => { const f = Buzz.order[0]; if (f) Buzz.wrong(f.team); });
+    on("bzNobody", () => { Buzz.close(); revealAnswer({ nobody: true }); });
     on("bzRight", () => {
       const f = Buzz.order[0]; if (!f) return;
       if (!teams.find(t => t.id === f.team)) { toast("That team isn't on the scoreboard"); return; }
       award(f.team); Buzz.stopTimer(); Buzz.close();
+      revealAnswer({ team: f.team });
     });
   }
   window.renderJeopardyBuzz = renderJeopardyBuzz;

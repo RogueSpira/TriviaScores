@@ -160,10 +160,12 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
 **Play — Round 1**
 - **Reveal 1st category … Reveal all / Hide all** — categories appear on the TV one
   at a time (hidden ones show the logo).
-- Click a value: the clue goes on the TV. Only you see the response until you press
-  **Show answer on TV**. A text answer appears as a green banner (a playing clip keeps
-  going); a picture or clip answer replaces the clue, labelled "Answer".
-- **Start answer timer** puts a countdown on the TV ("Time!" + buzz at zero).
+- Click a value: the clue goes on the TV, and the board steps aside so the question console sits at
+  the top of the laptop screen. Only you see the response until it's revealed: **Correct** (adds the
+  points and shows the answer) or **Nobody knows** (shows the answer). See "Phone buzzers" below.
+  If the buzzers aren't connected, a plain **Show answer on TV** button appears instead.
+  A text answer appears as a green banner (a playing clip keeps going); a picture or clip answer
+  replaces the clue, labelled "Answer".
 - Clips: **Play on TV / Pause / Restart** control whichever clip is on the TV (clue
   clip, or the answer clip once shown). Click the TV screen once at the start of the
   night so it's allowed to play sound (it shows a reminder).
@@ -175,8 +177,9 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
 2. The team you pick chooses one: click that category. The TV shows the category
    and **"Place your wagers!"** — the question stays hidden.
 3. Collect wagers and enter each on the team's **Bid** line.
-4. **Reveal question on TV** → **Show answer on TV** → score with Won / Lost on the
-   Bid line. (**Back to wagers screen** hides the question again.)
+4. **Reveal question on TV** → (optional **Start answer timer**, length set by "Gamble answer
+   timer" in Edit questions) → **Show answer on TV** → score with Won / Lost on the Bid line.
+   (**Back to wagers screen** hides the question again.)
 5. **Done** greys that category out.
 6. For the final gamble, pick **Gamble round** again and reveal: the midpoint's category
    shows greyed out, so only the other two can be chosen.
@@ -218,9 +221,12 @@ who buzzed and when. Questions, answers and scores stay on Netlify.
   (Edit questions, default 0.5 s). Tapping **again** while still locked = spamming: that phone is
   locked for **5 seconds** ("Slow down!" with a countdown), even if you open the buzzers meanwhile.
   Refreshing the page doesn't get around it.
+- Once the buzzers are open, the big button becomes **Nobody knows**: it closes the buzzers and shows
+  the answer on the TV.
 - First buzz shows on your panel (with the order and time gaps), on the TV clue card, and on the
-  phones ("First!", "#2"…). **Correct** adds the value and closes the buzzers. **Wrong** locks that
-  team out of this clue and reopens for everyone else. **Reset buzzers** clears buzzes and lockouts.
+  phones ("First!", "#2"…). **Correct** adds the points, stops the timer, closes the buzzers and shows
+  the answer, all in one tap. **Wrong** locks that team out of this clue and reopens for everyone else.
+  **Reset buzzers** clears buzzes and lockouts. Then **Done** (big) goes back to the board.
 - **Buzz-in timer:** the moment a team buzzes, a countdown starts (Edit questions → **Buzz-in answer
   time**, default 10 s; 0 turns it off). It shows on your panel, next to the team name on the TV and on
   the buzzing team's phone, all in sync. **Pause / Resume** and **Restart** are on your panel. At zero
