@@ -35,7 +35,6 @@
       radial-gradient(ellipse 70% 60% at 50% 50%, rgba(14,44,24,.35) 0%, rgba(9,30,16,.6) 80%),
       url("assets/mandarin-pattern.jpg") center / cover no-repeat;
   }
-  .groovy { font-family:var(--groovy); font-weight:400; }
   .retro { color:var(--cream); -webkit-text-stroke:.3vh var(--ink); paint-order:stroke fill; text-shadow:.55vh .55vh 0 var(--orange); }
 
   /* ---------- Leaderboard ---------- */
@@ -70,8 +69,9 @@
   .row.face-down .name { font-family:var(--groovy); font-weight:400; letter-spacing:1vh; opacity:.75; }
   .row.flip { animation: flipin .7s cubic-bezier(.2,1.2,.4,1); transform-origin:center; }
   @keyframes flipin { 0% { transform:rotateX(90deg); } 100% { transform:rotateX(0); } }
-  .row.champ { animation: flipin .9s cubic-bezier(.2,1.2,.4,1), champglow 1.6s ease-in-out .9s infinite alternate; }
-  @keyframes champglow { from { box-shadow:.7vh .7vh 0 var(--ink), 0 0 0 rgba(240,191,23,0); } to { box-shadow:.7vh .7vh 0 var(--ink), 0 0 6vh rgba(240,191,23,.9); } }
+  .row.champ { position:relative; animation: flipin .9s cubic-bezier(.2,1.2,.4,1); }
+  .row.champ::after { content:""; position:absolute; inset:-.45vh; border-radius:inherit; pointer-events:none; box-shadow:0 0 6vh rgba(240,191,23,.9); opacity:0; animation: champglow 1.6s ease-in-out .9s infinite alternate; }
+  @keyframes champglow { from { opacity:0; } to { opacity:1; } }
   #confetti { position:fixed; inset:0; pointer-events:none; z-index:30; }
 
   /* ---------- Wheel ---------- */
@@ -116,7 +116,7 @@
   .eq i:nth-child(2){ animation-delay:-.6s; background:var(--orange); } .eq i:nth-child(3){ animation-delay:-.2s; background:var(--sun); }
   .eq i:nth-child(4){ animation-delay:-.8s; background:var(--orange); } .eq i:nth-child(5){ animation-delay:-.4s; }
   @keyframes eq { 0%,100% { transform:scaleY(.25); } 50% { transform:scaleY(1); } }
-  @media (prefers-reduced-motion: reduce) { .eq i, .song-num.pop, .row.flip, .row.champ { animation:none; } .eq i { transform:scaleY(.6); } }
+  @media (prefers-reduced-motion: reduce) { .eq i, .song-num.pop, .row.flip, .row.champ, .row.champ::after { animation:none; } .eq i { transform:scaleY(.6); } }
 
   /* ---------- QR card ---------- */
   .qr-view { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2.6vh; text-align:center; }
@@ -148,19 +148,24 @@
   .jb-gamble .jb-head.used .n { color:rgba(255,243,224,.35); }
   .jb-sub { text-align:center; font-family:var(--round); font-weight:700; font-size:3vh; color:var(--cream); letter-spacing:.3vh; text-transform:uppercase; margin-top:-.6vh; margin-bottom:1vh; }
   .jq-wager { font-family:var(--groovy); font-size:11vh; line-height:1.05; color:var(--orange); -webkit-text-stroke:.35vh var(--ink); paint-order:stroke fill; text-shadow:.7vh .7vh 0 var(--sun); }
+  .jq-body.jq-pick { gap:3vh; }
+  .jq-wcat { display:flex; flex-direction:column; align-items:center; gap:1vh; max-width:80vw; padding:2.4vh 4vw 3vh; background:var(--cream); color:var(--ink); border:.6vh solid var(--ink); border-radius:2.6vh; box-shadow:1vh 1vh 0 var(--ink);
+    font-family:var(--groovy); font-size:9vh; line-height:1.05; text-align:center; word-break:break-word; animation: pop .5s cubic-bezier(.2,1.6,.4,1); }
+  .jq-wcat small { font-family:var(--round); font-weight:700; font-size:2.8vh; letter-spacing:.4vh; text-transform:uppercase; color:var(--orange); }
+  .jq-body.jq-pick .jq-wager { font-size:8vh; }
   .jq-wager-sub { font-family:var(--round); font-weight:700; font-size:3.4vh; letter-spacing:.3vh; text-transform:uppercase; }
   .jq-anshead { background:var(--leaf); color:var(--cream); border-bottom:.5vh solid var(--ink); text-align:center; padding:.8vh; font-family:var(--round); font-weight:700; font-size:2.8vh; letter-spacing:.4vh; text-transform:uppercase; }
   .jq-buzz { display:flex; align-items:center; justify-content:center; gap:2vw; padding:1.2vh 3vw; border-bottom:.5vh solid var(--ink); font-family:var(--round); font-weight:700; font-size:4.6vh; color:var(--cream); background:var(--jungle-2); text-transform:uppercase; letter-spacing:.2vh; }
   .jq-buzz i { width:4.4vh; height:4.4vh; border-radius:50%; border:.45vh solid var(--ink); flex:0 0 auto; }
   .jq-buzz small { font-size:2.8vh; letter-spacing:.3vh; opacity:.9; }
-  .jq-bzt, .fb-bzt { font-family:var(--groovy); font-size:5vh; min-width:12vh; text-align:center; padding:0 1.6vh; border-radius:1.6vh; background:var(--cream); color:var(--ink); border:.4vh solid var(--ink); text-transform:none; letter-spacing:0; line-height:1.25; }
-  .jq-bzt:empty, .fb-bzt:empty { display:none; }
-  .jq-bzt.low, .fb-bzt.low { background:var(--sun); } .jq-bzt.done, .fb-bzt.done { background:#e5241b; color:var(--cream); }
-  .jq-bzt.paused, .fb-bzt.paused { opacity:.6; }
-  .fb-bzt { font-size:3.8vh; min-width:9vh; }
+  .jq-bzt { font-family:var(--groovy); font-size:5vh; min-width:12vh; text-align:center; padding:0 1.6vh; border-radius:1.6vh; background:var(--cream); color:var(--ink); border:.4vh solid var(--ink); text-transform:none; letter-spacing:0; line-height:1.25; }
+  .jq-bzt:empty { display:none; }
+  .jq-bzt.low { background:var(--sun); } .jq-bzt.done { background:#e5241b; color:var(--cream); }
+  .jq-bzt.paused { opacity:.6; }
   .jq-buzz.hit { animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
-  .jq-buzz.open { background:var(--leaf); font-size:3.4vh; animation: bzglow 1.1s ease-in-out infinite; }
-  @keyframes bzglow { 50% { filter:brightness(1.25); } }
+  .jq-buzz.open { background:var(--leaf); font-size:3.4vh; position:relative; }
+  .jq-buzz.open::after { content:""; position:absolute; inset:0; background:rgba(255,255,255,.22); pointer-events:none; opacity:0; animation: bzglow 1.1s ease-in-out infinite; }
+  @keyframes bzglow { 50% { opacity:1; } }
   #feudBuzz { position:fixed; top:2.4vh; left:50%; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:1.6vw; padding:1.4vh 3vw; border-radius:999px;
     background:var(--cream); color:var(--ink); border:.5vh solid var(--ink); box-shadow:.8vh .8vh 0 var(--orange), 1.2vh 1.2vh 0 var(--ink); font-family:var(--round); font-weight:700; font-size:4vh; text-transform:uppercase; }
   #feudBuzz i { width:3.6vh; height:3.6vh; border-radius:50%; border:.4vh solid var(--ink); }
@@ -176,7 +181,7 @@
   #prize { position:fixed; inset:0; z-index:79; display:flex; align-items:center; justify-content:center; pointer-events:none; overflow:hidden;
     background: radial-gradient(circle at 50% 45%, var(--orange-2) 0, var(--orange) 38%, #b84a00 100%); }
   #prize[hidden] { display:none; }
-  #prize .prays { position:absolute; inset:-50%; background: repeating-conic-gradient(rgba(255,243,224,.16) 0 10deg, transparent 10deg 20deg); animation: prspin 24s linear infinite; }
+  #prize .prays { position:absolute; inset:-50%; background: repeating-conic-gradient(rgba(255,243,224,.16) 0 10deg, transparent 10deg 20deg); animation: prspin 24s linear infinite; will-change:transform; }
   #prize .pcard { position:relative; display:flex; flex-direction:column; align-items:center; gap:2vh; animation: vpop .55s cubic-bezier(.2,1.6,.4,1); }
   #prize .pball { width:26vh; height:26vh; border-radius:50%; border:1vh solid var(--ink); overflow:hidden; display:flex; flex-direction:column; position:relative;
     animation: pwobble 1.1s .5s ease-in-out infinite; box-shadow: 1.4vh 1.4vh 0 var(--ink); }
@@ -230,53 +235,61 @@
   #soundChip { position:fixed; top:1.5vh; left:50%; transform:translateX(-50%); z-index:50; background:var(--cream); color:var(--ink); border:.35vh solid var(--ink); border-radius:999px; padding:1vh 2.4vh; font-family:var(--round); font-weight:700; font-size:2.2vh; box-shadow:.5vh .5vh 0 var(--orange); cursor:pointer; }
 
   /* ---------- Manny, hiding in the corner ---------- */
+  /* Manny sits tucked below the edge (bottom = --mrest). Every pose is a transform (GPU-only, nothing re-laid out),
+     and he only animates while he's doing something: the peek is started by a timer, not an endless animation,
+     so the TV is completely still between moves (less for the cast to encode). */
   #manny {
-    position:fixed; right:2.6vw; bottom:-12vh; height:24vh; width:auto; z-index:12; pointer-events:none;
+    position:fixed; right:2.6vw; bottom:var(--mrest); height:24vh; width:auto; z-index:12; pointer-events:none;
     transform:rotate(-7deg); transform-origin:50% 100%;
     filter:drop-shadow(0 .6vh 1vh rgba(0,0,0,.45));
-    animation: mannypeek 48s ease-in-out infinite;
   }
-  /* mostly tucked below the edge; every so often he pops up and wiggles, then ducks back down */
   /* --mrest / --mpeak: how far he hides and pops up (lower on the Jeopardy board so he doesn't cover a tile) */
   body { --mrest:-12vh; --mpeak:-1vh; }
   body.jp-mode { --mrest:-19vh; --mpeak:-11vh; }
   body.jp-mode #jpRoot { padding-bottom:3vh; }
-  #manny { bottom:var(--mrest); }
+  /* translateY(calc(var(--mrest) - X)) lifts him so his bottom edge sits at X */
+  #manny.peek { animation: mannypeek 6.7s ease-in-out 1; }
   @keyframes mannypeek {
-    0%, 86%, 100% { bottom:var(--mrest); transform:rotate(-7deg); }
-    89% { bottom:var(--mpeak); transform:rotate(-7deg); }
-    91% { transform:rotate(6deg); } 93% { transform:rotate(-8deg); } 95% { bottom:var(--mpeak); transform:rotate(4deg); }
-    98% { bottom:var(--mrest); transform:rotate(-7deg); }
+    0%, 100% { transform:translateY(0) rotate(-7deg); }
+    21% { transform:translateY(calc(var(--mrest) - var(--mpeak))) rotate(-7deg); }
+    36% { transform:translateY(calc(var(--mrest) - var(--mpeak))) rotate(6deg); }
+    50% { transform:translateY(calc(var(--mrest) - var(--mpeak))) rotate(-8deg); }
+    64% { transform:translateY(calc(var(--mrest) - var(--mpeak))) rotate(4deg); }
   }
   /* 1st place revealed: Manny jumps up, bounces and spins, then ducks back into his corner */
   #manny.party { animation: mannyparty 6.5s cubic-bezier(.3,.7,.4,1) 1; }
   @keyframes mannyparty {
-    0%   { bottom:-12vh; transform:rotate(-7deg) scale(1); }
-    10%  { bottom:30vh;  transform:rotate(8deg) scale(1.35); }
-    18%  { bottom:6vh;   transform:rotate(-6deg) scale(1.3, 1.22); }
-    26%  { bottom:26vh;  transform:rotate(180deg) scale(1.3); }
-    34%  { bottom:6vh;   transform:rotate(360deg) scale(1.3, 1.22); }
-    42%  { bottom:20vh;  transform:rotate(368deg) scale(1.3); }
-    50%  { bottom:6vh;   transform:rotate(352deg) scale(1.3); }
-    56%  { transform:rotate(372deg) scale(1.3); } 62% { transform:rotate(348deg) scale(1.3); }
-    68%  { transform:rotate(372deg) scale(1.3); } 74% { bottom:6vh; transform:rotate(355deg) scale(1.3); }
-    90%  { bottom:6vh;   transform:rotate(353deg) scale(1.3); }
-    100% { bottom:-12vh; transform:rotate(353deg) scale(1); }
+    0%   { transform:translateY(calc(var(--mrest) + 12vh)) rotate(-7deg) scale(1); }
+    10%  { transform:translateY(calc(var(--mrest) - 30vh)) rotate(8deg) scale(1.35); }
+    18%  { transform:translateY(calc(var(--mrest) - 6vh)) rotate(-6deg) scale(1.3, 1.22); }
+    26%  { transform:translateY(calc(var(--mrest) - 26vh)) rotate(180deg) scale(1.3); }
+    34%  { transform:translateY(calc(var(--mrest) - 6vh)) rotate(360deg) scale(1.3, 1.22); }
+    42%  { transform:translateY(calc(var(--mrest) - 20vh)) rotate(368deg) scale(1.3); }
+    50%  { transform:translateY(calc(var(--mrest) - 6vh)) rotate(352deg) scale(1.3); }
+    56%  { transform:translateY(calc(var(--mrest) - 6vh)) rotate(372deg) scale(1.3); }
+    62%  { transform:translateY(calc(var(--mrest) - 6vh)) rotate(348deg) scale(1.3); }
+    68%  { transform:translateY(calc(var(--mrest) - 6vh)) rotate(372deg) scale(1.3); }
+    74%, 90% { transform:translateY(calc(var(--mrest) - 6vh)) rotate(355deg) scale(1.3); }
+    100% { transform:translateY(calc(var(--mrest) + 12vh)) rotate(353deg) scale(1); }
   }
   /* Wrong answer / Feud strike: grumpy Manny with his X sign pops up, swells and shakes, then ducks back down */
   #manny.angry { animation: mannyangry 3.2s cubic-bezier(.3,.7,.4,1) 1; z-index:90; right:4vw; transform-origin:85% 100%; }
   @keyframes mannyangry {
-    0%   { bottom:var(--mrest); transform:rotate(0deg) scale(1); }
-    12%  { bottom:5vh; transform:rotate(0deg) scale(1.55); }
-    16%  { transform:rotate(-9deg) scale(1.6); } 20% { transform:rotate(9deg) scale(1.6); }
-    24%  { transform:rotate(-9deg) scale(1.6); } 28% { transform:rotate(9deg) scale(1.6); }
-    32%  { transform:rotate(-7deg) scale(1.6); } 36% { transform:rotate(7deg) scale(1.6); }
-    40%  { transform:rotate(-5deg) scale(1.58); } 44% { transform:rotate(5deg) scale(1.58); }
-    48%  { transform:rotate(0deg) scale(1.55); }
-    78%  { bottom:5vh; transform:rotate(0deg) scale(1.55); }
-    100% { bottom:var(--mrest); transform:rotate(-7deg) scale(1); }
+    0%   { transform:translateY(0) rotate(0deg) scale(1); }
+    12%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(0deg) scale(1.55); }
+    16%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(-9deg) scale(1.6); }
+    20%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(9deg) scale(1.6); }
+    24%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(-9deg) scale(1.6); }
+    28%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(9deg) scale(1.6); }
+    32%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(-7deg) scale(1.6); }
+    36%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(7deg) scale(1.6); }
+    40%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(-5deg) scale(1.58); }
+    44%  { transform:translateY(calc(var(--mrest) - 5vh)) rotate(5deg) scale(1.58); }
+    48%, 78% { transform:translateY(calc(var(--mrest) - 5vh)) rotate(0deg) scale(1.55); }
+    100% { transform:translateY(0) rotate(-7deg) scale(1); }
   }
-  @media (prefers-reduced-motion: reduce) { #manny { animation:none; } #manny.party { animation:none; bottom:4vh; } #manny.angry { animation:none; bottom:4vh; } }
+  #manny.peek, #manny.party, #manny.angry { will-change:transform; }
+  @media (prefers-reduced-motion: reduce) { #manny.peek, #manny.party, #manny.angry { animation:none; } }
 
   /* ---------- Feud board — Mandarin branding (scoped to #feudView) ---------- */
   #feudView {
@@ -556,18 +569,25 @@ function renderLeaderboard(teams, reveal){
 
 /* Wrong answer / Feud strike: Manny swaps to his X-sign picture, pops up and shakes angrily */
 const MANNY_NO = new Image(); MANNY_NO.src = "assets/manny-no.png";   // preload so the swap is instant
+const manny = document.getElementById("manny");
 function mannyNo(){
-  const m = document.getElementById("manny");
-  m.classList.remove("party", "angry"); void m.offsetWidth;
+  const m = manny;
+  m.classList.remove("peek", "party", "angry"); void m.offsetWidth;
   m.src = "assets/manny-no.png"; m.classList.add("angry");
   clearTimeout(m._t); m._t = setTimeout(() => { m.classList.remove("angry"); m.src = "assets/manny.png"; }, 3300);
 }
 /* Manny celebrates the winner, then goes back to peeking */
 function mannyParty(){
-  const m = document.getElementById("manny");
-  m.classList.remove("party", "angry"); m.src = "assets/manny.png"; void m.offsetWidth; m.classList.add("party");
+  const m = manny;
+  m.classList.remove("peek", "party", "angry"); m.src = "assets/manny.png"; void m.offsetWidth; m.classList.add("party");
   clearTimeout(m._t); m._t = setTimeout(() => m.classList.remove("party"), 6700);
 }
+/* every 48 s he pops up for a quick wiggle (skipped if he's busy partying or being angry) */
+setInterval(() => {
+  if (manny.classList.contains("party") || manny.classList.contains("angry")) return;
+  manny.classList.remove("peek"); void manny.offsetWidth; manny.classList.add("peek");
+}, 48000);
+manny.addEventListener("animationend", e => { if (e.animationName === "mannypeek") manny.classList.remove("peek"); });
 
 /* ---------- Confetti for the winner reveal ---------- */
 function confetti(){
@@ -664,7 +684,7 @@ let spinEndsAt = 0;
 
 async function tick(){
   let data;
-  try { const res = await fetch(API + "?action=status",{cache:"no-store"}); data = await res.json(); pulse(); }
+  try { const res = await fetch(API + "?action=status&view=tv",{cache:"no-store"}); data = await res.json(); pulse(); }
   catch(e){ return; }
 
   latestTeams = (data.teams||[]).map(t => ({ id:t.id, name:t.name, score:t.score, color:t.color, out:!!t.out }));
@@ -880,7 +900,8 @@ function renderJeopardyTV(jt){
       const meta = `<div class="jq-meta"><span>${escapeHtml(cell.cat || "")}</span><span class="v">${gamble ? "Gamble" : (cell.value || 0).toLocaleString()}</span></div>`;
       let body, clip = false, head = "";
       if (cell.stage === "pick") {
-        body = `<div class="jq-body"><div class="jq-wager">Place your wagers!</div><div class="jq-wager-sub">Hand your wager to the host</div></div>`;
+        body = `<div class="jq-body jq-pick"><div class="jq-wcat"><small>The category is</small>${escapeHtml(cell.cat || "Category " + (cell.c + 1))}</div>
+          <div class="jq-wager">Place your wagers!</div><div class="jq-wager-sub">Hand your wager to the host</div></div>`;
       } else {
         const sh = sideHTML(side); clip = !!sh.clip;
         if (respTakesOver(cell)) head = `<div class="jq-anshead">Answer</div>`;
@@ -920,15 +941,23 @@ function renderJeopardyTV(jt){
     if (!jt.timer) { tEl.hidden = true; clearInterval(timerLoop); timerLoop = null; timeUpBeeped = false; }
     else if (!timerLoop) {
       tEl.hidden = false; timeUpBeeped = false;
+      const t0 = jpData.timer, fill = tEl.querySelector(".fill"), num = tEl.querySelector(".num");
+      const left0 = Math.max(0, (t0.endsAt - (Date.now() + serverOffset)) / 1000);
+      fill.style.transition = "none"; fill.style.transform = `scaleX(${left0 / t0.secs})`;
+      void fill.offsetWidth;
+      fill.style.transition = `transform ${left0}s linear`; fill.style.transform = "scaleX(0)";
+      let shown = null;
       const tick = () => {
         const t = jpData && jpData.timer; if (!t) return;
+        if (t.endsAt !== t0.endsAt) { clearInterval(timerLoop); timerLoop = null; renderJeopardyTV(jpData); return; }   // restarted
         const left = Math.max(0, (t.endsAt - (Date.now() + serverOffset)) / 1000);
-        tEl.querySelector(".fill").style.transform = `scaleX(${left / t.secs})`;
-        tEl.querySelector(".num").textContent = left > 0 ? Math.ceil(left) : "Time!";
+        const txt = left > 0 ? String(Math.ceil(left)) : "Time!";
+        if (txt === shown) return;
+        shown = txt; num.textContent = txt;
         tEl.classList.toggle("out", left <= 0);
         if (left <= 0 && !timeUpBeeped) { timeUpBeeped = true; if (soundUnlocked) buzzer(); }
       };
-      tick(); timerLoop = setInterval(tick, 100);
+      tick(); timerLoop = setInterval(tick, 200);
     }
   }
   paintTVBuzz();
@@ -980,19 +1009,24 @@ function showVerdict(v){
   clearTimeout(verdictTimer); verdictTimer = setTimeout(() => { el.hidden = true; }, 2600);
 }
 
-// buzz-in countdown next to the team name (updated several times a second)
+// Jeopardy buzz-in countdown next to the team name. Checked often, but the page is only touched when the
+// shown number/state changes (keeps the cast tab from repainting for nothing).
 let lastTimeUpKey = "";
 function tickTVBuzzTimer(){
-  const T = window.TVBuzz, els = document.querySelectorAll(".jq-bzt, .fb-bzt");
+  const T = window.TVBuzz, els = document.querySelectorAll(".jq-bzt");
+  if (!els.length) return;
   const c = T.clock ? T.clock() : null;
   els.forEach(el => {
-    if (!c || c.stopped) { el.textContent = ""; return; }
-    const s = Math.ceil(c.left / 1000);
+    const s = c && !c.stopped ? Math.ceil(c.left / 1000) : 0;
+    const k = !c || c.stopped ? "" : (c.done ? "T" : s) + (c.paused ? "p" : "");
+    if (el.dataset.k === k) return;
+    el.dataset.k = k;
+    if (!k) { el.textContent = ""; return; }
     el.textContent = c.done ? "Time!" : String(s);
     el.classList.toggle("done", c.done); el.classList.toggle("low", !c.done && s <= 3); el.classList.toggle("paused", c.paused);
   });
   // buzzer once when a team's time runs out (only if it's on screen)
-  if (c && c.done && els.length) {
+  if (c && c.done) {
     const k = (T.state && T.state.round) + c.team;
     if (k !== lastTimeUpKey) { lastTimeUpKey = k; if (soundUnlocked) buzzer(); }
   }
@@ -1024,7 +1058,7 @@ function paintTVBuzz(){
   const showF = currentDisplay === "feud" && (first || open);
   fb.hidden = !showF;
   if (showF) {
-    const html = first ? `<i style="background:${escapeHtml(ft.color || "#F36F03")}"></i>${escapeHtml(ft.name)} buzzed first!<span class="fb-bzt"></span>` : `Buzzers open!`;
+    const html = first ? `<i style="background:${escapeHtml(ft.color || "#F36F03")}"></i>${escapeHtml(ft.name)} buzzed first!` : `Buzzers open!`;
     const cls = first ? "hit" : "open";
     if (fb.dataset.k !== cls + html) { fb.dataset.k = cls + html; fb.className = cls; fb.innerHTML = html; }
   }
@@ -1170,8 +1204,12 @@ async function feudTick(){
 // feudRoot needs flex layout to fill the screen like feud-screen's body
 feudRoot.style.cssText = "flex:1 1 auto; display:flex; flex-direction:column; min-height:0;";
 
-tick();
-setInterval(tick, 1200);
+// poll every 1.2 s, but never start a new request while the last one is still out (slow Wi-Fi)
+(async function poll(){
+  const t0 = Date.now();
+  try { await tick(); } catch(e) {}
+  setTimeout(poll, Math.max(250, 1200 - (Date.now() - t0)));
+})();
 </script>
 <script type="module">
 // Phone buzzers: the TV only reads (who joined, buzzers open, who buzzed first).

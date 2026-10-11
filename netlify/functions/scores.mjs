@@ -1,20 +1,15 @@
 // scores.mjs — persistence + leaderboard backend for the team score tracker.
 //
-// One JSON blob, key "state", store "trivia-scores":
-// {
-//   teams: [ { id, name, score, color, out, bid } ],
-//   updated
-// }
+// One JSON blob, key "state", store "trivia-scores": teams, audit log, TV display + cards (spin, song, qr, title,
+// reveal), music round, links, Feud tallies, Jeopardy questions (jeopardy) + play state (jplay).
+// Pictures: store "trivia-media". Saved Jeopardy boards: store "trivia-jlib". Phone buzzers live in Firebase.
 //
-// Actions (?action=...):
-//   status   GET   -> { teams, updated }   (host and leaderboard both read this)
-//   save     POST  { teams:[...] }         -> replace the whole roster/scores
-//   reset    POST                          -> clear everything
-//
-// The host tool saves the entire teams array whenever something changes. It's
-// small (a handful of teams) so a full-array save is simplest and race-free
-// enough for one host driving it. Teams carry a stable id so future tools
-// (a buzzer, Feud, voting) can refer to the same team.
+// Main actions (?action=...):
+//   status        GET  full state for the host (&host=1 adds Jeopardy questions + play state);
+//                      &view=tv = the slim version the TV polls every ~1.2 s
+//   save          POST teams + audit + music + links + feud + jeopardy (full replace, from the host page)
+//   display, musicplay, jplay, spin, award_points, media_put / media, jlib_* — see each case below.
+// Teams carry a stable id so other tools (phone buzzers, the Feud site) can refer to the same team.
 
 import { getStore } from "@netlify/blobs";
 
@@ -98,7 +93,7 @@ function cleanUrl(u) {
 }
 function cleanLinks(l) {
   if (!l || typeof l !== "object") return null;
-  return { feud: cleanUrl(l.feud), buzzinga: cleanUrl(l.buzzinga) };
+  return { feud: cleanUrl(l.feud) };
 }
 // Feud round correct-answer counts kept by the host: { correct: { teamId: n } }
 function cleanFeud(f) {
@@ -251,6 +246,12 @@ export default async (req) => {
   try {
     if (action === "status") {
       const s = await load();
+      // the TV polls every ~1.2 s: send it only what it draws (no audit log, music round or Feud tallies)
+      if (url.searchParams.get("view") === "tv") {
+        return json({ teams: (s.teams || []).map(t => ({ id: t.id, name: t.name, score: t.score, color: t.color, out: !!t.out })),
+          display: s.display || "leaderboard", spin: s.spin || null, song: s.song || null, qr: s.qr || null, title: s.title || null,
+          reveal: s.reveal || null, links: { feud: (s.links && s.links.feud) || "" }, jeopardyTV: jeopardyTV(s), now: Date.now() });
+      }
       const out = { teams: s.teams || [], display: s.display || "leaderboard", spin: s.spin || null, audit: s.audit || [], music: s.music || null, song: s.song || null,
         qr: s.qr || null, title: s.title || null, reveal: s.reveal || null, links: s.links || null, feud: s.feud || null,
         jeopardyTV: jeopardyTV(s), now: Date.now(), updated: s.updated || 0 };
@@ -482,10 +483,6 @@ export default async (req) => {
         return json({ ok: true });
       }
 
-      case "reset": {
-        await save(blankState());
-        return json({ ok: true });
-      }
       default:
         return json({ error: "Unknown action: " + action }, 400);
     }

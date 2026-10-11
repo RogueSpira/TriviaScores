@@ -6,6 +6,9 @@
 import { connectBuzz } from "./kava-buzz.js";
 
 let api = null, lastView = "", started = false;
+// Only do the publishing work while a phone remote is actually open (it pings every 5 s).
+let lastPing = 0, pubAt = 0, pubTimer = null;
+const remoteOpen = () => Date.now() - lastPing < 20000;
 const done = new Set();
 
 function start(){
@@ -22,15 +25,22 @@ function start(){
   });
   // Chrome slows timers in a background tab, so don't rely on them alone:
   // the phone pings, and this answers right away (network events aren't slowed down)
-  api.watch("hostonly/ping", () => { api.set("hostonly/alive", api.ts()).catch(() => {}); publish(); });
-  // republish whenever this page changes (also not slowed down in a background tab)
-  new MutationObserver(() => publish()).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true });
-  setInterval(publish, 350);
-  setInterval(() => api.set("hostonly/alive", api.ts()).catch(() => {}), 4000);
+  api.watch("hostonly/ping", p => { if (p && Date.now() + ((window.Buzz && window.Buzz.offset) || 0) - Number(p) < 20000) lastPing = Date.now(); api.set("hostonly/alive", api.ts()).catch(() => {}); publish(); });
+  // republish when this page changes (observer callbacks aren't slowed down in a background tab),
+  // at most every 120 ms so a busy page doesn't rebuild the phone's view on every tiny change
+  new MutationObserver(schedule).observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true });
+  setInterval(() => { if (remoteOpen()) publish(); }, 1000);
+  setInterval(() => { if (remoteOpen()) api.set("hostonly/alive", api.ts()).catch(() => {}); }, 4000);
   api.set("hostonly/alive", api.ts()).catch(() => {});
+}
+function schedule(){
+  if (!remoteOpen() || pubTimer) return;
+  const wait = 120 - (Date.now() - pubAt);
+  if (wait <= 0) publish(); else pubTimer = setTimeout(() => { pubTimer = null; publish(); }, wait);
 }
 function publish(){
   if (typeof window.remoteView !== "function") return;
+  pubAt = Date.now();
   let v;
   try { v = window.remoteView(); } catch(e) { return; }
   const s = JSON.stringify(v);

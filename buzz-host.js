@@ -23,7 +23,7 @@ const B = window.Buzz = {
   clock(){ return answerClock(this.state, this.order, Date.now() + this.offset); },
   lockoutMs(){ const s = (typeof jq !== "undefined" && jq.buzz) ? Number(jq.buzz.lockout) : 0.5; return Math.round((Number.isFinite(s) ? s : 0.5) * 1000); },
   isReleased(id){ return !!(this.teams[id] && this.teams[id].owner === "released"); },
-  pauseTimer, resumeTimer, restartTimer, stopTimer, markRight,
+  pauseTimer, resumeTimer, restartTimer, markRight,
   connect, open, close, newQuestion, idle, wrong, reset, test, removeTeam, release, clearAll, setLockout, teamEdited
 };
 
@@ -105,7 +105,6 @@ function newQuestion(openNow, opts){ if (!B.isOn()) return; write(api.set("game/
 function idle(){ if (!api) return; write(api.set("game/buzz", round({ open: false }))); }
 function open(opts){ if (!B.isOn()) return; write(api.update("game/buzz", { open: true, openedAt: api.ts(), answerSecs: secsFor(opts) })); }
 function close(opts){ if (!B.isOn()) return; write(api.update("game/buzz", (opts && opts.noTimer) ? { open: false, answerSecs: 0, timer: null } : { open: false })); }
-// Wrong answer: lock that team out of this question and reopen for everyone else.
 // Wrong answer: lock that team out of this clue, reopen for everyone else, and flash "Wrong" on the TV and phones.
 function wrong(team){
   if (!B.isOn()) return;
@@ -127,7 +126,6 @@ function timerSet(t){ if (!B.isOn()) return; write(api.update("game/buzz", { tim
 function pauseTimer(){ const c = B.clock(); if (c && !c.paused && !c.stopped) timerSet({ team: c.team, paused: true, leftMs: Math.round(c.left) }); }
 function resumeTimer(){ const c = B.clock(); if (c && (c.paused || c.stopped)) timerSet({ team: c.team, anchor: api.ts(), ms: Math.round(c.left) }); }
 function restartTimer(){ const c = B.clock(); if (c) timerSet({ team: c.team, anchor: api.ts(), ms: c.total }); }
-function stopTimer(){ const c = B.clock(); if (c && !c.stopped) timerSet({ team: c.team, stopped: true, leftMs: Math.round(c.left) }); }
 function test(){ if (!B.isOn()) return; write(api.set("game/buzz", round({ open: true, test: true, round: newRoundId("test"), openedAt: api.ts() }))); }
 function setLockout(){ if (!B.isOn()) return; write(api.update("game/buzz", { lockoutMs: B.lockoutMs(), answerSecs: B.answerSecs() })); }
 function removeTeam(id){

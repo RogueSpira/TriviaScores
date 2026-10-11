@@ -328,7 +328,7 @@ $("tab-jeop").onclick = e => {
   else J(fn);
 };
 
-/* timers tick without redrawing (buzz-in timer + gamble timer + music countdown) */
+/* timers tick without redrawing (Jeopardy buzz-in timer + gamble timer) */
 function tick(){
   const el = document.querySelector("[data-btimer]");
   if (el) {
@@ -373,7 +373,7 @@ async function loadFeud(){
   if (tab === "feud") renderFeud();
 }
 const F = (fn, ...args) => send({ a: "f", fn, args });
-function feudTurnHTML(PQ){
+function feudTurnHTML(){
   const tn = view && view.feudTurn, first = order[0];
   if (buzz.test) return `<div class="note">The laptop is testing buzzers.</div>`;
   if (first && tn && tn.team === first.team) {
@@ -385,8 +385,7 @@ function feudTurnHTML(PQ){
     return `<div class="side"><span class="state buzzed">Their turn</span>
         <div class="first" style="margin-top:6px"><i style="background:${esc(t.color)}"></i>${esc(t.name)}</div>
         <div class="note">Guess ${tn.guesses + 1} of 4 &middot; ${tn.strikes} of 3 strikes</div>
-        <div class="timer" data-btimer><span class="num"></span><span class="note" data-btlbl></span></div>
-        <div class="row" data-btbtns></div></div>
+        </div>
       <div class="note">Right answer? Tap <b>&#10003;</b> next to it below (reveals it + adds ${tn.pts || ""} points on the laptop).</div>
       <button class="b bad big" data-f="wrong">&#10007; Wrong &mdash; strike</button>`;
   }
@@ -406,7 +405,7 @@ function renderFeud(){
   if (PQ && PQ.board) {
     const strikes = play.strikes || 0, tn = view && view.feudTurn, live = tn && !tn.over && order[0] && tn.team === order[0].team;
     h += `<div class="card"><div class="lbl">On the TV</div><div class="t" style="font-weight:800;font-size:17px">${esc(PQ.text)}</div>
-      ${feudTurnHTML(PQ)}
+      ${feudTurnHTML()}
       ${PQ.board.slots.map((sl, i) => `<div class="slot ${sl.revealed ? "rev" : ""}"><span class="n">${i + 1}</span><span class="a">${esc(sl.text)}</span><span class="c">${sl.count}</span>
         ${sl.revealed ? `<button class="b" disabled>Shown</button>` : live ? `<button class="b ok" data-f="correct" data-i="${i}">&#10003; +${tn.pts || ""}</button>` : `<button class="b primary" data-f="reveal" data-i="${i}">Reveal</button>`}</div>`).join("")}
       <div class="row"><div class="xs grow">${[1, 2, 3].map(n => `<span class="${n <= strikes ? "on" : ""}">&#10005;</span>`).join("")}</div>

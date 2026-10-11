@@ -71,6 +71,13 @@ built so it's possible without a rewrite.
   the songs played so far). It stays up until you pick something else in the
   **On TV** bar (e.g. Leaderboard).
 
+## Reset for tonight (team panel toolbar)
+**Reset for tonight (hide all)** — for the start of the night. After a confirm it: puts both Jeopardy boards
+back to hidden categories and unused questions (nothing open), covers every answer on the loaded Feud board and
+clears strikes / any turn, closes the buzzers, stops music, and puts **Starting Soon** on the TV.
+Teams and scores stay (that's what **New night (clear teams)** is for). Questions, saved boards and Feud
+surveys aren't deleted.
+
 ## Team panel
 - Each team is two lines: name + total on top, points and bid controls below.
   When the roster is too tall for the screen, rows tighten automatically.
@@ -81,11 +88,9 @@ All three Feud tabs (Surveys, Build Boards, Play) now run from this page. They t
 to the Feud site's backend, so surveys and boards live there as before, and
 **feud-host.html / feud-screen.html still work on their own as a backup**.
 
-- **Links** (Feud → Surveys): the Feud site address and the Buzzinga join link.
-  Change the Buzzinga link here if the join code changes.
+- **Links** (Feud → Surveys): the Feud site address.
 - **On TV bar** (header, every screen) has the Feud buttons:
   - **Survey QR** — full-screen "Scan to take the survey" card.
-  - **Buzzer QR** — full-screen "Scan to join the buzzers" card for Buzzinga.
   - **Feud board** — the board, strikes, big X and buzzer sound, in Mandarin
     branding (feud-screen.html on the Feud site keeps the old look as a backup). With no board loaded it shows the survey screen.
 - **Load to TV** puts the board on this TV page automatically.
@@ -136,7 +141,7 @@ to talk to it). Without it, the Feud tab shows "Can't reach the Feud site."
 - The scores page (laptop) uses its original teal colors.
 
 ## Jeopardy (Jeopardy tool) — board, scoring, gamble round
-Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
+Buzzing uses the phone buzzers (see Phone buzzers below).
 
 **Boards** (Board switch, top right of the tool)
 - **Round 1** — 5 categories x 5 questions, buzz-in.
@@ -155,7 +160,7 @@ Buzzing still happens in Buzzinga for now; our own buzzer (Firebase) is phase 2.
     fills in from a link with &t=42 (editable). **Show video on TV** on = the clip
     plays with its video; off = sound only (the TV shows music bars instead).
     .mp3 links start as sound only. Optional words on screen.
-- Round 1: board name, the five values and the answer timer are editable;
+- Round 1: board name and the five values are editable (the buzz-in timer is under Buzz-in answer time);
   category tabs show 3/5 etc.
 - Gamble round: all 3 categories on one page.
 - Everything saves automatically. Questions saved before this update carry over
@@ -300,3 +305,13 @@ can't read them. **Firebase rules changed for this:** re-paste `firebase-rules.j
 ## Angry Manny
 On a Jeopardy **Wrong** or a Feud **strike**, Manny swaps to his X-sign picture (assets/manny-no.png),
 pops up from his corner, grows and shakes, then goes back to normal.
+
+## Performance notes (Oct 10 cleanup)
+- The TV polls a slim status (`?action=status&view=tv`, ~1–2 KB instead of the full state with the audit
+  log and music round) and never starts a new poll while the last one is still out.
+- TV timers only touch the page when the number changes; timer bars glide with a CSS transition instead of
+  being redrawn many times a second. Glow effects (buzzers open, champion) animate opacity only.
+- The laptop only builds and sends the phone remote's view while a phone remote is open (it pings every 5 s),
+  at most every 120 ms.
+- Removed leftovers: Buzzinga link, Feud countdown pieces, unused CSS, the unused server `reset` action.
+
