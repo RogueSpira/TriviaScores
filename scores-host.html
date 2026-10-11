@@ -1818,6 +1818,8 @@ function renderFeudBuzz(){
   } else {
     h += `<span class="bz-state">Closed</span><span class="bz-note">Read the question, then open the buzzers.</span></div><button class="btn aqua bz-big" data-bz="fopen">Open buzzers</button>`;
   }
+  const dn = window.FTurn ? FTurn.doneTeams() : [];
+  if (dn.length) h += `<div class="bz-note">Already had their turn on this question (can't buzz again until the next one): <b>${dn.map(id => escHTML(bzTeam(id).name || "Team")).join(", ")}</b></div>`;
   h += `</div>`;
   if (el.dataset.sig !== h) { el.dataset.sig = h; el.innerHTML = h; }
 }
@@ -3648,15 +3650,12 @@ wheel.onclick = spin;
   window.fPickPlayQ = (qid)=>{ playSel.qid=qid; paintPlayQTabs(); };
   $("loadBoard").onclick = async ()=>{
     if(!playSel.sid||!playSel.qid)return toast("Pick a survey and question");
-    const r = await api("play_load",{surveyId:playSel.sid,qid:playSel.qid});
-    if(r.error)return toast(r.error);
-    setTVDisplay("feud");
-    toast("Board loaded to TV"); refresh();
+    // a new question: turn, strikes and "already had a turn" lockouts start fresh
+    if (await FTurn.load(playSel.sid, playSel.qid)) toast("Board loaded to TV");
   };
   $("clearBoard").onclick = async ()=>{
-    await api("play_reset");
-    setTVDisplay("feud");
-    toast("Board cleared — TV shows the survey screen"); refresh();
+    await FTurn.clear();
+    toast("Board cleared — TV shows the survey screen");
   };
   const teamName = id => { const t = teams.find(x => x.id === id); return (t && t.name) || "the team"; };
   function paintPlay(){
@@ -3690,6 +3689,8 @@ wheel.onclick = spin;
      Wrong = a strike (TV big X, buzzer, angry Manny). */
   const MAX_GUESSES = 4, MAX_STRIKES = 3;
   let turn = null;   // { team, round, guesses, strikes, over, why }
+  let done = {};     // teams that finished a turn on this question (4 guesses / 3 strikes): can't buzz again until the next question
+  const lockDone = () => ({ noTimer: true, locked: done });
   function syncTurn(){
     const B = window.Buzz; if (!B || !B.isOn() || B.state.test) return;
     if (tvDisplay !== "feud") return;   // turns only apply while the Feud board is on the TV (not Jeopardy buzzes)
@@ -3703,10 +3704,12 @@ wheel.onclick = spin;
     if (!turn || turn.over) return;
     if (turn.strikes >= MAX_STRIKES) { turn.over = true; turn.why = "3 strikes"; }
     else if (turn.guesses >= MAX_GUESSES) { turn.over = true; turn.why = "4 guesses"; }
+    if (turn.over) done[turn.team] = true;
   }
   const repaint = () => { if (state) paint(); if (typeof window.onBuzzChange === "function") window.onBuzzChange(); };
   window.FTurn = {
     get(){ syncTurn(); return turn; },
+    doneTeams(){ return Object.keys(done); },
     async correct(i){
       if (!state) await refresh();
       syncTurn();
@@ -3734,24 +3737,24 @@ wheel.onclick = spin;
     // next race: buzzers reset (closed), strikes cleared; open the buzzers when you've read the question
     async next(){
       turn = null;
-      if (window.Buzz && Buzz.isOn()) Buzz.reset({ noTimer: true });
+      if (window.Buzz && Buzz.isOn()) Buzz.reset(lockDone());
       await api("strike", { mode: "clear" });
       await refresh(); repaint();
     },
-    open(){ if (!(window.Buzz && Buzz.isOn())) return; turn = null; if (Buzz.order.length) Buzz.newQuestion(true, { noTimer: true }); else Buzz.open({ noTimer: true }); repaint(); },
+    open(){ if (!(window.Buzz && Buzz.isOn())) return; turn = null; if (Buzz.order.length) Buzz.newQuestion(true, lockDone()); else Buzz.open({ noTimer: true }); repaint(); },
     async reveal(i){ await api("reveal", { index: i }); await refresh(); repaint(); },
     async load(sid, qid){
-      const r = await api("play_load", { surveyId: sid, qid }); if (r && r.error) { toast(r.error); return; }
-      turn = null; if (window.Buzz && Buzz.isOn()) Buzz.reset({ noTimer: true });
+      const r = await api("play_load", { surveyId: sid, qid }); if (r && r.error) { toast(r.error); return false; }
+      turn = null; done = {}; if (window.Buzz && Buzz.isOn()) Buzz.reset({ noTimer: true });
       await api("strike", { mode: "clear" });
-      setTVDisplay("feud"); await refresh(); repaint();
+      setTVDisplay("feud"); await refresh(); repaint(); return true;
     },
     async hideAll(){ await api("hide_all"); await refresh(); repaint(); },
-    async clear(){ await api("play_reset"); turn = null; setTVDisplay("feud"); await refresh(); repaint(); },
+    async clear(){ await api("play_reset"); turn = null; done = {}; if (window.Buzz && Buzz.isOn()) Buzz.reset({ noTimer: true }); setTVDisplay("feud"); await refresh(); repaint(); },
     async clearStrikes(){ await api("strike", { mode: "clear" }); if (turn) { turn.strikes = 0; } await refresh(); repaint(); },
     // Reset for tonight: cover every answer on the loaded board, clear strikes and any turn
     async resetNight(){
-      turn = null;
+      turn = null; done = {};
       try { await api("hide_all"); await api("strike", { mode: "clear" }); await refresh(); } catch(e) {}
       repaint();
     }
@@ -3761,7 +3764,7 @@ wheel.onclick = spin;
     const s = state.surveys[state.play.surveyId]; return s ? s.questions.find(x => x.qid === state.play.qid) : null;
   }
   window.feudRepaint = () => { if (state) paint(); };
-  window.feudRemoteView = () => { syncTurn(); return turn ? Object.assign({ pts: ppa() }, turn) : null; };
+  window.feudRemoteView = () => { syncTurn(); return Object.assign({ pts: ppa(), done: Object.keys(done).map(id => { const t = teams.find(x => x.id === id); return t ? t.name : "A team"; }) }, turn || { none: true }); };
   $("resetStrikesBtn").onclick = async ()=>{ await api("strike",{mode:"clear"}); refresh(); };
   $("hideAll").onclick = async ()=>{ await api("hide_all"); refresh(); };
   $("answerCount").onchange = async ()=>{ await api("set_answer_count",{count: +$("answerCount").value || 5}); toast("Answers on TV updated"); refresh(); };

@@ -71,6 +71,11 @@ built so it's possible without a rewrite.
   the songs played so far). It stays up until you pick something else in the
   **On TV** bar (e.g. Leaderboard).
 
+## Feud: one turn per team per question
+When a team's turn ends (4 guesses or 3 strikes), that team is locked out for the rest of that question: after
+**Next race** their phone shows "Locked" and only the other teams can buzz. The laptop and phone remote list who
+has already had their turn. Loading the next question (or Clear board / Reset for tonight) unlocks everyone.
+
 ## Reset for tonight (team panel toolbar)
 **Reset for tonight (hide all)** — for the start of the night. After a confirm it: puts both Jeopardy boards
 back to hidden categories and unused questions (nothing open), covers every answer on the loaded Feud board and

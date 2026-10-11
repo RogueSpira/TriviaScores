@@ -406,6 +406,7 @@ function renderFeud(){
     const strikes = play.strikes || 0, tn = view && view.feudTurn, live = tn && !tn.over && order[0] && tn.team === order[0].team;
     h += `<div class="card"><div class="lbl">On the TV</div><div class="t" style="font-weight:800;font-size:17px">${esc(PQ.text)}</div>
       ${feudTurnHTML()}
+      ${tn && tn.done && tn.done.length ? `<div class="note">Already had their turn (can't buzz this question): <b>${tn.done.map(esc).join(", ")}</b></div>` : ""}
       ${PQ.board.slots.map((sl, i) => `<div class="slot ${sl.revealed ? "rev" : ""}"><span class="n">${i + 1}</span><span class="a">${esc(sl.text)}</span><span class="c">${sl.count}</span>
         ${sl.revealed ? `<button class="b" disabled>Shown</button>` : live ? `<button class="b ok" data-f="correct" data-i="${i}">&#10003; +${tn.pts || ""}</button>` : `<button class="b primary" data-f="reveal" data-i="${i}">Reveal</button>`}</div>`).join("")}
       <div class="row"><div class="xs grow">${[1, 2, 3].map(n => `<span class="${n <= strikes ? "on" : ""}">&#10005;</span>`).join("")}</div>

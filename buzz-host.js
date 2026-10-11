@@ -100,8 +100,10 @@ function teamEdited(team){
 
 function round(fields){ return Object.assign({ lockoutMs: B.lockoutMs(), answerSecs: B.answerSecs(), round: newRoundId() }, fields); }
 // opts.noTimer: no buzz-in countdown (Feud races). Jeopardy calls leave it off, so its timer setting comes back.
+// opts.locked: { teamId: true } teams kept out (Feud: teams that already had their turn on this question).
+const lockedFor = opts => { const l = opts && opts.locked; return l && Object.keys(l).length ? Object.assign({}, l) : null; };
 const secsFor = opts => (opts && opts.noTimer) ? 0 : B.answerSecs();
-function newQuestion(openNow, opts){ if (!B.isOn()) return; write(api.set("game/buzz", round(Object.assign(openNow ? { open: true, openedAt: api.ts() } : { open: false }, { answerSecs: secsFor(opts) })))); }
+function newQuestion(openNow, opts){ if (!B.isOn()) return; write(api.set("game/buzz", round(Object.assign(openNow ? { open: true, openedAt: api.ts() } : { open: false }, { answerSecs: secsFor(opts) }, lockedFor(opts) ? { locked: lockedFor(opts) } : {})))); }
 function idle(){ if (!api) return; write(api.set("game/buzz", round({ open: false }))); }
 function open(opts){ if (!B.isOn()) return; write(api.update("game/buzz", { open: true, openedAt: api.ts(), answerSecs: secsFor(opts) })); }
 function close(opts){ if (!B.isOn()) return; write(api.update("game/buzz", (opts && opts.noTimer) ? { open: false, answerSecs: 0, timer: null } : { open: false })); }
@@ -120,7 +122,7 @@ function markRight(team, points){
   write(api.update("game/buzz", patch));
 }
 // Clear the buzzes and any lockouts; buzzers closed until you open them.
-function reset(opts){ if (!B.isOn()) return; const p = { round: newRoundId(), open: false, locked: null, timer: null }; if (opts && opts.noTimer) p.answerSecs = 0; write(api.update("game/buzz", p)); }
+function reset(opts){ if (!B.isOn()) return; const p = { round: newRoundId(), open: false, locked: lockedFor(opts), timer: null }; if (opts && opts.noTimer) p.answerSecs = 0; write(api.update("game/buzz", p)); }
 // Buzz-in timer controls (the timer itself starts on its own when a team buzzes)
 function timerSet(t){ if (!B.isOn()) return; write(api.update("game/buzz", { timer: t })); }
 function pauseTimer(){ const c = B.clock(); if (c && !c.paused && !c.stopped) timerSet({ team: c.team, paused: true, leftMs: Math.round(c.left) }); }
