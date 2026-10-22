@@ -320,3 +320,32 @@ pops up from his corner, grows and shakes, then goes back to normal.
   at most every 120 ms.
 - Removed leftovers: Buzzinga link, Feud countdown pieces, unused CSS, the unused server `reset` action.
 
+## After the first real night (Oct 15)
+- **Buzzes can't vanish:** every screen (laptop, TV, phones, phone remote) keeps each buzz it has seen for the
+  question, with its first time, so a buzz never drops off or moves. Extra taps after buzzing do nothing.
+  The laptop keeps a short buzzer log (type `Buzz.log` in the laptop browser's console) in case it ever happens again.
+- **Feud shows your place:** buzzers stay open after the first buzz (like Jeopardy), so the other teams see #2,
+  #3. The turn still goes to the first team. The laptop and phone remote show the buzz order.
+- **Feud TV:** "Kava Kats' turn" / "Buzzers open!" now sits in the bottom strip next to the strikes, never over
+  the question.
+- **Feud Build Boards:** the question tabs show the question text, and the question sits above the answers while
+  you edit the board.
+- **Arrange the Jeopardy board** (Edit questions → Arrange the board): drag a question onto another to swap them
+  (new point value and/or category; the prize switch goes with the question); drag a category name onto another
+  to swap whole columns; click a tile to jump to it in the editor.
+- **Clip sound from the laptop** (default): Play / Pause / Restart play the clip on the laptop, so it comes out of
+  the laptop's Bluetooth speaker. The TV only shows the video (muted) for "Show video on TV" clips, or the music
+  animation for sound-only clips (no player on the TV at all). Switch with **Sound from: This laptop / TV** in the
+  clip controls (remembered on this laptop). A shown video may drift slightly from the laptop's sound because of
+  cast lag.
+
+## Header layout (Oct 22)
+Top to bottom, the laptop header now reads in one direction:
+1. **On TV** strip — what the room sees (same buttons as before, in night order).
+2. **Laptop** tabs — Jeopardy · Music · Feud · Wheel (night order). Opens on the tool you used last.
+3. **Tool bar** for that tool, attached under its tab, same look for every tool:
+   - Jeopardy: Play / Edit questions / Saved boards, then Board: Jeopardy / Gambling, then the saved-board name.
+   - Music: Play on TV / This laptop, clip length and points, Edit songs, New round.
+   - Feud: 1 Surveys / 2 Build boards / 3 Play.
+   - Wheel: a one-line hint.
+

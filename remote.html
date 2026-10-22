@@ -130,7 +130,7 @@
 <div class="flash" id="flash" hidden></div>
 
 <script type="module">
-import { connectBuzz, buzzOrder, answerClock, newRoundId } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, answerClock, newRoundId, mergeBuzzes } from "./kava-buzz.js";
 const $ = id => document.getElementById(id);
 const esc = s => { const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
@@ -160,7 +160,8 @@ async function connect(pin){
     if (buzz.round !== watched) {
       if (roundUnsub) roundUnsub();
       watched = buzz.round || null; order = [];
-      roundUnsub = watched ? fb.watch("game/buzzes/" + watched, b => { order = buzzOrder(b); renderAll(); }) : null;
+      const seen = {};
+      roundUnsub = watched ? fb.watch("game/buzzes/" + watched, b => { order = buzzOrder(mergeBuzzes(seen, b)); renderAll(); }) : null;
     }
     renderAll();
   });
@@ -386,6 +387,7 @@ function feudTurnHTML(){
         <div class="first" style="margin-top:6px"><i style="background:${esc(t.color)}"></i>${esc(t.name)}</div>
         <div class="note">Guess ${tn.guesses + 1} of 4 &middot; ${tn.strikes} of 3 strikes</div>
         </div>
+      ${order.length > 1 ? `<div class="chips">${order.map((o, i) => { const tt = teamOf(o.team); return `<span class="chip"><i style="background:${esc(tt.color)}"></i>${i + 1} ${esc(tt.name)}</span>`; }).join("")}</div>` : ""}
       <div class="note">Right answer? Tap <b>&#10003;</b> next to it below (reveals it + adds ${tn.pts || ""} points on the laptop).</div>
       <button class="b bad big" data-f="wrong">&#10007; Wrong &mdash; strike</button>`;
   }

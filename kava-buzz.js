@@ -61,6 +61,12 @@ export function buzzOrder(roundBuzzes){
     .map(([team, b]) => ({ team, at: Number(b && b.at) || 0 }))
     .sort((a, b) => a.at - b.at || (a.team < b.team ? -1 : 1));
 }
+// Buzzes only ever get added within a round: keep every buzz we've seen (with its first time) so a buzz can
+// never drop off a screen, whatever the network does. seen = {} per round, b = the latest snapshot.
+export function mergeBuzzes(seen, b){
+  Object.entries(b || {}).forEach(([team, v]) => { if (!seen[team] && v && v.at) seen[team] = { at: Number(v.at) }; });
+  return seen;
+}
 export const newRoundId = (prefix = "r") => prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 // The buzz-in answer timer: starts the moment the first team's buzz reaches the server.

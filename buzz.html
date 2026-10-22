@@ -100,7 +100,7 @@
   </main>
 
 <script type="module">
-import { connectBuzz, buzzOrder, answerClock, freshVerdict } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, answerClock, freshVerdict, mergeBuzzes } from "./kava-buzz.js";
 const $ = id => document.getElementById(id);
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} }, del(k){ try { localStorage.removeItem(k); } catch(e) {} } };
 
@@ -137,7 +137,7 @@ fb.watch("game/buzz", v => {
   if (buzz.round !== watchedRound) {
     if (roundUnsub) roundUnsub();
     watchedRound = buzz.round || null; roundBuzzes = {};
-    roundUnsub = watchedRound ? fb.watch("game/buzzes/" + watchedRound, b => { roundBuzzes = b || {}; render(); }) : null;
+    roundUnsub = watchedRound ? fb.watch("game/buzzes/" + watchedRound, b => { mergeBuzzes(roundBuzzes, b); render(); }) : null;
   }
   render();
 });
@@ -241,7 +241,9 @@ function press(e){
   pressedRound = buzz.round;
   try { navigator.vibrate && navigator.vibrate(60); } catch(err) {}
   render();
-  fb.set(`game/buzzes/${buzz.round}/${myTeam}`, { at: fb.ts() }).catch(() => { pressedRound = null; render(); });
+  const r = buzz.round;
+  // only free the button again if the buzz really didn't land (never after it's in)
+  fb.set(`game/buzzes/${r}/${myTeam}`, { at: fb.ts() }).catch(() => { if (!roundBuzzes[myTeam] && buzz.round === r) pressedRound = null; render(); });
 }
 // redraw the countdown while locked for spamming
 function tickSpam(){

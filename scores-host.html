@@ -47,7 +47,7 @@
   }
   .wheel-holder {
     position: relative;
-    width: min(calc(100vh - 300px), 90%);
+    width: min(calc(100vh - 360px), 90%);   /* room for the taller header (TV strip + tool tabs + tool bar) */
     aspect-ratio: 1;
   }
   .pointer {
@@ -356,8 +356,8 @@
   /* ---- Header: what THIS screen shows (tabs) + what the TV shows (bar) ---- */
   #topBar {
     grid-column: 1; grid-row: 1; z-index: 5;
-    display: flex; flex-direction: column; gap: 8px;
-    padding: 12px 20px 10px;
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 10px 20px 12px;
     border-bottom: 1px solid var(--line);
     background: var(--bg);
   }
@@ -366,12 +366,12 @@
   #tvBar { display: flex; gap: 5px; flex-wrap: wrap; align-items: flex-end; }
   .tvcol { display: flex; flex-direction: column; gap: 3px; }
   .tvcap { font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); padding-left: 5px; }
-  .hdr-row.tv-row { flex-wrap: nowrap; align-items: flex-end; }
+  .hdr-row.tv-row { flex-wrap: nowrap; align-items: flex-end; padding-bottom: 9px; border-bottom: 1px dashed var(--line); }
   .hdr-row.tv-row > .hdr-lbl { padding-bottom: 10px; flex: 0 0 auto; }
   .tvgrp { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
   .tvgrp button {
     background: transparent; border: none; color: var(--ink);
-    padding: 7px 6px; border-radius: 7px; cursor: pointer;
+    padding: 7px 5px; border-radius: 7px; cursor: pointer;
     font: 700 11.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; white-space: nowrap;
     transition: background .12s ease, color .12s ease;
   }
@@ -386,15 +386,35 @@
   .rv-next { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 190px; }
   .rv-next.winner { background: #F0BF17; border-color: #F0BF17; color: #000; }
   .rv-status { font-size: 12.5px; color: var(--muted); }
-  #viewSwitch { display: flex; gap: 4px; }
+  /* 2. Laptop tools: folder tabs that sit on top of 3. the tool bar for that tool */
+  .toolnav { display: flex; align-items: flex-end; gap: 10px; margin-top: 4px; }
+  .toolnav > .hdr-lbl { padding-bottom: 10px; }
+  #viewSwitch { display: flex; gap: 3px; }
   #viewSwitch button {
-    background: transparent; border: none; color: var(--muted);
-    padding: 7px 14px; border-radius: 8px;
-    font: 700 14px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
-    cursor: pointer; transition: all .15s ease;
+    background: transparent; border: 1px solid transparent; border-bottom: none; color: var(--muted);
+    padding: 9px 18px 10px; border-radius: 10px 10px 0 0; margin-bottom: -1px;
+    font: 700 14.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
+    cursor: pointer; transition: color .15s ease, background .15s ease;
   }
   #viewSwitch button:hover { color: var(--ink); background: var(--panel); }
-  #viewSwitch button.on { color: var(--ink); background: var(--panel-2); box-shadow: inset 0 -2px 0 var(--accent); }
+  #viewSwitch button.on { color: var(--ink); background: var(--panel); border-color: var(--line); box-shadow: inset 0 2px 0 var(--accent); }
+  .subbar { background: var(--panel); border: 1px solid var(--line); border-radius: 0 10px 10px 10px; padding: 8px 10px; position: relative; }
+  .sub { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; min-height: 34px; }
+  .sub-grp { display: flex; align-items: center; gap: 8px; padding-left: 14px; border-left: 1px solid var(--line); }
+  .sub-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+  .sub-end { margin-left: auto; display: flex; gap: 8px; }
+  .sub-note { font-size: 13px; color: var(--muted); }
+  .sub-note b { color: var(--ink); }
+  /* one segmented-control look for every tool's sections and switches */
+  .seg { display: inline-flex; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 2px; }
+  .seg button { background: transparent; border: none; color: var(--muted); padding: 7px 13px; border-radius: 6px; cursor: pointer;
+    font: 700 13px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; white-space: nowrap; transition: background .12s ease, color .12s ease; }
+  .seg button:hover { color: var(--ink); background: var(--panel-2); }
+  .seg button.on, .seg button.active { background: var(--accent); color: var(--on-accent); }
+  .sub .music-ctl label { font-size: 13px; }
+  .sub .music-on { gap: 8px; }
+  /* 1. On the TV strip */
+  .tv-lbl { color: var(--accent) !important; min-width: 0 !important; white-space: nowrap; }
 
   [hidden] { display: none !important; }
 
@@ -464,7 +484,6 @@
   /* left column starts below the fixed view buttons; the player sits beside them */
   .music-info { display: flex; flex-direction: column; gap: 9px; min-width: 260px; flex: 1 1 300px; }
   .music-legend { font-size: 12.5px; color: var(--muted); }
-  .music-title { margin: 0; font-size: 22px; letter-spacing: 4px; text-transform: uppercase; font-weight: 800; }
   .music-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
   .music-ctl label { display: flex; align-items: center; gap: 6px; }
   .music-ctl input {
@@ -488,7 +507,6 @@
   .now-playing b { color: var(--accent-soft); }
   .now-playing .err { color: #f0a08f; }
   .music-on { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
-  .music-on .tvgrp button { padding: 6px 10px; }
   .yt-box.tv-mode { display: none; }
   .yt-box {
     width: 260px; height: 200px; flex: 0 0 auto;  /* YouTube's minimum player size is 200x200 */
@@ -558,10 +576,6 @@
   /* the top border keeps scrolled cards from sliding under the fixed top bar */
   #feudStage { justify-content: flex-start; align-items: stretch; padding: 16px 24px 24px; overflow-y: auto; gap: 0; }
   #feudStage { --blue:#2f6bff; --green:#3cb44b; --green-soft:#6ee08a; --red:#b5484e; --red-soft:#d9736f; }
-  #feudStage .f-top { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
-  #feudStage .tabs { display:flex; gap:8px; flex-wrap:wrap; }
-  #feudStage .tab { padding:9px 16px; border-radius:999px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); cursor:pointer; font-weight:700; font-size:13.5px; }
-  #feudStage .tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
   #feudStage .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:14px; }
   #feudStage .card h2 { font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin:0 0 12px; }
   #feudStage label { display:block; font-size:11px; color:var(--muted); margin:0 0 6px; text-transform:uppercase; letter-spacing:1px; }
@@ -610,6 +624,9 @@
   #feudStage .qtab { padding:7px 11px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); cursor:pointer; font-size:13px; font-weight:700; }
   #feudStage .qtab.active { background:var(--accent); color: var(--on-accent); border-color:var(--accent); }
   #feudStage .qtab .badge { font-size:10px; opacity:.8; }
+  #feudStage .qtab .qt { display:block; font-weight:600; font-size:12px; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:left; margin-top:2px; }
+  #feudStage .build-q { font-size:20px; font-weight:800; color:var(--ink); background:var(--panel-2); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:10px 14px; margin:0 0 12px; line-height:1.3; }
+  #feudStage .build-q small { display:block; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:3px; }
   #feudStage .section { display:none; } #feudStage .section.active { display:block; }
   #feudStage .urls { font-size:12px; color:var(--muted); margin-top:10px; word-break:break-all; } #feudStage .urls b { color:var(--ink); }
   #feudStage .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -632,6 +649,14 @@
   .jp-clipctl .mc-on { font-weight: 800; }
   .jp-clipctl .mc-play { background: #3cb44b; border-color: #3cb44b; color: #04210b; animation: bzpulse 1.6s ease-in-out infinite; }
   .jp-clipctl .mc-pause { background: #f0bf17; border-color: #f0bf17; color: #2a1d00; }
+  .jp-clipon { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 12px; color: var(--muted); }
+  .jp-clipon button { padding: 5px 9px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); font-size: 12px; cursor: pointer; }
+  .jp-clipon button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 800; }
+  /* the laptop's clip player: kept off-screen (the clip buttons show what it's doing), so it never covers anything */
+  .jp-cliphost { position: fixed; left: -10000px; top: 0; width: 270px; pointer-events: none; }
+  .jp-cliphost[hidden] { display: none; }
+  .jp-cliphost .l { font-size: 11px; font-weight: 800; color: var(--accent); margin: 0 2px 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .jp-cliphost audio { display: block; }
   .bz-mid { font-size: 17px !important; font-weight: 800 !important; padding: 13px 18px !important; flex: 1 1 220px; }
   .bz-judge { display: flex; gap: 10px; flex-wrap: wrap; }
   .bz-nobody { background: #f3f4f6 !important; color: #c0262d !important; border-color: #f3f4f6 !important; }
@@ -670,7 +695,7 @@
   .bz-bad { border-color: #d9736f !important; color: #f0a08f !important; }
 
   /* ---- Saved Jeopardy boards ---- */
-  .jp-gamename { font-size: 13px; color: var(--muted); margin-right: auto; margin-left: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
+  .jp-gamename { font-size: 13px; color: var(--muted); margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 340px; }
   .jp-gamename b { color: var(--ink); }
   .jp-gamename.unsaved b { color: #f0bf17; }
   .jl-now { background: var(--panel); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 14px; }
@@ -693,10 +718,6 @@
 
   /* ---- Jeopardy ---- */
   #jeopStage { justify-content: flex-start; align-items: stretch; padding: 14px 24px 20px; overflow-y: auto; gap: 12px; }
-  .jp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .jp-tabs { display: flex; gap: 8px; }
-  .jp-tab { padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-weight: 700; font-size: 13.5px; }
-  .jp-tab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .jp-boardpick { display: flex; align-items: center; gap: 8px; }
   .jp-catctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .jp-catstatus { font-size: 13px; color: var(--muted); margin-right: auto; }
@@ -751,6 +772,20 @@
   .jp-values { display: flex; align-items: center; gap: 6px; }
   .jp-values input { width: 78px; text-align: right; font-weight: 700; }
   .jp-cattabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .jp-arrange { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  .jp-arrange summary { cursor: pointer; font-weight: 800; font-size: 13px; color: var(--ink); }
+  .jp-arrange summary .jp-hint { font-weight: 500; }
+  .jp-agrid { display: grid; grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+  .jp-at { position: relative; border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); padding: 5px 7px; min-height: 44px; cursor: grab; user-select: none;
+    font-size: 11px; line-height: 1.25; color: var(--muted); overflow: hidden; }
+  .jp-at b { display: block; color: var(--accent); font-size: 13px; }
+  .jp-at.head { background: transparent; color: var(--ink); font-weight: 800; font-size: 12px; min-height: 0; text-transform: uppercase; letter-spacing: .03em; }
+  .jp-at.empty { border-style: dashed; }
+  .jp-at.drag { opacity: .4; }
+  .jp-at.over { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .jp-at .pz { position: absolute; right: 4px; bottom: 3px; font-size: 12px; }
+  .jp-at .ti { position: absolute; right: 4px; top: 3px; font-size: 11px; }
+  .jp-qcard.flash { outline: 2px solid var(--accent); outline-offset: 2px; transition: outline-color 1s; }
   .jp-cattab { padding: 7px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 700; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .jp-cattab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .jp-cattab .cnt { opacity: .75; font-size: 11px; }
@@ -827,17 +862,9 @@
 <div class="layout">
 
   <header id="topBar">
-    <div class="hdr-row">
-      <span class="hdr-lbl" title="What this laptop shows. Doesn't change the TV.">Tools</span>
-      <nav id="viewSwitch" aria-label="Tools on this laptop">
-        <button data-view="wheel" class="on">Wheel</button>
-        <button data-view="jeopardy">Jeopardy</button>
-        <button data-view="music">Music</button>
-        <button data-view="feud">Feud</button>
-      </nav>
-    </div>
+    <!-- 1. What the room sees (global) -->
     <div class="hdr-row tv-row">
-      <span class="hdr-lbl" title="What the TV in the room shows">On TV</span>
+      <span class="hdr-lbl tv-lbl" title="What the TV in the room shows. Click to change it.">&#128250; On TV</span>
       <div id="tvBar" role="group" aria-label="What the TV shows">
         <!-- left to right in the order a night runs -->
         <div class="tvcol">
@@ -889,6 +916,46 @@
       <button class="rv-btn" id="rvAll" title="Flip every remaining team at once">Show all</button>
       <button class="rv-btn" id="rvRestart" title="Hide everyone again (picks up any score changes)">Start over</button>
     </div>
+    <!-- 2. Which tool this laptop is working in, and 3. that tool's own sections and options -->
+    <nav class="toolnav" aria-label="Tools on this laptop">
+      <span class="hdr-lbl" title="What this laptop shows. Doesn't change the TV.">Laptop</span>
+      <div id="viewSwitch">
+        <button data-view="jeopardy">Jeopardy</button>
+        <button data-view="music">Music</button>
+        <button data-view="feud">Feud</button>
+        <button data-view="wheel" class="on">Wheel</button>
+      </div>
+    </nav>
+    <div class="subbar" id="subbar">
+      <div class="sub" data-for="jeopardy" hidden>
+        <div class="seg" id="jpTabs">
+          <button class="jp-tab active" data-jtab="play">Play</button>
+          <button class="jp-tab" data-jtab="edit">Edit questions</button>
+          <button class="jp-tab" data-jtab="lib">Saved boards</button>
+        </div>
+        <div class="sub-grp jp-boardpick"><span class="sub-lbl">Board</span>
+          <div class="seg" id="jpBoardPick"><button data-jb="r1">Jeopardy</button><button data-jb="g1">Gambling</button></div>
+        </div>
+        <span class="jp-gamename" id="jpGameName"></span>
+      </div>
+      <div class="sub" data-for="music" hidden>
+        <span class="music-on" id="musicOn" title="Where the clips play. TV = the cast TV tab plays them (click the TV screen once per night so it can play sound).">Play on
+            <span class="seg"><button data-on="tv">TV</button><button data-on="laptop">This laptop</button></span></span>
+        <div class="sub-grp music-ctl"><label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label><label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label></div>
+        <button class="mbtn" id="editSongsBtn">Edit songs</button>
+        <span class="sub-end"><button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button></span>
+      </div>
+      <div class="sub" data-for="feud" hidden>
+        <div class="seg" id="feudTabs">
+          <button class="tab active" data-ftab="collect">1 &middot; Surveys</button>
+          <button class="tab" data-ftab="build">2 &middot; Build boards</button>
+          <button class="tab" data-ftab="play">3 &middot; Play</button>
+        </div>
+      </div>
+      <div class="sub" data-for="wheel">
+        <span class="sub-note">Spin to pick a team at random. Teams knocked off the wheel are skipped until you press <b>Restore wheel</b> on the right.</span>
+      </div>
+    </div>
   </header>
 
   <div class="stage" id="wheelStage">
@@ -905,15 +972,6 @@
   <div class="stage music-stage" id="musicStage" hidden>
     <div class="music-head">
       <div class="music-info">
-        <h1 class="music-title">Music Round</h1>
-        <div class="music-ctl">
-          <label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label>
-          <label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label>
-          <span class="music-on" id="musicOn" title="Where the clips play. TV = the cast TV tab plays them (click the TV screen once per night so it can play sound).">Play on
-            <span class="tvgrp"><button data-on="tv">TV</button><button data-on="laptop">This laptop</button></span></span>
-          <button class="mbtn" id="editSongsBtn">Edit songs</button>
-          <button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button>
-        </div>
         <div class="music-legend" id="musicLegend"></div>
         <div class="now-playing" id="nowPlaying"></div>
       </div>
@@ -925,22 +983,6 @@
 
   <!-- ================= JEOPARDY ================= -->
   <div class="stage" id="jeopStage" hidden>
-    <div class="jp-top">
-      <div class="jp-tabs" id="jpTabs">
-        <button class="jp-tab active" data-jtab="play">Play</button>
-        <button class="jp-tab" data-jtab="edit">Edit questions</button>
-        <button class="jp-tab" data-jtab="lib">Saved boards</button>
-      </div>
-      <span class="jp-gamename" id="jpGameName"></span>
-      <div class="jp-boardpick">
-        <span class="hdr-lbl">Board</span>
-        <div class="tvgrp" id="jpBoardPick">
-          <button data-jb="r1">Jeopardy</button>
-          <button data-jb="g1">Gambling</button>
-        </div>
-      </div>
-    </div>
-
     <div class="bz-bar" data-bzbar id="jpBuzzBar"></div>
 
     <section id="jpPlay">
@@ -980,6 +1022,10 @@
         <span class="hdr-lbl">Values</span>
         <input type="number" class="jp-val" data-r="0"><input type="number" class="jp-val" data-r="1"><input type="number" class="jp-val" data-r="2"><input type="number" class="jp-val" data-r="3"><input type="number" class="jp-val" data-r="4">
       </div>
+      <details class="jp-arrange" id="jpArrangeBox" open>
+        <summary>Arrange the board <span class="jp-hint">&mdash; drag a question onto another to swap them (point value / category); drag a category name to swap whole columns. Click one to edit it.</span></summary>
+        <div class="jp-agrid" id="jpArrange"></div>
+      </details>
       <div class="jp-cattabs" id="jpCatTabs"></div>
       <div class="jp-cated" id="jpCatEd"></div>
       <div class="jp-foot">
@@ -991,13 +1037,6 @@
 
   <!-- ================= FEUD (runs the kavafeud backend from here) ================= -->
   <div class="stage" id="feudStage" hidden>
-    <div class="f-top">
-      <div class="tabs">
-        <button class="tab active" data-ftab="collect">1 · Surveys</button>
-        <button class="tab" data-ftab="build">2 · Build Boards</button>
-        <button class="tab" data-ftab="play">3 · Play</button>
-      </div>
-    </div>
     <div class="offline" id="f_offline" hidden>Can't reach the Feud site. Check the Feud link under Surveys &rarr; Links, and that the Feud site has the latest update deployed.</div>
 
     <!-- SURVEYS -->
@@ -1072,6 +1111,7 @@
       </div>
       <div class="card" id="f_bucketCard" style="display:none;">
         <h2>Edit the board &mdash; drag to merge, edit text/counts, trim to your top answers</h2>
+        <div class="build-q" id="f_buildQHead"></div>
         <div id="f_buckets"></div>
         <div class="btn-row" style="margin-top:12px;">
           <button class="btn" id="f_addBucket">+ Add row</button>
@@ -1809,7 +1849,7 @@ function renderFeudBuzz(){
     if (tn && tn.over) {
       h += `<div class="bz-note">Turn over (${escHTML(tn.why)}).</div><button class="btn aqua bz-big" data-bz="fnext">Next race &mdash; reset buzzers &amp; strikes</button>`;
     } else {
-      h += `<div class="bz-note">Right answer: tap <b>&#10003; Correct</b> next to it on the board below (reveals it + adds the points).</div>
+      h += `${B.order.length > 1 ? buzzOrderHTML() : ""}<div class="bz-note">Right answer: tap <b>&#10003; Correct</b> next to it on the board below (reveals it + adds the points).</div>
         <div class="btn-row"><button class="btn danger" data-bz="fwrong" style="font-size:16px;padding:12px 18px">&#10007; Wrong &mdash; strike</button>
         <button class="btn" data-bz="freset">End turn &amp; reset</button></div>`;
     }
@@ -1987,12 +2027,16 @@ function setView(view) {
   document.getElementById("jeopStage").hidden = view !== "jeopardy";
   jeopMode = view === "jeopardy";
   viewSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+  document.querySelectorAll("#subbar .sub").forEach(x => { x.hidden = x.dataset.for !== view; });
+  try { localStorage.setItem("kavaHostView", view); } catch(e) {}
   if (musicMode) { paintMusicOn(); if (musicOn === "laptop") loadYouTubeAPI(); renderMusic(); }
   if (feudMode) feudOpened();
   if (jeopMode) renderJeopardy();
   fitTeams();
 }
 viewSwitch.querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.view));
+// open on the tool used last (once everything on the page is set up)
+window.addEventListener("load", () => { let v = null; try { v = localStorage.getItem("kavaHostView"); } catch(e) {} if (v && v !== "wheel" && ["jeopardy", "music", "feud"].includes(v)) setView(v); });
 
 // Control what the TV (scores-board.html) displays: leaderboard or wheel.
 // "song" = the TV's big "Song N" card for the music round (set automatically by ▶).
@@ -2599,9 +2643,93 @@ wheel.onclick = spin;
   const respTakesOver = q => jp.stage === "answer" && q.resp.type !== "text" && !!q.resp.src;
   const sideOnTV = q => jp.stage === "pick" ? null : (respTakesOver(q) ? q.resp : q.clue);
 
+  /* ---------- Clips: sound from this laptop (default) or from the TV ---------- */
+  // Laptop: this page plays the clip (so it goes out the laptop's Bluetooth speaker); the TV shows the video muted,
+  // or just the music animation for sound-only clips. TV: the cast TV tab plays it (the old way).
+  let clipsOn = "laptop";
+  try { if (localStorage.getItem("kavaJClipsOn") === "tv") clipsOn = "tv"; } catch(e) {}
+  let hostClip = null;   // { key, yt (YT.Player) | el (audio/video), ready (Promise), start }
+  function curClipSide(){
+    if (!jp.cell) return null;
+    const q = board().cats[jp.cell.c] && board().cats[jp.cell.c].qs[jp.cell.r];
+    const sd = q && sideOnTV(q);
+    return sd && sd.type === "media" && sd.src ? sd : null;
+  }
+  const clipKey = sd => sd.src + "@" + (sd.start || 0);
+  function stopHostClip(){
+    if (!hostClip) return;
+    try { if (hostClip.yt) hostClip.yt.destroy(); } catch(e) {}
+    try { if (hostClip.el) { hostClip.el.pause(); hostClip.el.remove(); } } catch(e) {}
+    hostClip = null;
+    const box = document.getElementById("jpClipHost"); if (box) { box.hidden = true; box.querySelector(".v").innerHTML = ""; }
+  }
+  function syncHostClip(){ const sd = curClipSide(); if (hostClip && (clipsOn !== "laptop" || !sd || clipKey(sd) !== hostClip.key)) stopHostClip(); }
+  function whenYT(){
+    return new Promise((res, rej) => {
+      if (window.YT && YT.Player) return res(YT);
+      if (typeof loadYouTubeAPI === "function") loadYouTubeAPI();
+      let n = 0; const t = setInterval(() => { if (window.YT && YT.Player) { clearInterval(t); res(YT); } else if (++n > 75) { clearInterval(t); rej(new Error("YouTube didn't load")); } }, 200);
+    });
+  }
+  function clipBox(){
+    let box = document.getElementById("jpClipHost");
+    if (!box) {
+      box = document.createElement("div"); box.id = "jpClipHost"; box.className = "jp-cliphost"; box.hidden = true;
+      box.innerHTML = `<div class="l">Clip &middot; playing from this laptop</div><div class="v"></div>`;
+      document.body.appendChild(box);
+    }
+    return box;
+  }
+  function makeHostClip(sd){
+    const box = clipBox(), v = box.querySelector(".v"), yt = parseYouTube(sd.src), start = sd.start || 0;
+    v.innerHTML = ""; box.hidden = false;
+    const hc = { key: clipKey(sd), start };
+    if (yt) {
+      const d = document.createElement("div"); v.appendChild(d);
+      hc.ready = whenYT().then(YT => new Promise(res => {
+        hc.yt = new YT.Player(d, { width: 256, height: 200, videoId: yt.id, playerVars: { start, playsinline: 1, controls: 0, rel: 0, modestbranding: 1 },
+          events: { onReady: () => res(hc.yt), onError: () => { toast("YouTube couldn't play that clip"); res(null); } } });
+      }));
+    } else {
+      const audioOnly = !sd.show || /\.(mp3|m4a|wav|ogg|oga|aac|flac)$/i.test(sd.src.split(/[?#]/)[0]);
+      const el = document.createElement(audioOnly ? "audio" : "video");
+      el.src = sd.src; el.preload = "auto"; el.playsInline = true; el.style.width = "256px";
+      v.appendChild(el); hc.el = el;
+      el.addEventListener("loadedmetadata", () => { if (start) el.currentTime = start; }, { once: true });
+      hc.ready = Promise.resolve(el);
+    }
+    return hc;
+  }
+  async function hostClipCmd(cmd){
+    const sd = curClipSide(); if (!sd) return;
+    if (!hostClip || hostClip.key !== clipKey(sd)) { stopHostClip(); hostClip = makeHostClip(sd); }
+    const hc = hostClip;
+    try {
+      await hc.ready; if (hostClip !== hc) return;
+      if (hc.yt) {
+        if (cmd === "pause") hc.yt.pauseVideo();
+        else { if (cmd === "restart") hc.yt.seekTo(hc.start, true); hc.yt.playVideo(); }
+      } else if (hc.el) {
+        if (cmd === "pause") hc.el.pause();
+        else { if (cmd === "restart") hc.el.currentTime = hc.start; await hc.el.play(); }
+      }
+    } catch(e) { toast("Couldn't play the clip on this laptop"); }
+  }
+  function clipCmd(cmd){
+    if (!jp.cell || !["play", "pause", "restart"].includes(cmd)) return;
+    if (clipsOn === "laptop") hostClipCmd(cmd);
+    sendJplay({ media: { cmd, n: ++mediaN + Date.now() } });
+  }
+  function setClipsOn(v){
+    if (v !== "laptop" && v !== "tv" || v === clipsOn) return;
+    clipsOn = v; try { localStorage.setItem("kavaJClipsOn", v); } catch(e) {}
+    jp.media = null; sendJplay({ media: null });
+  }
+
   /* ---------- talk to the backend ---------- */
   async function sendJplay(extra){
-    const body = Object.assign({ board: jp.board, cats: jp.cats, used: jp.used, cell: jp.cell, stage: jp.stage }, extra || {});
+    const body = Object.assign({ board: jp.board, cats: jp.cats, used: jp.used, cell: jp.cell, stage: jp.stage, clips: clipsOn }, extra || {});
+    syncHostClip();
     try {
       const res = await fetch(SCORES_API + "?action=jplay", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const data = await res.json();
@@ -2748,12 +2876,15 @@ wheel.onclick = spin;
       // the last press shows on the buttons: Playing (lit) or Paused (lit)
       const mc = jp.media && jp.media.cmd;
       const playingNow = mc === "play" || mc === "restart", pausedNow = mc === "pause";
+      const lap = clipsOn === "laptop", where = lap ? "" : " on TV";
       mediaCtl = `<div class="jp-row jp-clipctl">
-          <span class="jp-note"><b>${tvSide === q.resp ? "Answer clip" : "Clue clip"}</b> on the TV${tvSide.show ? "" : " (sound only)"}:</span>
-          <button class="mbtn ${playingNow ? "mc-on mc-play" : "primary"}" data-mc="play">${playingNow ? "&#9654; Playing on TV" : pausedNow ? "&#9654; Resume" : "&#9654; Play on TV"}</button>
+          <span class="jp-note"><b>${tvSide === q.resp ? "Answer clip" : "Clue clip"}</b>${tvSide.show ? (lap ? " (video on the TV, muted)" : " on the TV") : " (sound only)"}:</span>
+          <button class="mbtn ${playingNow ? "mc-on mc-play" : "primary"}" data-mc="play">${playingNow ? "&#9654; Playing" + where : pausedNow ? "&#9654; Resume" : "&#9654; Play" + where}</button>
           <button class="mbtn ${pausedNow ? "mc-on mc-pause" : ""}" data-mc="pause">&#10074;&#10074; ${pausedNow ? "Paused" : "Pause"}</button>
           <button class="mbtn" data-mc="restart">&#8635; Restart</button>
-        </div><div class="jp-note">The TV needs one click on its screen first so it's allowed to play sound.</div>`;
+          <span class="jp-clipon" title="Where the clip's sound comes from. This laptop = the laptop plays it (connect the laptop to your Bluetooth speaker); the TV only shows the video (muted) or a music animation.">Sound from
+            <button class="${lap ? "on" : ""}" data-clipon="laptop">This laptop</button><button class="${lap ? "" : "on"}" data-clipon="tv">TV</button></span>
+        </div><div class="jp-note">${lap ? "The sound plays from this laptop (your Bluetooth speaker)." : "The TV needs one click on its screen first so it's allowed to play sound."}</div>`;
     }
     const tl = timeLeft();
     let stageBtns = "", status = "";
@@ -2810,7 +2941,8 @@ wheel.onclick = spin;
     on("jpCancel", () => finishCell(false));
     P.querySelectorAll("[data-award]").forEach(b => b.onclick = () => award(b.dataset.award));
     renderJeopardyBuzz();
-    P.querySelectorAll("[data-mc]").forEach(b => b.onclick = () => sendJplay({ media: { cmd: b.dataset.mc, n: ++mediaN + Date.now() } }));
+    P.querySelectorAll("[data-mc]").forEach(b => b.onclick = () => clipCmd(b.dataset.mc));
+    P.querySelectorAll("[data-clipon]").forEach(b => b.onclick = () => setClipsOn(b.dataset.clipon));
     clearInterval(timerTick); timerTick = null;
     if (jp.timer) timerTick = setInterval(() => {
       const el = $("jpTimerLeft"); if (!el) return;
@@ -2956,6 +3088,7 @@ wheel.onclick = spin;
     $("jpValues").hidden = G;
     if (!G) document.querySelectorAll(".jp-val").forEach(inp => { if (document.activeElement !== inp) inp.value = B.values[+inp.dataset.r]; });
     $("jpCatTabs").hidden = G;
+    renderArrange(B);
     if (G) {
       $("jpCatEd").innerHTML = `<div class="jp-note">3 categories, one question each, for the whole night. At the midpoint gamble a team picks one; it stays greyed out, so the final gamble picks from the other two.</div>` +
         B.cats.map((C, c) => `<div class="jp-gedit">
@@ -2969,8 +3102,60 @@ wheel.onclick = spin;
     $("jpCatEd").innerHTML = `<input class="catname" data-f="cat" data-c="${editCat}" value="${escA(C.name)}" placeholder="Category ${editCat + 1} name" maxlength="60">` +
       C.qs.map((_, r) => qCard(B, editCat, r)).join("");
   }
+  /* ---------- Arrange: drag questions (or whole categories) to new spots ---------- */
+  function renderArrange(B){
+    const el = $("jpArrange"), G = B.kind === "gamble";
+    el.style.setProperty("--cols", B.cats.length);
+    const clip = s => { s = String(s || ""); return s.length > 46 ? s.slice(0, 44) + "\u2026" : s; };
+    let h = B.cats.map((C, c) => `<div class="jp-at head" draggable="true" data-ac="${c}" title="Drag onto another category to swap the whole column">${esc(C.name || "Category " + (c + 1))}</div>`).join("");
+    const rows = G ? 1 : B.cats[0].qs.length;
+    for (let r = 0; r < rows; r++) B.cats.forEach((C, c) => {
+      const q = C.qs[r], has = filled(q.clue), ti = typeIcon(q.clue);
+      h += `<div class="jp-at ${has ? "" : "empty"}" draggable="true" data-ac="${c}" data-ar="${r}" title="${has ? escA(q.clue.text || "(picture / clip)") : "No question yet"}">
+        ${G ? "" : `<b>${(B.values[r] || 0).toLocaleString()}</b>`}${has ? esc(clip(q.clue.text || (q.clue.type === "image" ? "(picture)" : "(clip)"))) : "&mdash;"}
+        ${ti ? `<span class="ti">${ti}</span>` : ""}${q.prize ? `<span class="pz">&#127873;</span>` : ""}</div>`;
+    });
+    el.innerHTML = h;
+  }
+  (function arrangeDnD(){
+    const el = $("jpArrange"); let from = null;
+    const key = t => t.dataset.ar === undefined ? { c: +t.dataset.ac } : { c: +t.dataset.ac, r: +t.dataset.ar };
+    el.addEventListener("dragstart", e => {
+      const t = e.target.closest(".jp-at"); if (!t) return;
+      from = key(t); t.classList.add("drag");
+      e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", "jp"); } catch(err) {}
+    });
+    el.addEventListener("dragend", () => { from = null; el.querySelectorAll(".drag,.over").forEach(x => x.classList.remove("drag", "over")); });
+    el.addEventListener("dragover", e => {
+      const t = e.target.closest(".jp-at"); if (!t || !from) return;
+      const to = key(t); if ((from.r === undefined) !== (to.r === undefined)) return;   // a question onto a question, a category onto a category
+      e.preventDefault(); el.querySelectorAll(".over").forEach(x => x !== t && x.classList.remove("over")); t.classList.add("over");
+    });
+    el.addEventListener("dragleave", e => { const t = e.target.closest(".jp-at"); if (t) t.classList.remove("over"); });
+    el.addEventListener("drop", e => {
+      const t = e.target.closest(".jp-at"); if (!t || !from) return;
+      e.preventDefault();
+      const to = key(t), B = board(editBoard);
+      if (from.r === undefined && to.r === undefined) {
+        if (from.c !== to.c) { const x = B.cats[from.c]; B.cats[from.c] = B.cats[to.c]; B.cats[to.c] = x; }
+      } else if (from.r !== undefined && to.r !== undefined) {
+        if (from.c !== to.c || from.r !== to.r) { const a = B.cats[from.c].qs, b = B.cats[to.c].qs, x = a[from.r]; a[from.r] = b[to.r]; b[to.r] = x; }
+      } else return;
+      from = null; saveState(); renderEdit();
+    });
+    // click a question: open its category and jump to it
+    el.addEventListener("click", e => {
+      const t = e.target.closest(".jp-at"); if (!t) return;
+      const B = board(editBoard);
+      if (B.kind !== "gamble") { editCat = +t.dataset.ac; renderEdit(); }
+      const r = t.dataset.ar === undefined ? 0 : +t.dataset.ar;
+      const card = document.querySelector(`.jp-side[data-c="${t.dataset.ac}"][data-r="${r}"][data-s="clue"]`);
+      const qc = card && card.closest(".jp-qcard");
+      if (qc) { qc.scrollIntoView({ behavior: "smooth", block: "center" }); qc.classList.add("flash"); setTimeout(() => qc.classList.remove("flash"), 1200); }
+    });
+  })();
   function refreshTab(){
-    const B = board(editBoard); if (B.kind === "gamble") return;
+    const B = board(editBoard); renderArrange(B); if (B.kind === "gamble") return;
     const c = B.cats[editCat], el = document.querySelector(`.jp-cattab[data-ct="${editCat}"]`);
     if (el) el.innerHTML = `${editCat + 1} &middot; ${esc(c.name || "Category")} <span class="cnt">${catCount(c)}/5</span>`;
   }
@@ -3301,7 +3486,7 @@ wheel.onclick = spin;
     hideAnswer(){ if (jp.cell) { jp.stage = "question"; sendJplay(); } },
     timerStart(){ if (jp.cell) sendJplay({ timer: "start" }); },
     timerStop(){ if (jp.cell) sendJplay({ timer: "stop" }); },
-    media(cmd){ if (jp.cell && ["play", "pause", "restart"].includes(cmd)) sendJplay({ media: { cmd, n: ++mediaN + Date.now() } }); },
+    media(cmd){ clipCmd(cmd); },
     done(){ finishCell(true); },
     cancel(){ finishCell(false); },
     buzzOpen(){ if (window.Buzz && Buzz.isOn()) Buzz.open(); },
@@ -3315,7 +3500,7 @@ wheel.onclick = spin;
     if (!jeopMode) return;
     document.querySelectorAll("#jpTabs .jp-tab").forEach(b => b.classList.toggle("active", b.dataset.jtab === tab));
     $("jpPlay").hidden = tab !== "play"; $("jpEdit").hidden = tab !== "edit"; $("jpLib").hidden = tab !== "lib";
-    document.querySelector("#jeopStage .jp-boardpick").style.visibility = tab === "lib" ? "hidden" : "";
+    document.querySelector("#subbar .jp-boardpick").style.visibility = tab === "lib" ? "hidden" : "";
     $("jpBuzzBar").style.display = tab === "lib" ? "none" : "";
     const gn = $("jpGameName");
     gn.classList.toggle("unsaved", !jq.game);
@@ -3378,8 +3563,8 @@ wheel.onclick = spin;
     pollTimer = setInterval(() => { if (feudMode) refresh(); else clearInterval(pollTimer); }, 2500);
   };
 
-  document.querySelectorAll("#feudStage .tab").forEach(t => t.onclick = () => {
-    document.querySelectorAll("#feudStage .tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll("#feudTabs .tab").forEach(t => t.onclick = () => {
+    document.querySelectorAll("#feudTabs .tab").forEach(x=>x.classList.remove("active"));
     document.querySelectorAll("#feudStage .section").forEach(x=>x.classList.remove("active"));
     t.classList.add("active"); $("sec-"+t.dataset.ftab).classList.add("active"); paint();
   });
@@ -3483,14 +3668,16 @@ wheel.onclick = spin;
     $("buildQTabs").innerHTML = s.questions.map((q,i) => {
       const active = buildSel.qid === q.qid;
       const status = q.board ? (q.board.locked ? "\u{1F512}" : "✎") : "";
-      return `<button class="qtab ${active?"active":""}" onclick="fPickBuildQ('${q.qid}')">Q${i+1} <span class="badge">(${q.submissions.length}) ${status}</span></button>`;
+      return `<button class="qtab ${active?"active":""}" onclick="fPickBuildQ('${q.qid}')" title="${escapeAttr(q.text)}">Q${i+1} <span class="badge">(${q.submissions.length}) ${status}</span><span class="qt">${escapeHtml(q.text)}</span></button>`;
     }).join("");
   }
   window.fPickBuildQ = (qid) => {
     buildSel.qid = qid; editingBuckets=[]; $("bucketCard").style.display="none";
     const s = state.surveys[buildSel.sid];
-    const q = s.questions.find(x=>x.qid===qid);
+    const q = s.questions.find(x=>x.qid===qid), qi = s.questions.indexOf(q);
     $("rawCount").textContent = `Question: "${q.text}" — ${q.submissions.length} raw answers`;
+    // the question stays in view above the answers while you edit the board
+    $("buildQHead").innerHTML = `<small>Q${qi + 1} &middot; the question</small>${escapeHtml(q.text)}`;
     $("aiAssistCard").style.display = "block";
     $("importBox").value = ""; $("importStatus").textContent = ""; $("copyStatus").textContent = "";
     if (q.board) { editingBuckets = q.board.slots.map(sl=>({text:sl.text,count:sl.count})); paintBuckets(); $("bucketCard").style.display="block"; }
@@ -3501,7 +3688,7 @@ wheel.onclick = spin;
     const r = await api("consolidate", { id:buildSel.sid, qid:buildSel.qid });
     if (r.error) return toast(r.error);
     editingBuckets = r.draft.map(d=>({text:d.text,count:d.count}));
-    $("rawCount").textContent = `${r.total} raw answers → ${r.draft.length} groups`;
+    { const q = state.surveys[buildSel.sid].questions.find(x => x.qid === buildSel.qid); $("rawCount").textContent = `"${q ? q.text : ""}" — ${r.total} raw answers → ${r.draft.length} groups`; }
     paintBuckets(); $("bucketCard").style.display="block";
   };
 
@@ -3697,7 +3884,8 @@ wheel.onclick = spin;
     const f = B.order[0];
     if (f && (!turn || turn.round !== B.state.round)) {
       turn = { team: f.team, round: B.state.round, guesses: 0, strikes: 0, over: false, why: "" };
-      if (B.state.open || Number(B.state.answerSecs) > 0) B.close({ noTimer: true });   // the race is won; the others wait (no countdown in Feud)
+      // the race is won. Buzzers stay open so the other teams still see their place (#2, #3), like Jeopardy.
+      if (B.state.open && Number(B.state.answerSecs) > 0) B.open({ noTimer: true });   // no countdown in Feud
     }
   }
   function endCheck(){

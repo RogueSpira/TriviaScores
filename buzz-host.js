@@ -1,7 +1,7 @@
 // buzz-host.js — the host laptop's side of the phone buzzers (loaded by scores-host.html).
 // Teams that join on their phones are added to the scoreboard; the Jeopardy and Feud tools
 // open / close / reset the buzzers through window.Buzz.
-import { connectBuzz, buzzOrder, newRoundId, answerClock } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, newRoundId, answerClock, mergeBuzzes } from "./kava-buzz.js";
 
 const PIN_KEY = "kavaHostPin";
 const store = { get(k){ try { return localStorage.getItem(k); } catch(e) { return null; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
@@ -27,6 +27,9 @@ const B = window.Buzz = {
   connect, open, close, newQuestion, idle, wrong, reset, test, removeTeam, release, clearAll, setLockout, teamEdited
 };
 
+// A short in-memory log of buzzer actions (Buzz.log in the console) to help track down odd behavior
+B.log = [];
+function logAct(what){ B.log.push(new Date().toLocaleTimeString() + " " + what); if (B.log.length > 80) B.log.shift(); }
 let notifyQueued = false;
 function notify(){
   if (notifyQueued) return;
@@ -63,8 +66,10 @@ async function connect(pin){
     if (first) { first = false; if (!v || !v.round) idle(); else setLockout(); }
     if (B.state.round !== watchedRound) {
       if (roundUnsub) roundUnsub();
+      if (watchedRound) logAct("round " + watchedRound + " -> " + (B.state.round || "none"));
       watchedRound = B.state.round || null; B.order = [];
-      roundUnsub = watchedRound ? api.watch("game/buzzes/" + watchedRound, b => { B.order = buzzOrder(b); notify(); }) : null;
+      const seen = {};
+      roundUnsub = watchedRound ? api.watch("game/buzzes/" + watchedRound, b => { B.order = buzzOrder(mergeBuzzes(seen, b)); notify(); }) : null;
     }
     notify();
   });
@@ -103,13 +108,13 @@ function round(fields){ return Object.assign({ lockoutMs: B.lockoutMs(), answerS
 // opts.locked: { teamId: true } teams kept out (Feud: teams that already had their turn on this question).
 const lockedFor = opts => { const l = opts && opts.locked; return l && Object.keys(l).length ? Object.assign({}, l) : null; };
 const secsFor = opts => (opts && opts.noTimer) ? 0 : B.answerSecs();
-function newQuestion(openNow, opts){ if (!B.isOn()) return; write(api.set("game/buzz", round(Object.assign(openNow ? { open: true, openedAt: api.ts() } : { open: false }, { answerSecs: secsFor(opts) }, lockedFor(opts) ? { locked: lockedFor(opts) } : {})))); }
-function idle(){ if (!api) return; write(api.set("game/buzz", round({ open: false }))); }
+function newQuestion(openNow, opts){ if (!B.isOn()) return; logAct("newQuestion" + (openNow ? " (open)" : "")); write(api.set("game/buzz", round(Object.assign(openNow ? { open: true, openedAt: api.ts() } : { open: false }, { answerSecs: secsFor(opts) }, lockedFor(opts) ? { locked: lockedFor(opts) } : {})))); }
+function idle(){ if (!api) return; logAct("idle"); write(api.set("game/buzz", round({ open: false }))); }
 function open(opts){ if (!B.isOn()) return; write(api.update("game/buzz", { open: true, openedAt: api.ts(), answerSecs: secsFor(opts) })); }
 function close(opts){ if (!B.isOn()) return; write(api.update("game/buzz", (opts && opts.noTimer) ? { open: false, answerSecs: 0, timer: null } : { open: false })); }
 // Wrong answer: lock that team out of this clue, reopen for everyone else, and flash "Wrong" on the TV and phones.
 function wrong(team){
-  if (!B.isOn()) return;
+  if (!B.isOn()) return; logAct("wrong " + team);
   write(api.update("game/buzz", { ["locked/" + team]: true, round: newRoundId(), open: true, openedAt: api.ts(), timer: null,
     verdict: { id: newRoundId("v"), team, kind: "wrong", at: api.ts() } }));
 }
@@ -122,7 +127,7 @@ function markRight(team, points){
   write(api.update("game/buzz", patch));
 }
 // Clear the buzzes and any lockouts; buzzers closed until you open them.
-function reset(opts){ if (!B.isOn()) return; const p = { round: newRoundId(), open: false, locked: lockedFor(opts), timer: null }; if (opts && opts.noTimer) p.answerSecs = 0; write(api.update("game/buzz", p)); }
+function reset(opts){ if (!B.isOn()) return; logAct("reset"); const p = { round: newRoundId(), open: false, locked: lockedFor(opts), timer: null }; if (opts && opts.noTimer) p.answerSecs = 0; write(api.update("game/buzz", p)); }
 // Buzz-in timer controls (the timer itself starts on its own when a team buzzes)
 function timerSet(t){ if (!B.isOn()) return; write(api.update("game/buzz", { timer: t })); }
 function pauseTimer(){ const c = B.clock(); if (c && !c.paused && !c.stopped) timerSet({ team: c.team, paused: true, leftMs: Math.round(c.left) }); }

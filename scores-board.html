@@ -166,11 +166,14 @@
   .jq-buzz.open { background:var(--leaf); font-size:3.4vh; position:relative; }
   .jq-buzz.open::after { content:""; position:absolute; inset:0; background:rgba(255,255,255,.22); pointer-events:none; opacity:0; animation: bzglow 1.1s ease-in-out infinite; }
   @keyframes bzglow { 50% { opacity:1; } }
-  #feudBuzz { position:fixed; top:2.4vh; left:50%; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:1.6vw; padding:1.4vh 3vw; border-radius:999px;
-    background:var(--cream); color:var(--ink); border:.5vh solid var(--ink); box-shadow:.8vh .8vh 0 var(--orange), 1.2vh 1.2vh 0 var(--ink); font-family:var(--round); font-weight:700; font-size:4vh; text-transform:uppercase; }
-  #feudBuzz i { width:3.6vh; height:3.6vh; border-radius:50%; border:.4vh solid var(--ink); }
-  #feudBuzz.open { background:var(--leaf); color:var(--cream); font-size:3vh; }
-  #feudBuzz.hit { animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
+  /* Feud: who buzzed / buzzers open — sits in the bottom strip next to the strikes, never over the question */
+  #feudView .turn-slot:empty { display:none; }
+  #feudView .turn-slot { display:flex; align-items:center; gap:1.4vw; padding:1.4vh 2.6vw; border-radius:2vh; background:var(--cream); color:var(--ink);
+    border:.45vh solid var(--ink); box-shadow:.7vh .7vh 0 var(--orange), 1.1vh 1.1vh 0 var(--ink); font-family:var(--round); font-weight:700; font-size:3.6vh; text-transform:uppercase; }
+  #feudView .turn-slot i { width:3.4vh; height:3.4vh; border-radius:50%; border:.4vh solid var(--ink); flex:0 0 auto; }
+  #feudView .turn-slot small { font-size:2.4vh; letter-spacing:.2vh; opacity:.85; }
+  #feudView .turn-slot.open { background:var(--leaf); color:var(--cream); }
+  #feudView .turn-slot.hit { animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
   .qr-view .qr-teams { display:flex; flex-wrap:wrap; justify-content:center; gap:1.2vh 1.2vw; max-width:86vw; }
   .qr-view .qr-teams span { display:inline-flex; align-items:center; gap:.8vw; background:var(--cream); color:var(--ink); border:.35vh solid var(--ink); border-radius:999px; padding:.6vh 1.6vw; font-family:var(--round); font-weight:700; font-size:2.8vh; animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
   .qr-view .qr-teams i { width:2.2vh; height:2.2vh; border-radius:50%; border:.3vh solid var(--ink); }
@@ -327,7 +330,7 @@
   #feudView .slot .count { font-family:var(--round); font-weight:700; font-size:3.6vh; color:var(--cream); min-width:9vh; height:5.8vh; padding:0 2vh; border-radius:1.2vh; background:var(--leaf); border:.4vh solid var(--ink); display:flex; align-items:center; justify-content:center; }
   #feudView .slot.reveal-anim { animation:fflip .55s cubic-bezier(.2,1.2,.4,1); }
   @keyframes fflip { 0%{transform:rotateX(90deg);} 100%{transform:rotateX(0);} }
-  #feudView .teams-strip { flex:0 0 auto; display:flex; justify-content:center; margin-top:2.6vh; }
+  #feudView .teams-strip { flex:0 0 auto; display:flex; justify-content:center; align-items:stretch; gap:2.4vw; margin-top:2.6vh; }
   #feudView .active-team { background:var(--cream); border:.45vh solid var(--ink); border-radius:2vh; padding:1.4vh 4vw; min-width:36vw; display:flex; align-items:center; justify-content:center; gap:2vw; box-shadow:.7vh .7vh 0 var(--orange), 1.1vh 1.1vh 0 var(--ink); }
   #feudView .ts-name { font-family:var(--groovy); font-size:4vh; color:var(--ink); }
   #feudView .ts-xs { display:flex; gap:1.4vh; }
@@ -410,7 +413,6 @@
     <div class="qr-url" id="qrUrl"></div>
     <div class="qr-teams" id="qrTeams"></div>
   </div>
-  <div id="feudBuzz" hidden></div>
   <div id="verdict" hidden><div class="vcard"></div></div>
   <div id="prize" hidden></div>
 
@@ -774,6 +776,8 @@ function activeSide(cell){ return !cell ? null : (respTakesOver(cell) ? cell.res
 function runMediaCmd(cell){
   const mc = cell && cell.mediaCmd;
   if (!mc || mc.n === lastMediaN) return;
+  // sound from the laptop and nothing to show here: just run the music animation
+  if (cell.clips === "laptop" && !(ytPlayerJ && ytPlayerJ.playVideo) && !mediaEl()) { lastMediaN = mc.n; setEq(mc.cmd !== "pause"); return; }
   if (!(ytPlayerJ && ytPlayerJ.playVideo) && !mediaEl()) return;   // player still loading: try again when it's ready
   lastMediaN = mc.n;
   const side = activeSide(cell);
@@ -783,33 +787,36 @@ function runMediaCmd(cell){
     if (mc.cmd === "pause") { ytPlayerJ.pauseVideo(); setEq(false); return; }
     if (mc.cmd === "restart") ytPlayerJ.seekTo(start, true);
     ytPlayerJ.playVideo(); setEq(true);
-    if (!soundUnlocked) fail();
+    if (!soundUnlocked && cell.clips !== "laptop") fail();
     return;
   }
   const m = mediaEl(); if (!m) return;
   if (mc.cmd === "pause") { m.pause(); setEq(false); return; }
   if (mc.cmd === "restart") m.currentTime = start;
-  m.play().then(() => setEq(true)).catch(fail);
+  m.play().then(() => setEq(true)).catch(cell.clips === "laptop" ? () => {} : fail);
 }
 const EQ = `<div class="jq-audio"><i></i><i></i><i></i><i></i><i></i></div>`;
 // Build the body for one side (clue or response): text, a picture, or an audio/video clip
-function sideHTML(sd){
+function sideHTML(sd, lap){
   if (!sd) return { html: "", media: false };
   const text = sd.text ? `<div class="jq-text">${escapeHtml(sd.text)}</div>` : "";
   if (sd.type === "image" && sd.src) return { html: `<div class="jq-media"><img src="${escapeHtml(sd.src)}" alt=""></div>${text}`, media: true };
   if (sd.type === "media" && sd.src) {
     const yt = ytIdOf(sd.src), hide = !sd.show;
     const isAudioFile = /\.(mp3|m4a|wav|ogg|oga|aac|flac)$/i.test(sd.src.split(/[?#]/)[0]);
+    // sound from the laptop: sound-only clips are just the music animation here (no player at all — lighter on
+    // the cast); a shown video plays here muted
+    if (lap && (hide || isAudioFile)) return { html: `<div class="jq-media audio-only">${EQ}</div>` + text, media: true, clip: false };
     let m;
     if (yt) m = `<div class="jq-media${hide ? " audio-only" : ""}">${hide ? EQ : ""}<div class="yt"><div id="jqYT"></div></div></div>`;
     else if (hide || isAudioFile) m = `<div class="jq-media audio-only">${EQ}<audio preload="auto" src="${escapeHtml(sd.src)}"></audio></div>`;
-    else m = `<div class="jq-media"><video preload="auto" playsinline src="${escapeHtml(sd.src)}"></video></div>`;
+    else m = `<div class="jq-media"><video preload="auto" playsinline${lap ? " muted" : ""} src="${escapeHtml(sd.src)}"></video></div>`;
     if (yt) loadYT().then(YT => {
       if (!document.getElementById("jqYT")) return;
-      ytPlayerJ = new YT.Player("jqYT", { videoId: yt, playerVars: { start: sd.start || 0, rel: 0, modestbranding: 1, playsinline: 1, controls: 0 },
-        events: { onReady: () => runMediaCmd(jpData && jpData.cell), onStateChange: e => setEq(e.data === 1) } });
+      ytPlayerJ = new YT.Player("jqYT", { videoId: yt, playerVars: { start: sd.start || 0, rel: 0, modestbranding: 1, playsinline: 1, controls: 0, mute: lap ? 1 : 0 },
+        events: { onReady: () => { if (lap) { try { ytPlayerJ.mute(); } catch(e) {} } runMediaCmd(jpData && jpData.cell); }, onStateChange: e => setEq(e.data === 1) } });
     });
-    return { html: m + text, media: true, clip: true };
+    return { html: m + text, media: true, clip: !lap };
   }
   return { html: text, media: false };
 }
@@ -863,7 +870,7 @@ function renderJeopardyTV(jt){
   // A plain-text answer is a banner added without a rebuild, so showing it doesn't restart a playing clip.
   const side = activeSide(cell);
   const sig = JSON.stringify([jt.board, jt.kind, jt.name, jt.values, jt.cats, jt.used,
-    cell && [cell.c, cell.r, cell.cat, cell.value, cell.stage === "pick", respTakesOver(cell), side]]);
+    cell && [cell.c, cell.r, cell.cat, cell.value, cell.stage === "pick", respTakesOver(cell), side, cell.clips]]);
   if (sig !== lastJpSig) {
     lastJpSig = sig;
     stopJeopardyMedia();
@@ -903,7 +910,7 @@ function renderJeopardyTV(jt){
         body = `<div class="jq-body jq-pick"><div class="jq-wcat"><small>The category is</small>${escapeHtml(cell.cat || "Category " + (cell.c + 1))}</div>
           <div class="jq-wager">Place your wagers!</div><div class="jq-wager-sub">Hand your wager to the host</div></div>`;
       } else {
-        const sh = sideHTML(side); clip = !!sh.clip;
+        const sh = sideHTML(side, cell.clips === "laptop"); clip = !!sh.clip;
         if (respTakesOver(cell)) head = `<div class="jq-anshead">Answer</div>`;
         body = `<div class="jq-body${sh.media ? " has-media" : ""}">${sh.html}</div>`;
       }
@@ -1054,12 +1061,10 @@ function paintTVBuzz(){
     if (strip.dataset.k !== cls + html) { strip.dataset.k = cls + html; strip.className = cls; strip.innerHTML = html; }
   }
   // Feud board: a pill at the top
-  const fb = document.getElementById("feudBuzz");
-  const showF = currentDisplay === "feud" && (first || open);
-  fb.hidden = !showF;
-  if (showF) {
-    const html = first ? `<i style="background:${escapeHtml(ft.color || "#F36F03")}"></i>${escapeHtml(ft.name)} buzzed first!` : `Buzzers open!`;
-    const cls = first ? "hit" : "open";
+  const fb = currentDisplay === "feud" ? feudRoot.querySelector(".turn-slot") : null;
+  if (fb) {
+    const html = first ? `<i style="background:${escapeHtml(ft.color || "#F36F03")}"></i><span>${escapeHtml(ft.name)}<small>&rsquo;s turn</small></span>` : open ? `Buzzers open!` : "";
+    const cls = "turn-slot" + (first ? " hit" : open ? " open" : "");
     if (fb.dataset.k !== cls + html) { fb.dataset.k = cls + html; fb.className = cls; fb.innerHTML = html; }
   }
   tickTVBuzzTimer();
@@ -1195,11 +1200,12 @@ async function feudTick(){
   feudRoot.innerHTML = `
     <div class="fheader"><div class="kicker retro">Survey Says&hellip;</div><div class="question">${escapeHtml(s.question || "")}</div></div>
     <div class="fboard">${slotsHtml}</div>
-    <div class="teams-strip"><div class="active-team"><div class="ts-name">Strikes</div><div class="ts-xs">${xs}</div></div></div>`;
+    <div class="teams-strip"><div class="turn-slot"></div><div class="active-team"><div class="ts-name">Strikes</div><div class="ts-xs">${xs}</div></div></div>`;
   s.board.slots.forEach((sl, i) => {
     if (sl.revealed && !prevRevealed[i]) { const el = feudRoot.querySelector(`.slot[data-i="${i}"]`); if (el) el.classList.add("reveal-anim"); }
     prevRevealed[i] = sl.revealed;
   });
+  paintTVBuzz();   // the board was rebuilt: put the who's-turn box back
 }
 // feudRoot needs flex layout to fill the screen like feud-screen's body
 feudRoot.style.cssText = "flex:1 1 auto; display:flex; flex-direction:column; min-height:0;";
@@ -1213,7 +1219,7 @@ feudRoot.style.cssText = "flex:1 1 auto; display:flex; flex-direction:column; mi
 </script>
 <script type="module">
 // Phone buzzers: the TV only reads (who joined, buzzers open, who buzzed first).
-import { connectBuzz, buzzOrder, answerClock, freshVerdict } from "./kava-buzz.js";
+import { connectBuzz, buzzOrder, answerClock, freshVerdict, mergeBuzzes } from "./kava-buzz.js";
 const T = window.TVBuzz;
 T.offset = 0;
 T.clock = () => answerClock(T.state, T.order, Date.now() + T.offset);
@@ -1227,7 +1233,8 @@ try {
     if (T.state.round !== watched) {
       if (unsub) unsub();
       watched = T.state.round || null; T.order = [];
-      unsub = watched ? fb.watch("game/buzzes/" + watched, b => { T.order = buzzOrder(b); paintTVBuzz(); }) : null;
+      const seen = {};
+      unsub = watched ? fb.watch("game/buzzes/" + watched, b => { T.order = buzzOrder(mergeBuzzes(seen, b)); paintTVBuzz(); }) : null;
     }
     paintTVBuzz();
     const vd = freshVerdict(T.state, Date.now() + T.offset);

@@ -223,7 +223,7 @@ function jeopardyTV(s) {
       c: p.cell.c, r: p.cell.r, cat: c.name, value: b.values ? b.values[p.cell.r] : null, stage: p.stage,
       clue: p.stage === "pick" ? null : q.clue,
       resp: p.stage === "answer" ? q.resp : null,
-      mediaCmd: p.media || null,
+      mediaCmd: p.media || null, clips: p.clips === "laptop" ? "laptop" : "tv",
       prize: p.stage === "answer" && p.prize ? p.prize : null
     };
   }
@@ -426,6 +426,8 @@ export default async (req) => {
           board, cell, timer, used,
           cats: Math.max(0, Math.min(gamble ? GAMBLE_CATS : GRID_CATS, Math.round(Number(body.cats != null ? body.cats : prev.cats) || 0))),
           stage: ["pick", "question", "answer"].includes(body.stage) ? body.stage : "question",
+          // where clip sound comes from: "laptop" (host page plays it; TV shows muted video / music bars) or "tv"
+          clips: body.clips === "tv" ? "tv" : (body.clips === "laptop" ? "laptop" : (prev.clips || "tv")),
           // play / pause / restart for audio & video; n bumps so the TV runs each press once
           media: (body.media && ["play", "pause", "restart"].includes(body.media.cmd))
             ? { cmd: body.media.cmd, n: Math.round(Number(body.media.n) || 0) } : (sameCell ? (prev.media || null) : null)
