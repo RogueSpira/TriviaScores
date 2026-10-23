@@ -17,10 +17,14 @@
     --on-accent: #000;
     --field: #000;
     --focus: #45DBE0;
+    /* "you are here": the open tool, the selected category */
+    --here: #ff8a2a; --here-soft: rgba(255, 138, 42, .14);
+    /* one color per part of the night (TV strip captions, tool tabs) */
+    --c-start: #45DBE0; --c-jeop: #5aa9ff; --c-scores: #5fd38a; --c-music: #b88cff; --c-feud: #f2c94c; --c-finale: #ff7eb3;
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; height: 100%;
+    margin: 0; height: 100%; overflow: clip;   /* the page never scrolls; the panels inside it do */
     background: var(--bg);
     color: var(--ink);
     font-family: "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
@@ -365,7 +369,8 @@
   .hdr-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); min-width: 46px; }
   #tvBar { display: flex; gap: 5px; flex-wrap: wrap; align-items: flex-end; }
   .tvcol { display: flex; flex-direction: column; gap: 3px; }
-  .tvcap { font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); padding-left: 5px; }
+  .tvcap { font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--sec, var(--muted)); padding-left: 5px; }
+  .tvcol .tvgrp { border-top: 2px solid var(--sec, var(--line)); }
   .hdr-row.tv-row { flex-wrap: nowrap; align-items: flex-end; padding-bottom: 9px; border-bottom: 1px dashed var(--line); }
   .hdr-row.tv-row > .hdr-lbl { padding-bottom: 10px; flex: 0 0 auto; }
   .tvgrp { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
@@ -396,9 +401,12 @@
     font: 700 14.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
     cursor: pointer; transition: color .15s ease, background .15s ease;
   }
+  #viewSwitch button::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sec, var(--muted)); margin-right: 8px; vertical-align: 1px; opacity: .85; }
   #viewSwitch button:hover { color: var(--ink); background: var(--panel); }
-  #viewSwitch button.on { color: var(--ink); background: var(--panel); border-color: var(--line); box-shadow: inset 0 2px 0 var(--accent); }
-  .subbar { background: var(--panel); border: 1px solid var(--line); border-radius: 0 10px 10px 10px; padding: 8px 10px; position: relative; }
+  #viewSwitch button.on { color: var(--here); background: linear-gradient(var(--here-soft), var(--here-soft)), var(--panel); border-color: var(--here); box-shadow: inset 0 3px 0 var(--here); position: relative; z-index: 1; }
+  #viewSwitch button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(var(--here-soft), var(--here-soft)), var(--panel); }
+  .subbar { background: var(--panel); border: 1px solid var(--here); border-radius: 0 10px 10px 10px; padding: 8px 10px; position: relative;
+    box-shadow: inset 0 0 0 9999px var(--here-soft); }
   .sub { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; min-height: 34px; }
   .sub-grp { display: flex; align-items: center; gap: 8px; padding-left: 14px; border-left: 1px solid var(--line); }
   .sub-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
@@ -783,11 +791,13 @@
   .jp-at.empty { border-style: dashed; }
   .jp-at.drag { opacity: .4; }
   .jp-at.over { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .jp-at.sel { border-color: var(--here); background: var(--here-soft); }
+  .jp-at.head.sel { color: var(--here); background: var(--here-soft); }
   .jp-at .pz { position: absolute; right: 4px; bottom: 3px; font-size: 12px; }
   .jp-at .ti { position: absolute; right: 4px; top: 3px; font-size: 11px; }
   .jp-qcard.flash { outline: 2px solid var(--accent); outline-offset: 2px; transition: outline-color 1s; }
   .jp-cattab { padding: 7px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 700; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .jp-cattab.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .jp-cattab.active { background: var(--here); color: #1a0d00; border-color: var(--here); }
   .jp-cattab .cnt { opacity: .75; font-size: 11px; }
   .jp-cated { display: flex; flex-direction: column; gap: 8px; }
   .jp-cated .catname { font-size: 16px; font-weight: 800; width: 100%; }
@@ -867,41 +877,41 @@
       <span class="hdr-lbl tv-lbl" title="What the TV in the room shows. Click to change it.">&#128250; On TV</span>
       <div id="tvBar" role="group" aria-label="What the TV shows">
         <!-- left to right in the order a night runs -->
-        <div class="tvcol">
+        <div class="tvcol" style="--sec:var(--c-start)">
           <span class="tvcap">Start</span>
           <div class="tvgrp">
             <button data-tv="title:soon" title="Before trivia starts, while people arrive">Starting Soon</button>
             <button data-tv="title:night" title="Title screen for between rounds or breaks">Trivia Night</button>
           </div>
         </div>
-        <div class="tvcol">
+        <div class="tvcol" style="--sec:var(--c-jeop)">
           <span class="tvcap">Jeopardy</span>
           <div class="tvgrp">
             <button data-tv="qr:join" title="QR for teams to join on their phones and get a buzzer (works all night)">Join QR</button>
             <button data-tv="jeopardy" title="The Jeopardy board (clicking a question in Jeopardy &rarr; Play also puts it up)">Board</button>
           </div>
         </div>
-        <div class="tvcol">
+        <div class="tvcol" style="--sec:var(--c-scores)">
           <span class="tvcap">Scores</span>
           <div class="tvgrp">
             <button data-tv="leaderboard" class="on" title="Current standings — use any time">Leaderboard</button>
             <button data-tv="wheel" title="The team wheel (spinning also puts it on the TV)">Wheel</button>
           </div>
         </div>
-        <div class="tvcol">
+        <div class="tvcol" style="--sec:var(--c-music)">
           <span class="tvcap">Music</span>
           <div class="tvgrp">
             <button data-tv="song" title="The &ldquo;Song N&rdquo; card (playing a clip in Music puts it up automatically)">Song 1</button>
           </div>
         </div>
-        <div class="tvcol">
+        <div class="tvcol" style="--sec:var(--c-feud)">
           <span class="tvcap">Feud</span>
           <div class="tvgrp">
             <button data-tv="qr:survey" title="Step 1: QR for the Feud survey on phones">Survey QR</button>
             <button data-tv="feud" title="Step 2: the Feud board (Load to TV in Feud &rarr; Play also puts it up)">Feud board</button>
           </div>
         </div>
-        <div class="tvcol">
+        <div class="tvcol" style="--sec:var(--c-finale)">
           <span class="tvcap">Finale</span>
           <div class="tvgrp">
             <button data-tv="reveal" title="End of the night: every team starts hidden, then reveal last place up to 1st">Reveal</button>
@@ -920,10 +930,10 @@
     <nav class="toolnav" aria-label="Tools on this laptop">
       <span class="hdr-lbl" title="What this laptop shows. Doesn't change the TV.">Laptop</span>
       <div id="viewSwitch">
-        <button data-view="jeopardy">Jeopardy</button>
-        <button data-view="music">Music</button>
-        <button data-view="feud">Feud</button>
-        <button data-view="wheel" class="on">Wheel</button>
+        <button data-view="jeopardy" style="--sec:var(--c-jeop)">Jeopardy</button>
+        <button data-view="music" style="--sec:var(--c-music)">Music</button>
+        <button data-view="feud" style="--sec:var(--c-feud)">Feud</button>
+        <button data-view="wheel" class="on" style="--sec:var(--c-scores)">Wheel</button>
       </div>
     </nav>
     <div class="subbar" id="subbar">
@@ -2035,6 +2045,8 @@ function setView(view) {
   fitTeams();
 }
 viewSwitch.querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.view));
+// belt and braces: if anything (focus, scrolling to a card) nudges the page itself, put it back so the header stays put
+window.addEventListener("scroll", () => { if (window.scrollY || window.scrollX) window.scrollTo(0, 0); });
 // open on the tool used last (once everything on the page is set up)
 window.addEventListener("load", () => { let v = null; try { v = localStorage.getItem("kavaHostView"); } catch(e) {} if (v && v !== "wheel" && ["jeopardy", "music", "feud"].includes(v)) setView(v); });
 
@@ -3107,11 +3119,12 @@ wheel.onclick = spin;
     const el = $("jpArrange"), G = B.kind === "gamble";
     el.style.setProperty("--cols", B.cats.length);
     const clip = s => { s = String(s || ""); return s.length > 46 ? s.slice(0, 44) + "\u2026" : s; };
-    let h = B.cats.map((C, c) => `<div class="jp-at head" draggable="true" data-ac="${c}" title="Drag onto another category to swap the whole column">${esc(C.name || "Category " + (c + 1))}</div>`).join("");
+    const sel = c => !G && c === editCat ? " sel" : "";
+    let h = B.cats.map((C, c) => `<div class="jp-at head${sel(c)}" draggable="true" data-ac="${c}" title="Drag onto another category to swap the whole column">${esc(C.name || "Category " + (c + 1))}</div>`).join("");
     const rows = G ? 1 : B.cats[0].qs.length;
     for (let r = 0; r < rows; r++) B.cats.forEach((C, c) => {
       const q = C.qs[r], has = filled(q.clue), ti = typeIcon(q.clue);
-      h += `<div class="jp-at ${has ? "" : "empty"}" draggable="true" data-ac="${c}" data-ar="${r}" title="${has ? escA(q.clue.text || "(picture / clip)") : "No question yet"}">
+      h += `<div class="jp-at ${has ? "" : "empty"}${sel(c)}" draggable="true" data-ac="${c}" data-ar="${r}" title="${has ? escA(q.clue.text || "(picture / clip)") : "No question yet"}">
         ${G ? "" : `<b>${(B.values[r] || 0).toLocaleString()}</b>`}${has ? esc(clip(q.clue.text || (q.clue.type === "image" ? "(picture)" : "(clip)"))) : "&mdash;"}
         ${ti ? `<span class="ti">${ti}</span>` : ""}${q.prize ? `<span class="pz">&#127873;</span>` : ""}</div>`;
     });
@@ -3151,7 +3164,12 @@ wheel.onclick = spin;
       const r = t.dataset.ar === undefined ? 0 : +t.dataset.ar;
       const card = document.querySelector(`.jp-side[data-c="${t.dataset.ac}"][data-r="${r}"][data-s="clue"]`);
       const qc = card && card.closest(".jp-qcard");
-      if (qc) { qc.scrollIntoView({ behavior: "smooth", block: "center" }); qc.classList.add("flash"); setTimeout(() => qc.classList.remove("flash"), 1200); }
+      if (qc) {
+        // scroll only the Jeopardy panel (scrollIntoView also scrolled the whole page and pushed the header off the top)
+        const st = document.getElementById("jeopStage"), r = qc.getBoundingClientRect(), sr = st.getBoundingClientRect();
+        st.scrollTo({ top: st.scrollTop + r.top - sr.top - st.clientHeight / 3, behavior: "smooth" });
+        qc.classList.add("flash"); setTimeout(() => qc.classList.remove("flash"), 1200);
+      }
     });
   })();
   function refreshTab(){

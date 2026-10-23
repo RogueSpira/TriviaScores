@@ -348,4 +348,10 @@ Top to bottom, the laptop header now reads in one direction:
    - Music: Play on TV / This laptop, clip length and points, Edit songs, New round.
    - Feud: 1 Surveys / 2 Build boards / 3 Play.
    - Wheel: a one-line hint.
+- Colors (Oct 22): each part of the night has its own color — Start teal, Jeopardy blue, Scores/Wheel green,
+  Music purple, Feud gold, Finale pink — on the On TV captions and as a dot on each laptop tab. Orange means
+  "you are here": the open tool's tab and its tool bar, and the category you're editing in Jeopardy (tab + its
+  column in Arrange the board).
+- Fixed: clicking a question in Arrange the board (or focusing a field) could scroll the whole page and push the
+  header off the top. The page itself can't scroll now; only the panel inside it does.
 
