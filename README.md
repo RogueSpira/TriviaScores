@@ -357,14 +357,19 @@ Top to bottom, the laptop header now reads in one direction:
 - **Open ↗** (under "On TV", top left): opens the audience view (scores-board.html) in its own tab, ready to
   cast. Clicking it again goes back to that same tab instead of opening another.
 
-## Hand-off helpers (Oct 23) — host-help.js
-- **Host / Build** switch (right of the laptop tabs). **Host** (default) hides building and delete buttons:
-  Jeopardy Edit questions, new/duplicate/delete saved boards, Music Edit songs / New round / clip settings, Feud
-  Create survey / Links / Maintenance / survey Delete. **Build** shows everything. Remembered per laptop;
-  `scores-host.html?mode=build` opens straight in Build.
-- **📋 Run sheet**: the night as a checklist (Before doors → Jeopardy → Midpoint gamble → Music → Feud → Final gamble
-  & finale). Each step has **Go** (does it: puts the right thing on the TV / opens the right screen) and **Show me**
-  (starts the matching tour). Ticks are remembered for the day.
-- **? Tutorial**: guided tours that dim the page and ring the real button with a short explanation — Getting set
-  up, Jeopardy, Gambling, Music round, Feud, Scores & the finale. Next / Back (or arrow keys), Esc closes.
-
+## Host / Build modes, Run sheet, Tutorials (Oct 23) — host-help.js
+- **Host / Build** switch: first thing in the laptop header, before the tool tabs. The mode decides what you see:
+  - **Host** (running tonight): Jeopardy = the board plus Board: Jeopardy / Gambling and **Tonight's board** (pick a
+    saved board — no section tabs). Music = the player (Play on TV / This laptop, New round). TV strip, scoreboard,
+    buzzers bar and Wheel are all here.
+  - **Build** (making things ahead of time): Jeopardy opens straight into **Edit questions** (tabs: Edit questions
+    / Saved boards — no Play). Music opens straight into the song editor (clip length / points). No TV strip, no
+    scoreboard, no buzzers bar, no Wheel — the editor gets the full width.
+  - **Feud** has its own steps, so it ignores the mode (switch greyed out; everything shown, scoreboard back).
+  - Remembered per laptop; `?mode=build` / `?mode=host` in the address opens in that mode.
+- **Run sheet & help**: a tab on the left edge slides out the run sheet — Tutorials at the top, then the night as a
+  checklist (Before doors → Jeopardy → Midpoint gamble → Music → Feud → Final gamble & finale). **Go** does the step
+  (switching to Host if needed), **Show me** starts its tutorial. Ticks are remembered for the day. Click outside to
+  close.
+- **Tutorials**: Getting set up, Jeopardy, Gambling, Music round, Feud, Scores & the finale — they dim the page and
+  ring the real button. The TV step says to use the bookmark on the TV (or Open ↗ and cast).

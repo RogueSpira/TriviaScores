@@ -428,11 +428,23 @@
     font: 700 11.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; text-decoration: none; white-space: nowrap; }
   .tv-open:hover { background: var(--accent); color: var(--on-accent); }
   /* Host / Build modes, Run sheet, Tutorial */
-  .nav-help { margin-left: auto; display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
-  #modeSwitch button.on { background: var(--here); color: #1a0d00; }
-  .help-btn { background: var(--panel); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 7px 11px; font: 700 12.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
-  .help-btn:hover, .help-btn.open { border-color: var(--here); color: var(--here); }
-  body.host-mode .build-only, body.host-mode [data-build-only] { display: none !important; }
+  /* Host / Build: the mode decides what the header and each tool show */
+  .mode-pill { display: inline-flex; align-self: center; margin: 0 6px 6px 0; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+  .mode-pill button { background: transparent; border: none; color: var(--muted); padding: 7px 14px; border-radius: 999px; cursor: pointer; font: 800 13px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; letter-spacing: .3px; }
+  .mode-pill button:hover { color: var(--ink); }
+  .mode-pill button.on { background: var(--here); color: #1a0d00; }
+  body.view-feud .mode-pill { opacity: .35; pointer-events: none; }   /* Feud has its own steps: no Host / Build */
+  .dev-only { display: none !important; }
+  body.dev-mode .dev-only { display: revert !important; }
+  body.host-mode .build-only { display: none !important; }
+  body.build-mode .host-only { display: none !important; }
+  /* Build (except Feud): no TV strip, no scoreboard — just the thing you're making, full width */
+  body.build-mode:not(.view-feud) .tv-row, body.build-mode:not(.view-feud) #revealRow { display: none !important; }
+  body.build-mode:not(.view-feud) .layout { grid-template-columns: 1fr; }
+  body.build-mode:not(.view-feud) .layout > .sidebar { display: none; }
+  .jp-tonight { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .jp-tonight select { text-transform: none; letter-spacing: 0; font: 700 13px "Helvetica Neue", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; max-width: 340px; }
 
   [hidden] { display: none !important; }
 
@@ -876,7 +888,7 @@
   .rm-song:hover { border-color: #b5484e; color: #d9736f; }
 </style>
 </head>
-<body>
+<body class="view-wheel host-mode">
 <div id="saveIndicator">Saved &#10003;</div>
 
 <div class="layout">
@@ -941,38 +953,37 @@
     </div>
     <!-- 2. Which tool this laptop is working in, and 3. that tool's own sections and options -->
     <nav class="toolnav" aria-label="Tools on this laptop">
-      <span class="hdr-lbl" title="What this laptop shows. Doesn't change the TV.">Laptop</span>
+      <div class="mode-pill" id="modeSwitch" title="Host = run tonight's game. Build = make the boards and songs ahead of time.">
+        <button data-mode="host">&#9654; Host</button><button data-mode="build">&#9998; Build</button>
+      </div>
       <div id="viewSwitch">
         <button data-view="jeopardy" style="--sec:var(--c-jeop)">Jeopardy</button>
         <button data-view="music" style="--sec:var(--c-music)">Music</button>
         <button data-view="feud" style="--sec:var(--c-feud)">Feud</button>
-        <button data-view="wheel" class="on" style="--sec:var(--c-scores)">Wheel</button>
-      </div>
-      <div class="nav-help">
-        <span class="seg" id="modeSwitch" title="Host = run the night (building and delete buttons hidden). Build = make boards, surveys and songs.">
-          <button data-mode="host">Host</button><button data-mode="build">Build</button></span>
-        <button class="help-btn" id="runSheetBtn" title="The night, step by step, with a button for each step">&#128203; Run sheet</button>
-        <button class="help-btn" id="tourBtn" title="Guided tours of each part of the night">? Tutorial</button>
+        <button data-view="wheel" class="on host-only" style="--sec:var(--c-scores)">Wheel</button>
       </div>
     </nav>
     <div class="subbar" id="subbar">
       <div class="sub" data-for="jeopardy" hidden>
-        <div class="seg" id="jpTabs">
-          <button class="jp-tab active" data-jtab="play">Play</button>
-          <button class="jp-tab build-only" data-jtab="edit">Edit questions</button>
+        <div class="seg build-only" id="jpTabs">
+          <button class="jp-tab active dev-only" data-jtab="play">Play</button>
+          <button class="jp-tab" data-jtab="edit">Edit questions</button>
           <button class="jp-tab" data-jtab="lib">Saved boards</button>
         </div>
         <div class="sub-grp jp-boardpick"><span class="sub-lbl">Board</span>
           <div class="seg" id="jpBoardPick"><button data-jb="r1">Jeopardy</button><button data-jb="g1">Gambling</button></div>
         </div>
-        <span class="jp-gamename" id="jpGameName"></span>
+        <label class="sub-grp host-only jp-tonight" title="Boards are made ahead of time in Build mode">Tonight's board
+          <select id="jpTonight"><option value="">Loading&hellip;</option></select></label>
+        <span class="jp-gamename build-only" id="jpGameName"></span>
       </div>
       <div class="sub" data-for="music" hidden>
-        <span class="music-on" id="musicOn" title="Where the clips play. TV = the cast TV tab plays them (click the TV screen once per night so it can play sound).">Play on
+        <span class="music-on host-only" id="musicOn" title="Where the clips play. TV = the cast TV tab plays them (click the TV screen once per night so it can play sound).">Play on
             <span class="seg"><button data-on="tv">TV</button><button data-on="laptop">This laptop</button></span></span>
         <div class="sub-grp music-ctl build-only"><label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label><label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label></div>
-        <button class="mbtn build-only" id="editSongsBtn">Edit songs</button>
-        <span class="sub-end build-only"><button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button></span>
+        <span class="sub-note build-only">Type the songs below &mdash; they save as you go. Switch to <b>Host</b> to play them.</span>
+        <button class="mbtn dev-only" id="editSongsBtn">Edit songs</button>
+        <span class="sub-end host-only"><button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button></span>
       </div>
       <div class="sub" data-for="feud" hidden>
         <div class="seg" id="feudTabs">
@@ -1001,8 +1012,8 @@
   <div class="stage music-stage" id="musicStage" hidden>
     <div class="music-head">
       <div class="music-info">
-        <div class="music-legend" id="musicLegend"></div>
-        <div class="now-playing" id="nowPlaying"></div>
+        <div class="music-legend host-only" id="musicLegend"></div>
+        <div class="now-playing host-only" id="nowPlaying"></div>
       </div>
       <div class="yt-box" id="ytBox"><div id="ytPlayer">YouTube player loads here</div></div>
     </div>
@@ -1012,7 +1023,7 @@
 
   <!-- ================= JEOPARDY ================= -->
   <div class="stage" id="jeopStage" hidden>
-    <div class="bz-bar" data-bzbar id="jpBuzzBar"></div>
+    <div class="bz-bar host-only" data-bzbar id="jpBuzzBar"></div>
 
     <section id="jpPlay">
       <div class="jp-catctl">
@@ -1031,7 +1042,7 @@
 
     <section id="jpLib" hidden>
       <div class="jl-now" id="jlNow"></div>
-      <div class="jl-new build-only">
+      <div class="jl-new">
         <input type="text" id="jlNewName" maxlength="60" placeholder="New board name (e.g. Oct 16 &mdash; Halloween)">
         <button class="mbtn primary" id="jlNewBtn">+ New blank board</button>
         <input type="search" id="jlSearch" placeholder="Search saved boards" style="margin-left:auto">
@@ -1071,7 +1082,7 @@
     <!-- SURVEYS -->
     <div class="section active" id="f_sec-collect">
       <div class="grid2">
-        <div class="card build-only">
+        <div class="card">
           <h2>Create a survey</h2>
           <label>Survey name</label>
           <input type="text" id="f_newTitle" placeholder="e.g. Trivia Night — Oct 15" style="width:100%; margin-bottom:12px;">
@@ -1087,7 +1098,7 @@
           <div id="f_surveyList"><p class="hint">Loading&hellip;</p></div>
         </div>
       </div>
-      <div class="card build-only">
+      <div class="card">
         <h2>Links</h2>
         <div class="grid2">
           <div>
@@ -1102,7 +1113,7 @@
         <div class="urls">Players' survey page: <b id="f_surveyUrl">&mdash;</b><br>
           TV screen (open this on the TV): <b id="boardUrl">&mdash;</b></div>
       </div>
-      <div class="card build-only">
+      <div class="card">
         <h2>Maintenance</h2>
         <p class="hint" style="margin-top:0;">Clears ALL Feud surveys and boards. Team scores on this page aren't touched.</p>
         <button class="btn danger" id="f_resetAll">Reset all Feud data</button>
@@ -2058,6 +2069,7 @@ function setView(view) {
   jeopMode = view === "jeopardy";
   viewSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
   document.querySelectorAll("#subbar .sub").forEach(x => { x.hidden = x.dataset.for !== view; });
+  ["jeopardy", "music", "feud", "wheel"].forEach(v => document.body.classList.toggle("view-" + v, v === view));
   try { localStorage.setItem("kavaHostView", view); } catch(e) {}
   if (musicMode) { paintMusicOn(); if (musicOn === "laptop") loadYouTubeAPI(); renderMusic(); }
   if (feudMode) feudOpened();
@@ -3342,7 +3354,23 @@ wheel.onclick = spin;
     try { const d = await libApi("jlib_list"); lib = d.boards || []; } catch(e) { toast("Couldn't load saved boards"); lib = lib || []; }
     libLoading = false;
     if (tab === "lib") renderLib();
+    renderTonight();
   }
+  // Host mode: "Tonight's board" picker (boards are made in Build mode)
+  function renderTonight(){
+    const sel = $("jpTonight"); if (!sel || document.activeElement === sel) return;
+    if (!lib) { if (!libLoading) fetchLib(); return; }
+    const cur = jq.game ? jq.game.id : "";
+    const opts = (cur ? "" : `<option value="">${esc(lib.length ? "Pick tonight's board…" : "No saved boards yet — make one in Build")}</option>`) +
+      lib.map(e => `<option value="${escA(e.id)}" ${e.id === cur ? "selected" : ""}>${esc(e.name)}${e.lastPlayed ? " · played " + fmtDay(e.lastPlayed) : ""}</option>`).join("");
+    if (sel.dataset.sig !== opts) { sel.dataset.sig = opts; sel.innerHTML = opts; }
+    sel.value = cur;
+  }
+  $("jpTonight").addEventListener("change", async e => {
+    const id = e.target.value; if (!id) return;
+    await loadBoard(id);
+    e.target.dataset.sig = ""; e.target.blur(); renderTonight();   // cancelled: back to the loaded board
+  });
   // autosave: every couple of seconds, if the loaded board changed, save it back to the library
   async function libAutosave(){
     if (!jq.game || libSaving) return;
@@ -3470,8 +3498,8 @@ wheel.onclick = spin;
           <div class="meta">${e.clues || 0} of 28 clues written &middot; edited ${fmtDay(e.updated)}${e.lastPlayed ? ` &middot; last played ${fmtDay(e.lastPlayed)}` : " &middot; not played yet"}</div></div>
         <div class="acts">
           ${loaded ? "" : `<button class="mbtn primary" data-jl="load">Load</button>`}
-          <button class="mbtn build-only" data-jl="dup" title="Make a copy (a starting point for a new board)">Duplicate</button>
-          <button class="mbtn warn build-only" data-jl="del">Delete</button>
+          <button class="mbtn" data-jl="dup" title="Make a copy (a starting point for a new board)">Duplicate</button>
+          <button class="mbtn warn" data-jl="del">Delete</button>
         </div>
         <div class="cats"><b>Round 1:</b> ${cats(e.r1)} &nbsp; <b>Gamble:</b> ${cats(e.g1)}</div>
       </div>`;
@@ -3544,6 +3572,7 @@ wheel.onclick = spin;
     gn.classList.toggle("unsaved", !jq.game);
     gn.innerHTML = jq.game ? `Board: <b>${esc(jq.game.name)}</b>` : `<b>Not saved to the library</b>`;
     gn.title = jq.game ? "Edits save to this saved board automatically" : "Open Saved boards to save this board";
+    renderTonight();
     if (tab === "lib") { renderLib(); return; }
     const shownBoard = tab === "edit" ? editBoard : jp.board;
     document.querySelectorAll("#jpBoardPick button").forEach(b => {
@@ -3658,7 +3687,7 @@ wheel.onclick = spin;
         return `<div class="survey-item"><div class="survey-head">
             <div><div class="survey-title">${escapeHtml((s && s.title) || (s && s.question) || "Old survey")}</div>
             <div class="survey-meta" style="color:var(--red-soft);">Old format — delete this</div></div>
-            <div class="btn-row"><button class="btn sm danger" onclick="fDelSurvey('${sid}')" data-build-only>Delete</button></div>
+            <div class="btn-row"><button class="btn sm danger" onclick="fDelSurvey('${sid}')">Delete</button></div>
           </div></div>`;
       }
       const isLive = state.liveSurveyId === sid;
@@ -3675,7 +3704,7 @@ wheel.onclick = spin;
               ${isLive
                 ? `<button class="btn sm" onclick="fGoLive(null)">Take offline</button>`
                 : `<button class="btn sm aqua" onclick="fGoLive('${sid}')">Go live</button>`}
-              <button class="btn sm danger" onclick="fDelSurvey('${sid}')" data-build-only>Delete</button>
+              <button class="btn sm danger" onclick="fDelSurvey('${sid}')">Delete</button>
             </div>
           </div>
         </div>`;

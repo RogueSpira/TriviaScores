@@ -1,0 +1,4 @@
+# Score tracker — Netlify config
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

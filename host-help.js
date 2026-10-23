@@ -12,8 +12,8 @@
   /* ---------- driving the page (used by the run sheet and the tours) ---------- */
   const click = sel => { const b = document.querySelector(sel); if (b) b.click(); return !!b; };
   const go = {
-    view(v) { if (typeof setView === "function") setView(v); },
-    tv(key) { click(`#tvBar [data-tv="${key}"]`); },
+    view(v) { if (typeof setMode === "function" && document.body.classList.contains("build-mode") && v !== "feud") setMode("host"); if (typeof setView === "function") setView(v); },
+    tv(key) { if (document.body.classList.contains("build-mode") && curView() !== "feud") setMode("host"); click(`#tvBar [data-tv="${key}"]`); },
     jtab(t) { go.view("jeopardy"); const b = document.querySelector(`#jpTabs [data-jtab="${t}"]`); if (b && !b.classList.contains("active")) b.click(); },
     jboard(id) {
       go.jtab("play");
@@ -25,9 +25,21 @@
   /* ---------- styles ---------- */
   const css = document.createElement("style");
   css.textContent = `
-  .help-drawer { position: fixed; top: 0; bottom: 0; right: 420px; width: 420px; max-width: calc(100vw - 420px); z-index: 46; background: var(--panel);
-    border-left: 1px solid var(--line); box-shadow: -10px 0 30px rgba(0,0,0,.4); display: flex; flex-direction: column; }
-  .help-drawer[hidden] { display: none; }
+  .help-drawer { position: fixed; top: 0; bottom: 0; left: 0; width: 400px; max-width: calc(100vw - 40px); z-index: 46; background: var(--panel);
+    border-right: 1px solid var(--here); box-shadow: 10px 0 30px rgba(0,0,0,.45); display: flex; flex-direction: column;
+    transform: translateX(-102%); visibility: hidden; transition: transform .25s ease, visibility 0s linear .25s; }
+  .help-drawer.open { transform: none; visibility: visible; transition: transform .25s ease, visibility 0s; }
+  .rs-tab { position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 44; writing-mode: vertical-rl; rotate: 180deg;
+    background: var(--panel); color: var(--here); border: 1px solid var(--here); border-left: none; border-radius: 0 9px 9px 0;
+    padding: 12px 4px; font: 800 11px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    box-shadow: 4px 0 14px rgba(0,0,0,.35); }
+  .rs-tab:hover { background: var(--here); color: #1a0d00; }
+  body.build-mode:not(.view-feud) .rs-tab { display: none; }
+  .rs-tours { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
+  .rs-tours button { display: inline-flex; align-items: center; gap: 7px; background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 999px;
+    padding: 6px 11px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .rs-tours button:hover { border-color: var(--here); }
+  .rs-tours button i { width: 8px; height: 8px; border-radius: 50%; background: var(--sec, var(--muted)); }
   .help-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
   .help-head h2 { margin: 0; font-size: 15px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--here); flex: 1; }
   .help-head button { background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 7px; padding: 6px 10px; cursor: pointer; font-size: 12px; font-weight: 700; }
@@ -70,24 +82,44 @@
   `;
   document.head.appendChild(css);
 
-  /* ---------- Host / Build mode ---------- */
+  /* ---------- Host / Build mode ----------
+     Host  = run tonight: Jeopardy play screen + tonight's board picker, Music player, TV strip and scoreboard.
+     Build = make things: Jeopardy Edit questions / Saved boards, Music song editor; no TV strip or scoreboard.
+     Feud has its own steps and ignores the mode; the Wheel is a Host thing. */
   const modeSwitch = $("modeSwitch");
-  function setMode(m) {
-    m = m === "build" ? "build" : "host";
-    document.body.classList.toggle("host-mode", m === "host");
-    document.body.classList.toggle("build-mode", m === "build");
-    modeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.mode === m));
-    store.set("kavaMode", m);
-    if (m === "host") {
-      // leave any building screen for its play screen
-      if (document.querySelector('#jpTabs [data-jtab="edit"].active')) click('#jpTabs [data-jtab="play"]');
-      const es = $("editSongsBtn"); if (es && /done|finish|close/i.test(es.textContent)) es.click();
+  let mode = "host";
+  const curView = () => { const b = document.querySelector("#viewSwitch button.on"); return b ? b.dataset.view : "wheel"; };
+  const musicEditing = () => { const es = $("editSongsBtn"); return !!es && /done/i.test(es.textContent); };
+  // put the open tool on the right screen for the mode
+  function applyMode(){
+    if (mode === "dev") return;
+    const v = curView(), jt = document.querySelector("#jpTabs .jp-tab.active");
+    if (mode === "build") {
+      if (v === "wheel") { origSetView("jeopardy"); return applyMode(); }
+      if (v === "jeopardy" && (!jt || jt.dataset.jtab === "play")) click('#jpTabs [data-jtab="edit"]');
+      if (v === "music" && !musicEditing()) click("#editSongsBtn");
+    } else {
+      if (v === "jeopardy" && jt && jt.dataset.jtab !== "play") click('#jpTabs [data-jtab="play"]');
+      if (musicEditing()) click("#editSongsBtn");
     }
   }
+  function setMode(m) {
+    mode = m === "build" ? "build" : m === "dev" ? "dev" : "host";
+    document.body.classList.toggle("host-mode", mode === "host");
+    document.body.classList.toggle("build-mode", mode === "build");
+    document.body.classList.toggle("dev-mode", mode === "dev");   // testing only: everything shown
+    modeSwitch.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+    if (mode !== "dev") store.set("kavaMode", mode);
+    applyMode();
+    if (typeof fitTeams === "function") setTimeout(fitTeams, 0);
+  }
+  // every tool switch lands on the right screen for the mode
+  const origSetView = window.setView;
+  window.setView = function (v) { origSetView(v); applyMode(); };
   modeSwitch.addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (b) setMode(b.dataset.mode); });
-  // ?mode=build (or host) in the address opens in that mode, e.g. for a bookmark
+  // ?mode=build / host in the address opens in that mode (e.g. a bookmark); ?mode=dev shows everything (testing)
   const qm = new URLSearchParams(location.search).get("mode");
-  setMode(qm === "build" || qm === "host" ? qm : (store.get("kavaMode") || "host"));
+  setMode(["build", "host", "dev"].includes(qm) ? qm : (store.get("kavaMode") || "host"));
   window.setHostMode = setMode;
 
   /* ---------- Tours ---------- */
@@ -95,19 +127,18 @@
   const TOURS = {
     start: { name: "Getting set up", sec: "--c-start", steps: [
       [N, "Welcome", "This laptop runs the night. The <b>TV</b> shows the audience screen, and players' <b>phones</b> are the buzzers. This tour points at each part. Use <b>Next</b> and <b>Back</b> &mdash; you can also click things as you go."],
-      ["#openTvBtn", "Open the TV screen", "Opens the audience screen in its own tab. Cast <b>that tab</b> to the TV (Chrome menu &rarr; Cast &rarr; Cast tab). Then click once anywhere on that screen so it's allowed to play sound."],
+      ["#openTvBtn", "The TV screen", "<b>Or use the bookmark on the TV</b>: the audience screen is bookmarked in the smart TV's browser &mdash; open it there (it runs smoothest that way).<br><br>Or press <b>Open &#8599;</b> here and cast that tab to the TV (Chrome menu &rarr; Cast &rarr; Cast tab).<br><br>Either way, click once on the TV screen so it's allowed to play sound."],
       ["#tvBar", "What's on the TV", "These buttons decide what the room sees, in the order a night runs. The lit button is what's on the TV right now. Hover over any button for a hint."],
       ["#viewSwitch", "Your tools", "What <b>this laptop</b> is working on. Changing tools here never changes the TV."],
-      ["#modeSwitch", "Host and Build", "<b>Host</b> hides the building and delete buttons so nothing gets changed by accident. Switch to <b>Build</b> to make Jeopardy boards, Feud surveys and songs."],
+      ["#modeSwitch", "Host and Build", "<b>Host</b> is for running tonight. <b>Build</b> is for making Jeopardy boards and music rounds ahead of time &mdash; it hides the TV and scoreboard so it's just the editor. (Feud works the same in both.)"],
       ["#hideAllBtn", "Reset for tonight", "Start of the night: hides every Jeopardy category and Feud answer, closes the buzzers and puts <b>Starting Soon</b> on the TV. Teams and scores stay."],
-      ["#jpBuzzBar", "Phone buzzers", "Type the <b>host PIN</b> and press <b>Connect</b>. Then put <b>Join QR</b> on the TV: teams scan it, type a team name, and show up on the right by themselves.", () => go.jtab("play")],
+      ["#jpBuzzBar", "Phone buzzers", "Type the <b>host PIN</b> and press <b>Connect</b>. Then put <b>Join QR</b> on the TV: teams scan it, type a team name, and show up on the right by themselves.", () => go.view("jeopardy")],
       ["#teamList", "Teams and scores", "Every team's score. Type an amount and press <b>+</b> or <b>&minus;</b>, or use +250 / +500 / +1,000. Points from Jeopardy, Music and Feud land here on their own."],
       ["#historyBtn", "Fix a mistake", "<b>History</b> lists every score change, and you can undo any of them."],
-      ["#runSheetBtn", "Run sheet", "The whole night as a checklist, with a button that does each step. Open it any time you're not sure what's next."]
+      ["#runSheetTab", "Run sheet", "The whole night as a checklist, with a button that does each step, plus these tours. It slides out from the left edge any time you're not sure what's next."]
     ]},
     jeopardy: { name: "Jeopardy", sec: "--c-jeop", steps: [
-      ["#jpLib", "Load tonight's board", "<b>Saved boards</b> lists the boards made ahead of time. Press <b>Load</b> on tonight's.", () => go.jtab("lib")],
-      ["#jpTabs", "Play", "<b>Play</b> is where you run the board.", () => go.jtab("play")],
+      ["#jpTonight", "Tonight's board", "Pick tonight's board from the boards made ahead of time.", () => go.view("jeopardy")],
       ["#tvBar [data-tv=jeopardy]", "Board on the TV", "Put the Jeopardy board on the TV."],
       ["#jpCatNext", "Reveal the categories", "Reveal the categories one at a time (read each one out), or <b>Reveal all</b>."],
       ["#jpGrid", "Pick a question", "When a team picks, click that value. The question goes up on the TV, and this board steps aside so the controls sit at the top."],
@@ -193,7 +224,8 @@
   }
   function startTour(key) {
     cur = TOURS[key]; if (!cur) return;
-    idx = 0; tour.hidden = false; menu.hidden = true; show();
+    if (key !== "feud" && document.body.classList.contains("build-mode")) setMode("host");   // tours show the hosting screens
+    idx = 0; tour.hidden = false; if (typeof showSheet === "function") showSheet(false); show();
     clearInterval(follow); follow = setInterval(place, 400);   // follow the page if it moves (renders, resizes)
   }
   function endTour() { tour.hidden = true; cur = null; clearInterval(follow); }
@@ -212,32 +244,16 @@
   addEventListener("resize", place);
   window.startTour = startTour;
 
-  // Tutorial button: pick a tour
-  const menu = document.createElement("div");
-  menu.className = "tour-menu"; menu.hidden = true;
-  menu.innerHTML = `<small>Guided tours &mdash; each one points at the real buttons.</small>` +
-    Object.entries(TOURS).map(([k, t]) => `<button data-tour="${k}" style="--sec:var(${t.sec})"><i></i>${t.name}</button>`).join("");
-  document.body.appendChild(menu);
-  const tourBtn = $("tourBtn");
-  tourBtn.addEventListener("click", e => {
-    e.stopPropagation();
-    if (!menu.hidden) { menu.hidden = true; return; }
-    const r = tourBtn.getBoundingClientRect();
-    menu.hidden = false; menu.style.top = (r.bottom + 6) + "px"; menu.style.left = Math.max(8, r.right - menu.offsetWidth) + "px";
-  });
-  menu.addEventListener("click", e => { const b = e.target.closest("[data-tour]"); if (b) startTour(b.dataset.tour); });
-  document.addEventListener("click", e => { if (!menu.hidden && !menu.contains(e.target) && e.target !== tourBtn) menu.hidden = true; });
-
   /* ---------- Run sheet ---------- */
   const SHEET = [
     { sec: "Before doors", color: "--c-start", steps: [
-      ["tv", "Open the TV screen and cast it", "Press <b>Open &#8599;</b>, cast that tab to the TV, then click once on it so it can play sound.", () => click("#openTvBtn"), "start"],
+      ["tv", "Get the TV screen up", "<b>Use the bookmark on the TV</b> (smoothest), or press <b>Open &#8599;</b> here and cast that tab. Then click once on the TV screen so it can play sound.", () => click("#openTvBtn"), "start"],
       ["reset", "Reset for tonight", "Hides every board and Feud answer, closes buzzers, puts Starting Soon on the TV. Teams and scores stay.", () => click("#hideAllBtn"), "start"],
       ["newnight", "New teams? Start a new night", "If last week's teams are still listed, <b>New night</b> clears them (with phone buzzers, teams re-join with the QR).", () => click("#newNightBtn"), "finale"],
       ["soon", "Starting Soon on the TV", "While people arrive.", () => go.tv("title:soon"), "start"],
-      ["pin", "Connect the phone buzzers", "Enter the host PIN in the Buzzers bar and press Connect.", () => { go.jtab("play"); setTimeout(() => { const i = document.querySelector('#jpBuzzBar [data-bz="pin"]'); if (i) i.focus(); }, 100); }, "start"],
+      ["pin", "Connect the phone buzzers", "Enter the host PIN in the Buzzers bar and press Connect.", () => { go.view("jeopardy"); setTimeout(() => { const i = document.querySelector('#jpBuzzBar [data-bz="pin"]'); if (i) i.focus(); }, 100); }, "start"],
       ["join", "Join QR on the TV", "Teams scan, type a team name and appear on the right.", () => go.tv("qr:join"), "start"],
-      ["load", "Load tonight's Jeopardy board", "Saved boards &rarr; <b>Load</b>.", () => go.jtab("lib"), "jeopardy"]
+      ["load", "Pick tonight's Jeopardy board", "Choose it in <b>Tonight's board</b> at the top of Jeopardy.", () => { go.view("jeopardy"); setTimeout(() => { const s = $("jpTonight"); if (s) s.focus(); }, 100); }, "jeopardy"]
     ]},
     { sec: "Jeopardy", color: "--c-jeop", steps: [
       ["jboard", "Board on the TV, reveal categories", "Then click questions as teams pick them.", () => { go.jboard("r1"); go.tv("jeopardy"); }, "jeopardy"],
@@ -261,9 +277,16 @@
     ]}
   ];
   const drawer = document.createElement("aside");
-  drawer.className = "help-drawer"; drawer.id = "runSheet"; drawer.hidden = true;
-  drawer.innerHTML = `<div class="help-head"><h2>&#128203; Run sheet</h2><button id="rsClear" title="Untick everything">Clear ticks</button><button id="rsClose">Close</button></div><div class="help-body" id="rsBody"></div>`;
+  drawer.className = "help-drawer"; drawer.id = "runSheet";
+  drawer.innerHTML = `<div class="help-head"><h2>&#128203; Run sheet</h2><button id="rsClear" title="Untick everything">Clear ticks</button><button id="rsClose">Close</button></div>
+    <div class="help-body"><div class="rs-sec" style="--sec:var(--here)">Tutorials &mdash; point at the real buttons</div>
+      <div class="rs-tours">${Object.entries(TOURS).map(([k, t]) => `<button data-tour="${k}" style="--sec:var(${t.sec})"><i></i>${t.name}</button>`).join("")}</div>
+      <div id="rsBody"></div></div>`;
   document.body.appendChild(drawer);
+  const rsTab = document.createElement("button");
+  rsTab.className = "rs-tab"; rsTab.id = "runSheetTab"; rsTab.type = "button"; rsTab.title = "The night step by step, and guided tutorials";
+  rsTab.innerHTML = "&#128203; Run sheet &amp; help";
+  document.body.appendChild(rsTab);
   const today = () => new Date().toDateString();
   function ticks() {
     let t = null; try { t = JSON.parse(store.get("kavaRunSheet") || "null"); } catch (e) {}
@@ -283,18 +306,20 @@
     const d = e.target.closest("[data-do]"), sh = e.target.closest("[data-show]");
     if (d) { const s = stepByKey(d.dataset.do); if (s) { try { s[3](); } catch (err) {} } }
     if (sh) startTour(sh.dataset.show);
+    const tb = e.target.closest("[data-tour]"); if (tb) startTour(tb.dataset.tour);
   });
   drawer.addEventListener("change", e => {
     const row = e.target.closest(".rs-step"); if (!row) return;
     const t = ticks(); t.done[row.dataset.k] = e.target.checked; store.set("kavaRunSheet", JSON.stringify(t));
     row.classList.toggle("done", e.target.checked);
   });
-  const runBtn = $("runSheetBtn");
   function showSheet(open) {
-    drawer.hidden = !open; runBtn.classList.toggle("open", open);
-    if (open) { renderSheet(); const h = $("historyDrawer"); if (h && !h.hidden) { const c = $("closeHistory"); if (c) c.click(); } }
+    drawer.classList.toggle("open", open);
+    if (open) renderSheet();
   }
-  runBtn.addEventListener("click", () => showSheet(drawer.hidden));
+  rsTab.addEventListener("click", () => showSheet(!drawer.classList.contains("open")));
+  // click outside the flyout closes it (but not while a tour is running)
+  document.addEventListener("pointerdown", e => { if (drawer.classList.contains("open") && !drawer.contains(e.target) && e.target !== rsTab && tour.hidden) showSheet(false); });
   drawer.querySelector("#rsClose").onclick = () => showSheet(false);
   drawer.querySelector("#rsClear").onclick = () => { store.set("kavaRunSheet", JSON.stringify({ day: today(), done: {} })); renderSheet(); };
   window.showRunSheet = showSheet;
