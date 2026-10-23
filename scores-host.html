@@ -17,14 +17,14 @@
     --on-accent: #000;
     --field: #000;
     --focus: #45DBE0;
-    /* "you are here": the open tool, the selected category */
-    --here: #ff8a2a; --here-soft: rgba(255, 138, 42, .14);
-    /* one color per part of the night (TV strip captions, tool tabs) */
-    --c-start: #45DBE0; --c-jeop: #5aa9ff; --c-scores: #5fd38a; --c-music: #b88cff; --c-feud: #f2c94c; --c-finale: #ff7eb3;
+    /* gold = "you are here": the mode, the open tool, the selected category. Teal stays for buttons. */
+    --here: #e7b84a; --here-soft: rgba(231, 184, 74, .10); --on-here: #1a1300;
+    /* scoreboard width: shrinks on smaller laptops so the main area keeps room */
+    --side: clamp(360px, 32vw, 420px);
   }
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; height: 100%; overflow: clip;   /* the page never scrolls; the panels inside it do */
+    margin: 0; height: 100%;
     background: var(--bg);
     color: var(--ink);
     font-family: "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
@@ -32,7 +32,7 @@
   }
   .layout {
     display: grid;
-    grid-template-columns: 1fr 420px;
+    grid-template-columns: minmax(0, 1fr) var(--side);
     grid-template-rows: auto minmax(0, 1fr);
     height: 100vh;
   }
@@ -359,7 +359,7 @@
 
   /* ---- Header: what THIS screen shows (tabs) + what the TV shows (bar) ---- */
   #topBar {
-    grid-column: 1; grid-row: 1; z-index: 5;
+    grid-column: 1; grid-row: 1; z-index: 5; min-width: 0;
     display: flex; flex-direction: column; gap: 6px;
     padding: 10px 20px 12px;
     border-bottom: 1px solid var(--line);
@@ -367,11 +367,10 @@
   }
   .hdr-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .hdr-lbl { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); min-width: 46px; }
-  #tvBar { display: flex; gap: 5px; flex-wrap: wrap; align-items: flex-end; }
+  #tvBar { display: flex; gap: 5px; flex-wrap: nowrap; align-items: flex-end; overflow-x: auto; scrollbar-width: thin; min-width: 0; }
   .tvcol { display: flex; flex-direction: column; gap: 3px; }
-  .tvcap { font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--sec, var(--muted)); padding-left: 5px; }
-  .tvcol .tvgrp { border-top: 2px solid var(--sec, var(--line)); }
-  .hdr-row.tv-row { flex-wrap: nowrap; align-items: flex-end; padding-bottom: 9px; border-bottom: 1px dashed var(--line); }
+  .tvcap { font-size: 9.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); padding-left: 5px; }
+  .hdr-row.tv-row { flex-wrap: nowrap; align-items: flex-end; padding-bottom: 9px; border-bottom: 1px dashed var(--line); min-width: 0; }
   .hdr-row.tv-row > .hdr-lbl { padding-bottom: 10px; flex: 0 0 auto; }
   .tvgrp { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
   .tvgrp button {
@@ -392,16 +391,14 @@
   .rv-next.winner { background: #F0BF17; border-color: #F0BF17; color: #000; }
   .rv-status { font-size: 12.5px; color: var(--muted); }
   /* 2. Laptop tools: folder tabs that sit on top of 3. the tool bar for that tool */
-  .toolnav { display: flex; align-items: flex-end; gap: 10px; margin-top: 4px; }
-  .toolnav > .hdr-lbl { padding-bottom: 10px; }
+  .toolnav { display: flex; align-items: flex-end; gap: 4px 10px; margin-top: 4px; min-width: 0; flex-wrap: wrap; }
   #viewSwitch { display: flex; gap: 3px; }
   #viewSwitch button {
     background: transparent; border: 1px solid transparent; border-bottom: none; color: var(--muted);
-    padding: 9px 18px 10px; border-radius: 10px 10px 0 0; margin-bottom: -1px;
+    padding: 9px 16px 10px; border-radius: 10px 10px 0 0; margin-bottom: -1px; white-space: nowrap;
     font: 700 14.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif;
     cursor: pointer; transition: color .15s ease, background .15s ease;
   }
-  #viewSwitch button::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sec, var(--muted)); margin-right: 8px; vertical-align: 1px; opacity: .85; }
   #viewSwitch button:hover { color: var(--ink); background: var(--panel); }
   #viewSwitch button.on { color: var(--here); background: linear-gradient(var(--here-soft), var(--here-soft)), var(--panel); border-color: var(--here); box-shadow: inset 0 3px 0 var(--here); position: relative; z-index: 1; }
   #viewSwitch button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(var(--here-soft), var(--here-soft)), var(--panel); }
@@ -430,27 +427,33 @@
   /* Host / Build modes, Run sheet, Tutorial */
   /* Host / Build: the mode decides what the header and each tool show */
   .mode-pill { display: inline-flex; align-self: center; margin: 0 6px 6px 0; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
-  .mode-pill button { background: transparent; border: none; color: var(--muted); padding: 7px 14px; border-radius: 999px; cursor: pointer; font: 800 13px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; letter-spacing: .3px; }
+  .mode-pill button { white-space: nowrap; background: transparent; border: none; color: var(--muted); padding: 7px 14px; border-radius: 999px; cursor: pointer; font: 800 13px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; letter-spacing: .3px; }
   .mode-pill button:hover { color: var(--ink); }
-  .mode-pill button.on { background: var(--here); color: #1a0d00; }
-  body.view-feud .mode-pill { opacity: .35; pointer-events: none; }   /* Feud has its own steps: no Host / Build */
+  .mode-pill button.on { background: var(--here); color: var(--on-here); }
+  body.view-feud .mode-pill { opacity: .55; }   /* Feud looks the same in Host and Build */
   .dev-only { display: none !important; }
   body.dev-mode .dev-only { display: revert !important; }
   body.host-mode .build-only { display: none !important; }
   body.build-mode .host-only { display: none !important; }
-  /* Build (except Feud): no TV strip, no scoreboard — just the thing you're making, full width */
-  body.build-mode:not(.view-feud) .tv-row, body.build-mode:not(.view-feud) #revealRow { display: none !important; }
+  /* Build (except Feud): no scoreboard — the thing you're making gets the room. The On TV strip always stays. */
   body.build-mode:not(.view-feud) .layout { grid-template-columns: 1fr; }
   body.build-mode:not(.view-feud) .layout > .sidebar { display: none; }
+  body.build-mode:not(.view-feud) #saveIndicator { right: 18px; }
+  body.build-mode:not(.view-feud) #f_toast { left: 50vw; }
   .jp-tonight { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
   .jp-tonight select { text-transform: none; letter-spacing: 0; font: 700 13px "Helvetica Neue", "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink);
     border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; max-width: 340px; }
 
   [hidden] { display: none !important; }
 
+  /* laptop / desktop: the page itself never scrolls — the panels inside it do */
+  @media (min-width: 821px) { html, body { overflow: clip; } }
+  /* narrow window / tablet: everything stacks and the page scrolls */
   @media (max-width: 820px) {
-    .layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; overflow-y: auto; height: auto; }
-    .stage { height: 70vh; }
+    html, body { overflow: auto; height: auto; }
+    .layout { grid-template-columns: 1fr; grid-template-rows: auto auto auto; height: auto; }
+    .layout > .sidebar { grid-column: 1; grid-row: 3; }
+    .stage { height: 75vh; }
     .sidebar { height: auto; border-left: none; border-top: 1px solid var(--line); }
     .team-list { max-height: none; }
     .history-drawer { right: 0; width: 100vw; }
@@ -462,7 +465,7 @@
 
   /* Save indicator — bottom corner, just left of the sidebar, so it never covers controls */
   #saveIndicator {
-    position: fixed; bottom: 14px; right: 438px; z-index: 50;
+    position: fixed; bottom: 14px; right: calc(var(--side) + 18px); z-index: 50;
     background: var(--panel-2); color: var(--accent); border: 1px solid var(--line);
     padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700;
     opacity: 0; transition: opacity .2s ease; pointer-events: none;
@@ -478,7 +481,7 @@
   /* Audit / score history — a drawer beside the sidebar, so it never steals
      room from the team list */
   .history-drawer {
-    position: fixed; top: 0; bottom: 0; right: 420px; z-index: 45;
+    position: fixed; top: 0; bottom: 0; right: var(--side); z-index: 45;
     width: min(380px, calc(100vw - 440px));
     background: var(--panel); border-left: 1px solid var(--line); border-right: 1px solid var(--line);
     box-shadow: -18px 0 40px rgba(0,0,0,.45);
@@ -662,7 +665,7 @@
   #feudStage .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   #feudStage .strike-xs span { font-size:34px; color:#3a4d52; } #feudStage .strike-xs span.on { color:#ff3b3b; }
   #feudStage .offline { border:1px solid #b5484e; background:rgba(181,72,78,.12); color:#f0a08f; padding:10px 12px; border-radius:10px; font-size:13px; margin-bottom:12px; }
-  #f_toast { position:fixed; bottom:20px; left:calc((100vw - 420px) / 2); transform:translateX(-50%); background:var(--panel-2); border:1px solid var(--line); padding:11px 18px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:60; }
+  #f_toast { position:fixed; bottom:20px; left:calc((100vw - var(--side)) / 2); transform:translateX(-50%); background:var(--panel-2); border:1px solid var(--line); padding:11px 18px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:60; }
   #f_toast.show { opacity:1; }
 
   /* ---- Phone buzzers ---- */
@@ -819,7 +822,7 @@
   .jp-at .ti { position: absolute; right: 4px; top: 3px; font-size: 11px; }
   .jp-qcard.flash { outline: 2px solid var(--accent); outline-offset: 2px; transition: outline-color 1s; }
   .jp-cattab { padding: 7px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 700; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .jp-cattab.active { background: var(--here); color: #1a0d00; border-color: var(--here); }
+  .jp-cattab.active { background: var(--here); color: var(--on-here); border-color: var(--here); }
   .jp-cattab .cnt { opacity: .75; font-size: 11px; }
   .jp-cated { display: flex; flex-direction: column; gap: 8px; }
   .jp-cated .catname { font-size: 16px; font-weight: 800; width: 100%; }
@@ -902,41 +905,41 @@
       </div>
       <div id="tvBar" role="group" aria-label="What the TV shows">
         <!-- left to right in the order a night runs -->
-        <div class="tvcol" style="--sec:var(--c-start)">
+        <div class="tvcol">
           <span class="tvcap">Start</span>
           <div class="tvgrp">
             <button data-tv="title:soon" title="Before trivia starts, while people arrive">Starting Soon</button>
             <button data-tv="title:night" title="Title screen for between rounds or breaks">Trivia Night</button>
           </div>
         </div>
-        <div class="tvcol" style="--sec:var(--c-jeop)">
+        <div class="tvcol">
           <span class="tvcap">Jeopardy</span>
           <div class="tvgrp">
             <button data-tv="qr:join" title="QR for teams to join on their phones and get a buzzer (works all night)">Join QR</button>
             <button data-tv="jeopardy" title="The Jeopardy board (clicking a question in Jeopardy &rarr; Play also puts it up)">Board</button>
           </div>
         </div>
-        <div class="tvcol" style="--sec:var(--c-scores)">
+        <div class="tvcol">
           <span class="tvcap">Scores</span>
           <div class="tvgrp">
             <button data-tv="leaderboard" class="on" title="Current standings — use any time">Leaderboard</button>
             <button data-tv="wheel" title="The team wheel (spinning also puts it on the TV)">Wheel</button>
           </div>
         </div>
-        <div class="tvcol" style="--sec:var(--c-music)">
+        <div class="tvcol">
           <span class="tvcap">Music</span>
           <div class="tvgrp">
             <button data-tv="song" title="The &ldquo;Song N&rdquo; card (playing a clip in Music puts it up automatically)">Song 1</button>
           </div>
         </div>
-        <div class="tvcol" style="--sec:var(--c-feud)">
+        <div class="tvcol">
           <span class="tvcap">Feud</span>
           <div class="tvgrp">
             <button data-tv="qr:survey" title="Step 1: QR for the Feud survey on phones">Survey QR</button>
             <button data-tv="feud" title="Step 2: the Feud board (Load to TV in Feud &rarr; Play also puts it up)">Feud board</button>
           </div>
         </div>
-        <div class="tvcol" style="--sec:var(--c-finale)">
+        <div class="tvcol">
           <span class="tvcap">Finale</span>
           <div class="tvgrp">
             <button data-tv="reveal" title="End of the night: every team starts hidden, then reveal last place up to 1st">Reveal</button>
@@ -957,10 +960,10 @@
         <button data-mode="host">&#9654; Host</button><button data-mode="build">&#9998; Build</button>
       </div>
       <div id="viewSwitch">
-        <button data-view="jeopardy" style="--sec:var(--c-jeop)">Jeopardy</button>
-        <button data-view="music" style="--sec:var(--c-music)">Music</button>
-        <button data-view="feud" style="--sec:var(--c-feud)">Feud</button>
-        <button data-view="wheel" class="on host-only" style="--sec:var(--c-scores)">Wheel</button>
+        <button data-view="jeopardy">Jeopardy</button>
+        <button data-view="music">Music</button>
+        <button data-view="feud">Feud</button>
+        <button data-view="wheel" class="on host-only">Wheel</button>
       </div>
     </nav>
     <div class="subbar" id="subbar">
@@ -1751,6 +1754,8 @@ window.remoteView = function(){
 };
 window.remoteRun = function(cmd){
   if (!cmd || typeof cmd !== "object") return;
+  // the phone remote is for running the night: make sure the laptop is in Host mode
+  if (document.body.classList.contains("build-mode") && typeof window.setHostMode === "function") window.setHostMode("host");
   const args = Array.isArray(cmd.args) ? cmd.args : [];
   if (cmd.a === "tv") {
     const b = tvBar.querySelector(`button[data-tv="${String(cmd.key || "").replace(/[^a-z:]/g, "")}"]`);
@@ -2078,7 +2083,7 @@ function setView(view) {
 }
 viewSwitch.querySelectorAll("button").forEach(b => b.onclick = () => setView(b.dataset.view));
 // belt and braces: if anything (focus, scrolling to a card) nudges the page itself, put it back so the header stays put
-window.addEventListener("scroll", () => { if (window.scrollY || window.scrollX) window.scrollTo(0, 0); });
+window.addEventListener("scroll", () => { if (innerWidth > 820 && (window.scrollY || window.scrollX)) window.scrollTo(0, 0); });
 // open on the tool used last (once everything on the page is set up)
 window.addEventListener("load", () => { let v = null; try { v = localStorage.getItem("kavaHostView"); } catch(e) {} if (v && v !== "wheel" && ["jeopardy", "music", "feud"].includes(v)) setView(v); });
 
@@ -3362,12 +3367,13 @@ wheel.onclick = spin;
     if (!lib) { if (!libLoading) fetchLib(); return; }
     const cur = jq.game ? jq.game.id : "";
     const opts = (cur ? "" : `<option value="">${esc(lib.length ? "Pick tonight's board…" : "No saved boards yet — make one in Build")}</option>`) +
+      (cur && !lib.some(e => e.id === cur) ? `<option value="${escA(cur)}">${esc(jq.game.name)}</option>` : "") +
       lib.map(e => `<option value="${escA(e.id)}" ${e.id === cur ? "selected" : ""}>${esc(e.name)}${e.lastPlayed ? " · played " + fmtDay(e.lastPlayed) : ""}</option>`).join("");
     if (sel.dataset.sig !== opts) { sel.dataset.sig = opts; sel.innerHTML = opts; }
     sel.value = cur;
   }
   $("jpTonight").addEventListener("change", async e => {
-    const id = e.target.value; if (!id) return;
+    const id = e.target.value; if (!id || (jq.game && id === jq.game.id)) return;
     await loadBoard(id);
     e.target.dataset.sig = ""; e.target.blur(); renderTonight();   // cancelled: back to the loaded board
   });

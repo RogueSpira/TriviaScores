@@ -363,8 +363,8 @@ Top to bottom, the laptop header now reads in one direction:
     saved board — no section tabs). Music = the player (Play on TV / This laptop, New round). TV strip, scoreboard,
     buzzers bar and Wheel are all here.
   - **Build** (making things ahead of time): Jeopardy opens straight into **Edit questions** (tabs: Edit questions
-    / Saved boards — no Play). Music opens straight into the song editor (clip length / points). No TV strip, no
-    scoreboard, no buzzers bar, no Wheel — the editor gets the full width.
+    / Saved boards — no Play). Music opens straight into the song editor (clip length / points). No scoreboard, no
+    buzzers bar, no Wheel — the editor gets the full width. The **On TV** strip always stays.
   - **Feud** has its own steps, so it ignores the mode (switch greyed out; everything shown, scoreboard back).
   - Remembered per laptop; `?mode=build` / `?mode=host` in the address opens in that mode.
 - **Run sheet & help**: a tab on the left edge slides out the run sheet — Tutorials at the top, then the night as a
@@ -373,3 +373,9 @@ Top to bottom, the laptop header now reads in one direction:
   close.
 - **Tutorials**: Getting set up, Jeopardy, Gambling, Music round, Feud, Scores & the finale — they dim the page and
   ring the real button. The TV step says to use the bookmark on the TV (or Open ↗ and cast).
+- Colors (Oct 23): teal for buttons, **gold** for "you are here" (Host/Build, the open tool, the selected
+  category). The per-section rainbow colors were removed.
+- Layout adapts to the window: the scoreboard narrows on smaller laptops (360–420px), the On TV strip slides
+  sideways instead of wrapping, and under 820px wide everything stacks and the page scrolls.
+- The phone remote switches the laptop to Host mode if it was left in Build.
+
