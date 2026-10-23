@@ -423,6 +423,16 @@
   .sub .music-on { gap: 8px; }
   /* 1. On the TV strip */
   .tv-lbl { color: var(--accent) !important; min-width: 0 !important; white-space: nowrap; }
+  .tv-head { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; flex: 0 0 auto; }
+  .tv-open { display: inline-block; padding: 6px 9px; border-radius: 7px; border: 1px solid var(--accent); color: var(--accent); background: transparent;
+    font: 700 11.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; text-decoration: none; white-space: nowrap; }
+  .tv-open:hover { background: var(--accent); color: var(--on-accent); }
+  /* Host / Build modes, Run sheet, Tutorial */
+  .nav-help { margin-left: auto; display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
+  #modeSwitch button.on { background: var(--here); color: #1a0d00; }
+  .help-btn { background: var(--panel); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 7px 11px; font: 700 12.5px/1 "Helvetica Neue", "Segoe UI", system-ui, sans-serif; cursor: pointer; white-space: nowrap; }
+  .help-btn:hover, .help-btn.open { border-color: var(--here); color: var(--here); }
+  body.host-mode .build-only, body.host-mode [data-build-only] { display: none !important; }
 
   [hidden] { display: none !important; }
 
@@ -874,7 +884,10 @@
   <header id="topBar">
     <!-- 1. What the room sees (global) -->
     <div class="hdr-row tv-row">
-      <span class="hdr-lbl tv-lbl" title="What the TV in the room shows. Click to change it.">&#128250; On TV</span>
+      <div class="tv-head">
+        <span class="hdr-lbl tv-lbl" title="What the TV in the room shows. Click to change it.">&#128250; On TV</span>
+        <a class="tv-open" id="openTvBtn" href="scores-board.html" target="kavaTV" title="Open the audience view (the TV screen) in its own tab, ready to cast">Open &#8599;</a>
+      </div>
       <div id="tvBar" role="group" aria-label="What the TV shows">
         <!-- left to right in the order a night runs -->
         <div class="tvcol" style="--sec:var(--c-start)">
@@ -935,12 +948,18 @@
         <button data-view="feud" style="--sec:var(--c-feud)">Feud</button>
         <button data-view="wheel" class="on" style="--sec:var(--c-scores)">Wheel</button>
       </div>
+      <div class="nav-help">
+        <span class="seg" id="modeSwitch" title="Host = run the night (building and delete buttons hidden). Build = make boards, surveys and songs.">
+          <button data-mode="host">Host</button><button data-mode="build">Build</button></span>
+        <button class="help-btn" id="runSheetBtn" title="The night, step by step, with a button for each step">&#128203; Run sheet</button>
+        <button class="help-btn" id="tourBtn" title="Guided tours of each part of the night">? Tutorial</button>
+      </div>
     </nav>
     <div class="subbar" id="subbar">
       <div class="sub" data-for="jeopardy" hidden>
         <div class="seg" id="jpTabs">
           <button class="jp-tab active" data-jtab="play">Play</button>
-          <button class="jp-tab" data-jtab="edit">Edit questions</button>
+          <button class="jp-tab build-only" data-jtab="edit">Edit questions</button>
           <button class="jp-tab" data-jtab="lib">Saved boards</button>
         </div>
         <div class="sub-grp jp-boardpick"><span class="sub-lbl">Board</span>
@@ -951,9 +970,9 @@
       <div class="sub" data-for="music" hidden>
         <span class="music-on" id="musicOn" title="Where the clips play. TV = the cast TV tab plays them (click the TV screen once per night so it can play sound).">Play on
             <span class="seg"><button data-on="tv">TV</button><button data-on="laptop">This laptop</button></span></span>
-        <div class="sub-grp music-ctl"><label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label><label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label></div>
-        <button class="mbtn" id="editSongsBtn">Edit songs</button>
-        <span class="sub-end"><button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button></span>
+        <div class="sub-grp music-ctl build-only"><label title="How many seconds each clip plays">Clip <input type="number" id="clipLen" min="5" max="120"> sec</label><label title="Points for each correct title, artist or year">Each correct <input type="number" id="ptsEach" min="1" step="50"> pts</label></div>
+        <button class="mbtn build-only" id="editSongsBtn">Edit songs</button>
+        <span class="sub-end build-only"><button class="mbtn warn" id="newRoundBtn" title="Clear the checkmarks to run another music round">New round</button></span>
       </div>
       <div class="sub" data-for="feud" hidden>
         <div class="seg" id="feudTabs">
@@ -1012,7 +1031,7 @@
 
     <section id="jpLib" hidden>
       <div class="jl-now" id="jlNow"></div>
-      <div class="jl-new">
+      <div class="jl-new build-only">
         <input type="text" id="jlNewName" maxlength="60" placeholder="New board name (e.g. Oct 16 &mdash; Halloween)">
         <button class="mbtn primary" id="jlNewBtn">+ New blank board</button>
         <input type="search" id="jlSearch" placeholder="Search saved boards" style="margin-left:auto">
@@ -1052,7 +1071,7 @@
     <!-- SURVEYS -->
     <div class="section active" id="f_sec-collect">
       <div class="grid2">
-        <div class="card">
+        <div class="card build-only">
           <h2>Create a survey</h2>
           <label>Survey name</label>
           <input type="text" id="f_newTitle" placeholder="e.g. Trivia Night — Oct 15" style="width:100%; margin-bottom:12px;">
@@ -1068,7 +1087,7 @@
           <div id="f_surveyList"><p class="hint">Loading&hellip;</p></div>
         </div>
       </div>
-      <div class="card">
+      <div class="card build-only">
         <h2>Links</h2>
         <div class="grid2">
           <div>
@@ -1083,7 +1102,7 @@
         <div class="urls">Players' survey page: <b id="f_surveyUrl">&mdash;</b><br>
           TV screen (open this on the TV): <b id="boardUrl">&mdash;</b></div>
       </div>
-      <div class="card">
+      <div class="card build-only">
         <h2>Maintenance</h2>
         <p class="hint" style="margin-top:0;">Clears ALL Feud surveys and boards. Team scores on this page aren't touched.</p>
         <button class="btn danger" id="f_resetAll">Reset all Feud data</button>
@@ -1219,6 +1238,7 @@
   <div id="auditList"><div class="audit-empty">No score changes yet.</div></div>
 </aside>
 
+<script src="host-help.js" defer></script>
 <script type="module" src="buzz-host.js"></script>
 <script type="module" src="remote-host.js"></script>
 <script>
@@ -3450,8 +3470,8 @@ wheel.onclick = spin;
           <div class="meta">${e.clues || 0} of 28 clues written &middot; edited ${fmtDay(e.updated)}${e.lastPlayed ? ` &middot; last played ${fmtDay(e.lastPlayed)}` : " &middot; not played yet"}</div></div>
         <div class="acts">
           ${loaded ? "" : `<button class="mbtn primary" data-jl="load">Load</button>`}
-          <button class="mbtn" data-jl="dup" title="Make a copy (a starting point for a new board)">Duplicate</button>
-          <button class="mbtn warn" data-jl="del">Delete</button>
+          <button class="mbtn build-only" data-jl="dup" title="Make a copy (a starting point for a new board)">Duplicate</button>
+          <button class="mbtn warn build-only" data-jl="del">Delete</button>
         </div>
         <div class="cats"><b>Round 1:</b> ${cats(e.r1)} &nbsp; <b>Gamble:</b> ${cats(e.g1)}</div>
       </div>`;
@@ -3638,7 +3658,7 @@ wheel.onclick = spin;
         return `<div class="survey-item"><div class="survey-head">
             <div><div class="survey-title">${escapeHtml((s && s.title) || (s && s.question) || "Old survey")}</div>
             <div class="survey-meta" style="color:var(--red-soft);">Old format — delete this</div></div>
-            <div class="btn-row"><button class="btn sm danger" onclick="fDelSurvey('${sid}')">Delete</button></div>
+            <div class="btn-row"><button class="btn sm danger" onclick="fDelSurvey('${sid}')" data-build-only>Delete</button></div>
           </div></div>`;
       }
       const isLive = state.liveSurveyId === sid;
@@ -3655,7 +3675,7 @@ wheel.onclick = spin;
               ${isLive
                 ? `<button class="btn sm" onclick="fGoLive(null)">Take offline</button>`
                 : `<button class="btn sm aqua" onclick="fGoLive('${sid}')">Go live</button>`}
-              <button class="btn sm danger" onclick="fDelSurvey('${sid}')">Delete</button>
+              <button class="btn sm danger" onclick="fDelSurvey('${sid}')" data-build-only>Delete</button>
             </div>
           </div>
         </div>`;

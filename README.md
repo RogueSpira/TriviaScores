@@ -354,4 +354,17 @@ Top to bottom, the laptop header now reads in one direction:
   column in Arrange the board).
 - Fixed: clicking a question in Arrange the board (or focusing a field) could scroll the whole page and push the
   header off the top. The page itself can't scroll now; only the panel inside it does.
+- **Open ↗** (under "On TV", top left): opens the audience view (scores-board.html) in its own tab, ready to
+  cast. Clicking it again goes back to that same tab instead of opening another.
+
+## Hand-off helpers (Oct 23) — host-help.js
+- **Host / Build** switch (right of the laptop tabs). **Host** (default) hides building and delete buttons:
+  Jeopardy Edit questions, new/duplicate/delete saved boards, Music Edit songs / New round / clip settings, Feud
+  Create survey / Links / Maintenance / survey Delete. **Build** shows everything. Remembered per laptop;
+  `scores-host.html?mode=build` opens straight in Build.
+- **📋 Run sheet**: the night as a checklist (Before doors → Jeopardy → Midpoint gamble → Music → Feud → Final gamble
+  & finale). Each step has **Go** (does it: puts the right thing on the TV / opens the right screen) and **Show me**
+  (starts the matching tour). Ticks are remembered for the day.
+- **? Tutorial**: guided tours that dim the page and ring the real button with a short explanation — Getting set
+  up, Jeopardy, Gambling, Music round, Feud, Scores & the finale. Next / Back (or arrow keys), Esc closes.
 
